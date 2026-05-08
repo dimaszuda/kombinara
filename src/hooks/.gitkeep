@@ -1,0 +1,10 @@
+// Hooks placeholder — akan diisi sesuai kebutuhan per phase
+
+// useReadingTracker    — Intersection Observer untuk time-on-section
+// useActivityScore     — fetch + subscribe activity score realtime
+// useQuizSession       — state management quiz (timer, current soal, answers)
+// useUlanganSession    — state management ulangan (timer, anti-cheat, auto-submit)
+// useLeaderboard       — fetch leaderboard dengan polling interval
+// useHandwrittenCanvas — tldraw integration + export PNG + submit
+
+export {};

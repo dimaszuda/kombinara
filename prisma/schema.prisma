@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================
+// PHASE 1 — Auth + Role + Kelas + Settings
+// ============================================================
+
+enum UserRole {
+  guru
+  siswa
+}
+
+model User {
+  id        String   @id @default(uuid()) // sama dengan Supabase auth.users.id
+  email     String   @unique
+  nama      String
+  role      UserRole
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  guruKelas      Kelas[]         @relation("GuruKelas")
+  siswaKelas     KelasAnggota[]
+  readingProgress ReadingProgress[]
+  aiQuestions    AiQuestion[]
+  quizAttempts   QuizAttempt[]
+  ulanganAttempts UlanganAttempt[]
+  activityScore  ActivityScore?
+  badges         UserBadge[]
+
+  @@map("users")
+}
+
+model Kelas {
+  id        String   @id @default(uuid())
+  nama      String
+  kode      String   @unique // kode join untuk siswa
+  guruId    String   @map("guru_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  guru      User             @relation("GuruKelas", fields: [guruId], references: [id])
+  anggota   KelasAnggota[]
+  settings  ClassSettings?
+  ulangan   Ulangan[]
+
+  @@map("kelas")
+}
+
+model KelasAnggota {
+  kelasId   String   @map("kelas_id")
+  siswaId   String   @map("siswa_id")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  kelas     Kelas    @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  siswa     User     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  @@id([kelasId, siswaId])
+  @@map("kelas_anggota")
+}
+
+// Bobot activity score — configurable per kelas oleh guru
+model ClassSettings {
+  id              String   @id @default(uuid())
+  kelasId         String   @unique @map("kelas_id")
+  readingWeight   Float    @default(0.25) @map("reading_weight")
+  frequencyWeight Float    @default(0.25) @map("frequency_weight")
+  depthWeight     Float    @default(0.30) @map("depth_weight")
+  quizWeight      Float    @default(0.20) @map("quiz_weight")
+  // Leaderboard mode: "activity_score" | "completion_rate"
+  leaderboardMode String   @default("activity_score") @map("leaderboard_mode")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  kelas           Kelas    @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+
+  @@map("class_settings")
+}
+
+// ============================================================
+// PHASE 2 — Materi + Reading Tracking + AI Q&A
+// ============================================================
+
+model Materi {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  judul       String
+  konten      Json     // TipTap JSON
+  urutan      Int
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  sections        MateriSection[]
+  readingProgress ReadingProgress[]
+  quizzes         Quiz[]
+  aiQuestions     AiQuestion[]
+
+  @@map("materi")
+}
+
+// Section adalah unit tracking Intersection Observer
+model MateriSection {
+  id       String @id @default(uuid())
+  materiId String @map("materi_id")
+  sectionId String @map("section_id") // ID dari heading di TipTap JSON
+  judul    String
+  urutan   Int
+
+  materi          Materi            @relation(fields: [materiId], references: [id], onDelete: Cascade)
+  readingProgress ReadingProgress[]
+
+  @@unique([materiId, sectionId])
+  @@map("materi_sections")
+}
+
+// Reading engagement — time-on-section per siswa per section
+model ReadingProgress {
+  id                String   @id @default(uuid())
+  siswaId           String   @map("siswa_id")
+  materiId          String   @map("materi_id")
+  sectionId         String   @map("section_id")
+  timeOnSectionSecs Int      @default(0) @map("time_on_section_secs")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  siswa   User          @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  materi  Materi        @relation(fields: [materiId], references: [id], onDelete: Cascade)
+  section MateriSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([siswaId, materiId, sectionId])
+  @@map("reading_progress")
+}
+
+// Pertanyaan AI dari siswa (block text Q&A)
+model AiQuestion {
+  id            String   @id @default(uuid())
+  siswaId       String   @map("siswa_id")
+  materiId      String   @map("materi_id")
+  selectedText  String   @map("selected_text")
+  question      String
+  response      String?  // null saat pending
+  depthScore    Int?     @map("depth_score")    // 1-5, diisi async
+  depthCategory String?  @map("depth_category") // clarification|conceptual|application|critical
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  siswa  User   @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  materi Materi @relation(fields: [materiId], references: [id], onDelete: Cascade)
+
+  @@map("ai_questions")
+}
+
+// ============================================================
+// PHASE 3 — Quiz + Ulangan + Handwritten
+// ============================================================
+
+enum TipeSoal {
+  mcq
+  isian
+  handwritten
+}
+
+model Quiz {
+  id       String @id @default(uuid())
+  materiId String @map("materi_id")
+  judul    String
+
+  materi   Materi        @relation(fields: [materiId], references: [id], onDelete: Cascade)
+  soal     Soal[]
+  attempts QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model Soal {
+  id           String    @id @default(uuid())
+  quizId       String?   @map("quiz_id")
+  ulanganId    String?   @map("ulangan_id")
+  tipe         TipeSoal
+  pertanyaan   String
+  opsi         Json?     // string[] untuk MCQ
+  jawabanBenar String?   @map("jawaban_benar") // null untuk handwritten
+  rubrik       String?   // untuk handwritten — dikirim ke Claude
+  bobot        Int       @default(10)
+  urutan       Int
+
+  quiz     Quiz?           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  ulangan  Ulangan?        @relation(fields: [ulanganId], references: [id], onDelete: Cascade)
+  jawaban  JawabanSiswa[]
+
+  @@map("soal")
+}
+
+model QuizAttempt {
+  id          String   @id @default(uuid())
+  quizId      String   @map("quiz_id")
+  siswaId     String   @map("siswa_id")
+  score       Float?
+  selesaiAt   DateTime? @map("selesai_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  quiz    Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  siswa   User           @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  jawaban JawabanSiswa[]
+
+  @@map("quiz_attempts")
+}
+
+model Ulangan {
+  id          String   @id @default(uuid())
+  kelasId     String   @map("kelas_id")
+  judul       String
+  durasiMenit Int      @map("durasi_menit")
+  mulaiAt     DateTime @map("mulai_at")
+  selesaiAt   DateTime @map("selesai_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  kelas    Kelas            @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  soal     Soal[]
+  attempts UlanganAttempt[]
+
+  @@map("ulangan")
+}
+
+model UlanganAttempt {
+  id             String    @id @default(uuid())
+  ulanganId      String    @map("ulangan_id")
+  siswaId        String    @map("siswa_id")
+  score          Float?
+  tabSwitchCount Int       @default(0) @map("tab_switch_count")
+  autoSubmitted  Boolean   @default(false) @map("auto_submitted")
+  selesaiAt      DateTime? @map("selesai_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  ulangan Ulangan        @relation(fields: [ulanganId], references: [id], onDelete: Cascade)
+  siswa   User           @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  jawaban JawabanSiswa[]
+
+  @@unique([ulanganId, siswaId]) // satu siswa satu attempt per ulangan
+  @@map("ulangan_attempts")
+}
+
+// Jawaban siswa — incremental submission (anti-cheat)
+model JawabanSiswa {
+  id              String   @id @default(uuid())
+  soalId          String   @map("soal_id")
+  quizAttemptId   String?  @map("quiz_attempt_id")
+  ulanganAttemptId String? @map("ulangan_attempt_id")
+  jawaban         String?  // teks untuk mcq/isian, null untuk handwritten
+  imageUrl        String?  @map("image_url") // Supabase Storage URL untuk handwritten PNG
+  isCorrect       Boolean? @map("is_correct")
+  score           Float?
+  aiFeedback      Json?    @map("ai_feedback") // HandwrittenFeedback JSON
+  submittedAt     DateTime @default(now()) @map("submitted_at")
+
+  soal            Soal            @relation(fields: [soalId], references: [id], onDelete: Cascade)
+  quizAttempt     QuizAttempt?    @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
+  ulanganAttempt  UlanganAttempt? @relation(fields: [ulanganAttemptId], references: [id], onDelete: Cascade)
+
+  @@map("jawaban_siswa")
+}
+
+// ============================================================
+// PHASE 4 — Activity Score + Badge
+// ============================================================
+
+// Denormalized score — di-update setiap ada perubahan komponen
+model ActivityScore {
+  id                  String   @id @default(uuid())
+  siswaId             String   @unique @map("siswa_id")
+  kelasId             String   @map("kelas_id")
+  readingEngagement   Float    @default(0) @map("reading_engagement")
+  questionFrequency   Float    @default(0) @map("question_frequency")
+  questionDepth       Float    @default(0) @map("question_depth")
+  quizScore           Float    @default(0) @map("quiz_score")
+  totalScore          Float    @default(0) @map("total_score")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  siswa User @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  @@map("activity_scores")
+}
+
+model Badge {
+  id          String @id @default(uuid())
+  nama        String @unique
+  deskripsi   String
+  iconUrl     String @map("icon_url")
+  kondisi     Json   // { type: "activity_score_gte", value: 80 } dll
+
+  userBadges  UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  userId    String   @map("user_id")
+  badgeId   String   @map("badge_id")
+  earnedAt  DateTime @default(now()) @map("earned_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+  @@map("user_badges")
+}
+
+// ============================================================
+// PHASE 5 — Leaderboard (Materialized View via raw SQL migration)
+// ============================================================
+// Tidak ada Prisma model untuk leaderboard — query langsung ke materialized view.
+// View SQL akan ada di: prisma/migrations/manual/create_leaderboard_mv.sql
+//
+// CREATE MATERIALIZED VIEW leaderboard_mv AS
+// SELECT
+//   ka.kelas_id,
+//   u.id as siswa_id,
+//   u.nama,
+//   COALESCE(a.total_score, 0) as activity_score,
+//   -- completion_rate: materi selesai / total materi
+//   COUNT(DISTINCT rp.materi_id)::float / NULLIF((SELECT COUNT(*) FROM materi WHERE published_at IS NOT NULL), 0) as completion_rate
+// FROM kelas_anggota ka
+// JOIN users u ON u.id = ka.siswa_id
+// LEFT JOIN activity_scores a ON a.siswa_id = u.id AND a.kelas_id = ka.kelas_id
+// LEFT JOIN reading_progress rp ON rp.siswa_id = u.id
+// GROUP BY ka.kelas_id, u.id, u.nama, a.total_score;
+//
+// REFRESH MATERIALIZED VIEW CONCURRENTLY leaderboard_mv;

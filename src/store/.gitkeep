@@ -1,0 +1,10 @@
+// Zustand store placeholder — gunakan hanya untuk client-side state
+// yang perlu persist lintas komponen tanpa prop drilling
+// Server state (data dari DB) pakai React Query / SWR, bukan store
+
+// Kandidat store:
+// - quizSessionStore   — current quiz state (soal aktif, jawaban draft, timer)
+// - ulanganStore       — ulangan session state (timer, tab-switch counter)
+// - aiChatStore        — chat history per materi session
+
+export {};
