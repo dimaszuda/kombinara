@@ -1,13 +1,10 @@
 "use client";
-// TODO: Implement login page
-// - Supabase Auth email/password
-// - Redirect ke /guru atau /siswa berdasarkan role dari user_metadata
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -24,35 +21,52 @@ export default function LoginPage() {
 
   return (
     <div className="flex w-full min-h-screen">
-      <div className="flex-1 flex flex-col items-center justify-center px-16">
-        <h1 className="text-3xl font-bold">Selamat datang di Kombinara</h1>
+      <div className="flex-1 flex flex-col items-center justify-start px-16 pt-24 pb-16">
+        <h1 className="text-3xl font-bold">Daftar akun Kombinara</h1>
 
         <div className="w-full max-w-[450px] mt-8">
-          <label className="block text-sm mb-1">Email</label>
-          <div className="relative">
-            <Image
-              src="/icons/username-icon.png"
-              alt="username icon"
-              width={20}
-              height={20}
-              className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
-            />
-            <input
-              type="email"
-              className="w-full py-2.5 pl-11 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
-              placeholder="Masukkan email kamu"
-            />
+          <label className="block text-sm mb-1">Nama Lengkap</label>
+          <input
+            type="text"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+            placeholder="Masukkan nama lengkap"
+          />
+
+          <label className="block text-sm mb-1 mt-5">Nomor Absen</label>
+          <input
+            type="text"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+            placeholder="contoh: 1, 2, dst"
+          />
+
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm mb-1 mt-5">Kelas</label>
+              <input
+                type="text"
+                className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+                placeholder="contoh: XI"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm mb-1 mt-5">Grup Kelas</label>
+              <input
+                type="text"
+                className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+                placeholder="contoh: A"
+              />
+            </div>
           </div>
+
+          <label className="block text-sm mb-1 mt-5">Email</label>
+          <input
+            type="email"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+            placeholder="Alamat email aktif"
+          />
 
           <label className="block text-sm mb-1 mt-5">Password</label>
           <div className="relative">
-            <Image
-              src="/icons/password-icon.png"
-              alt="password icon"
-              width={20}
-              height={20}
-              className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
-            />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -67,34 +81,21 @@ export default function LoginPage() {
             </button>
             <input
               type={showPassword ? "text" : "password"}
-              className="w-full py-2.5 pl-11 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none"
+              className="w-full py-2.5 pl-5 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none"
               placeholder="Masukkan password"
             />
-          </div>
-
-          <div className="flex justify-between items-center mt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-sm">
-              <input
-                type="checkbox"
-                className="w-4 h-4 cursor-pointer accent-brand-600"
-              />
-              Ingat saya
-            </label>
-            <a href="#" className="text-sm font-bold text-brand-600 no-underline">
-              Lupa Password?
-            </a>
           </div>
 
           <button
             type="submit"
             className="w-full py-2.5 mt-6 rounded-full bg-brand-600 text-white font-bold border-0 cursor-pointer"
           >
-            Masuk
+            Daftar
           </button>
 
           <div className="flex items-center gap-3 mt-6">
             <div className="flex-1 h-px bg-gray-300" />
-            <span className="text-sm text-gray-400 whitespace-nowrap">atau masuk dengan</span>
+            <span className="text-sm text-gray-400 whitespace-nowrap">atau daftar dengan</span>
             <div className="flex-1 h-px bg-gray-300" />
           </div>
 
@@ -109,21 +110,20 @@ export default function LoginPage() {
           </button>
 
           <p className="text-center mt-2 text-sm">
-            Belum punya akun?{" "}
-            <Link href="/join" className="text-brand-600 font-bold no-underline">
-              Daftar Sekarang
+            Sudah punya akun?{" "}
+            <Link href="/login" className="text-brand-600 font-bold no-underline">
+              Masuk Sekarang
             </Link>
           </p>
         </div>
       </div>
 
-      <div className="w-1/2 flex justify-end">
+      <div className="w-1/2 self-start flex justify-end overflow-hidden">
         <Image
           src="/images/kombinara-banner.png"
           alt="Kombinara"
           width={771}
           height={859}
-          className="w-full h-auto"
         />
       </div>
     </div>

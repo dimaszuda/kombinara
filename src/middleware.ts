@@ -12,13 +12,13 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name) {
+        get(name: string) {
           return request.cookies.get(name)?.value;
         },
-        set(name, value, options) {
+        set(name: string, value: string, options: any) {
           response.cookies.set({ name, value, ...options });
         },
-        remove(name, options) {
+        remove(name: string, options: any) {
           response.cookies.set({ name, value: "", ...options });
         },
       },
@@ -30,21 +30,27 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Unauthenticated — redirect ke login
-  if (!user && !pathname.startsWith("/login")) {
+  const publicPaths = ["/login", "/join", "/signup", "/auth/callback", "/complete-profil"];
+  if (!user && !publicPaths.some((p) => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Authenticated — redirect dari login ke dashboard
-  if (user && pathname === "/login") {
-    const role = user.user_metadata?.role as string;
-    return NextResponse.redirect(
-      new URL(role === "guru" ? "/guru" : "/siswa", request.url)
-    );
-  }
-
-  // Role guard — siswa tidak bisa akses /guru dan sebaliknya
   if (user) {
     const role = user.user_metadata?.role as string;
+
+    // Belum lengkap profil (belum punya role) — paksa ke complete-profil
+    if (!role && !pathname.startsWith("/complete-profil") && !pathname.startsWith("/auth")) {
+      return NextResponse.redirect(new URL("/complete-profil", request.url));
+    }
+
+    // Authenticated — redirect dari login ke dashboard
+    if (pathname === "/login") {
+      return NextResponse.redirect(
+        new URL(role === "guru" ? "/guru" : "/siswa", request.url)
+      );
+    }
+
+    // Role guard — siswa tidak bisa akses /guru dan sebaliknya
     if (pathname.startsWith("/guru") && role !== "guru") {
       return NextResponse.redirect(new URL("/siswa", request.url));
     }
@@ -57,5 +63,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|images|icons|api).*)"],
 };

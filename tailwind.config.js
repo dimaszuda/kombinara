@@ -8,18 +8,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Design tokens Kombinara — definisikan warna brand di sini
-        primary: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-          900: "#0c4a6e",
+        brand: {
+          50: "#F3FFF1",
+          600: "#346739",
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
       },
     },
   },
