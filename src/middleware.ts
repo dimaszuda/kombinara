@@ -3,6 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { logger } from "@/lib/logger";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -30,8 +31,9 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Unauthenticated — redirect ke login
-  const publicPaths = ["/login", "/join", "/signup", "/auth/callback", "/complete-profil"];
+  const publicPaths = ["/login", "/join", "/signup", "/auth/callback", "/complete-profil", "/forgot-password", "/reset-password"];
   if (!user && !publicPaths.some((p) => pathname.startsWith(p))) {
+    logger.warn("auth:middleware", "Unauthenticated access attempt", { pathname });
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -40,6 +42,10 @@ export async function middleware(request: NextRequest) {
 
     // Belum lengkap profil (belum punya role) — paksa ke complete-profil
     if (!role && !pathname.startsWith("/complete-profil") && !pathname.startsWith("/auth")) {
+      logger.info("auth:middleware", "Incomplete profile - redirecting to complete-profil", {
+        userId: user.id,
+        pathname,
+      });
       return NextResponse.redirect(new URL("/complete-profil", request.url));
     }
 
@@ -52,9 +58,19 @@ export async function middleware(request: NextRequest) {
 
     // Role guard — siswa tidak bisa akses /guru dan sebaliknya
     if (pathname.startsWith("/guru") && role !== "guru") {
+      logger.warn("auth:middleware", "Role violation - siswa attempted to access /guru", {
+        userId: user.id,
+        role,
+        pathname,
+      });
       return NextResponse.redirect(new URL("/siswa", request.url));
     }
     if (pathname.startsWith("/siswa") && role !== "siswa") {
+      logger.warn("auth:middleware", "Role violation - guru attempted to access /siswa", {
+        userId: user.id,
+        role,
+        pathname,
+      });
       return NextResponse.redirect(new URL("/guru", request.url));
     }
   }

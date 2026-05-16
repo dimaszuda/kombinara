@@ -81,8 +81,8 @@ export default function CompleteProfilPage() {
   };
 
   return (
-    <div className="flex w-full min-h-screen">
-      <div className="flex-1 flex flex-col items-center justify-center px-16">
+    <div className="flex flex-col lg:flex-row w-full min-h-screen">
+      <div className="w-full lg:flex-1 flex flex-col items-center justify-center px-4 md:px-8 lg:px-16 py-8">
         <h1 className="text-3xl font-bold">Lengkapi Profil Kamu</h1>
         <p className="text-gray-500 mt-2 text-center">
           Satu langkah lagi sebelum mulai belajar.
@@ -108,7 +108,7 @@ export default function CompleteProfilPage() {
             placeholder="Nomor absen kamu"
           />
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
             <div>
               <label className="block text-sm mb-1">Kelas</label>
               <input
@@ -157,13 +157,13 @@ export default function CompleteProfilPage() {
         </form>
       </div>
 
-      <div className="w-1/2 flex justify-end">
+      <div className="hidden lg:flex w-full lg:w-1/2 justify-end items-center">
         <Image
           src="/images/kombinara-banner.png"
           alt="Kombinara"
           width={771}
           height={859}
-          className="w-full h-auto"
+          className="w-full h-auto object-contain"
         />
       </div>
     </div>

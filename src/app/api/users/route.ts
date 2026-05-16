@@ -44,8 +44,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    console.log("upsert pertama");
-    // 1. Upsert users
+    // 1. Upsert users (Google auth — tidak ada password)
     const dbUser = await prisma.user.upsert({
       where: { id: user.id },
       update: { name: nama, role: "siswa" },
@@ -56,8 +55,6 @@ export async function POST(request: NextRequest) {
         role: "siswa",
       },
     });
-    console.log("Upsert pertama berhasil");
-    console.log("Upsert kedua");
     // 2. Find-or-create class
     const academicYear = getAcademicYear();
     let dbClass = await prisma.class.findFirst({

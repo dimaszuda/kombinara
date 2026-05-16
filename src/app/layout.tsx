@@ -16,8 +16,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="id" className={inter.className}>
       <body>
         <div
-          className="fixed top-0 left-0 z-50 w-1/2 p-4"
-          style={{ background: "linear-gradient(to bottom, white 50%, transparent)" }}
+          className="fixed top-0 left-0 z-50 p-4 w-full lg:w-1/2 h-24"
+          style={{ background: "linear-gradient(to bottom, white 0%, white 60%, transparent 100%)" }}
         >
           <Image
             src="/images/icon kombinara.png"

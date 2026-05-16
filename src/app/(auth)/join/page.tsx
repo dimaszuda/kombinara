@@ -8,16 +8,25 @@ import { useState } from "react";
 export default function JoinPage() {
   const router = useRouter();
   const [modulKey, setModulKey] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!modulKey.trim()) return;
-    router.push(`/signup?key=${encodeURIComponent(modulKey.trim())}`);
+    setError("");
+    if (!modulKey.trim()) {
+      setError("Kode Modul Kosong! Silahkan isi terlebih dahulu");
+      return;
+    }
+    if (modulKey === "691831") {
+      router.push(`/signup?key=${encodeURIComponent(modulKey.trim())}`);
+    } else {
+      setError("Kode Modul Salah!");
+    }
   };
 
   return (
-    <div className="flex w-full min-h-screen">
-      <div className="flex-1 flex flex-col items-center justify-center px-16">
+    <div className="flex flex-col lg:flex-row w-full min-h-screen">
+      <div className="w-full lg:flex-1 flex flex-col items-center justify-center px-4 md:px-8 lg:px-16 py-8">
         <h1 className="text-3xl font-bold">Masukkan Kode Modul</h1>
         <p className="text-gray-500 mt-2 text-center">
           Minta kode modul kepada guru kamu untuk mulai bergabung.
@@ -43,9 +52,11 @@ export default function JoinPage() {
             />
           </div>
 
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
           <button
             type="submit"
-            className="w-full py-2.5 mt-6 rounded-full bg-brand-600 text-white font-bold border-0 cursor-pointer"
+            className="w-full py-2.5 mt-4 rounded-full bg-brand-600 text-white font-bold border-0 cursor-pointer"
           >
             Gabung
           </button>
@@ -59,13 +70,13 @@ export default function JoinPage() {
         </form>
       </div>
 
-      <div className="w-1/2 flex justify-end">
+      <div className="hidden lg:flex w-full lg:w-1/2 justify-end items-center">
         <Image
           src="/images/kombinara-banner.png"
           alt="Kombinara"
           width={771}
           height={859}
-          className="w-full h-auto"
+          className="w-full h-auto object-contain"
         />
       </div>
     </div>
