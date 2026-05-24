@@ -3,6 +3,56 @@ import { prisma } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+export async function GET() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        student: {
+          include: { class: true },
+        },
+      },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const avatarUrl =
+      (user.user_metadata?.avatar_url as string | undefined) ?? null;
+
+    const className =
+      dbUser.role === "siswa" && dbUser.student
+        ? `${dbUser.student.class.className} ${dbUser.student.class.group}`
+        : null;
+
+    const gender = dbUser.role === "siswa" && dbUser.student ? dbUser.student.gender : null;
+
+    return NextResponse.json({
+      name: dbUser.name,
+      role: dbUser.role,
+      avatarUrl,
+      className,
+      gender,
+    });
+  } catch (err) {
+    console.error("[GET /api/users] Prisma error:", err);
+    return NextResponse.json(
+      { error: "Gagal mengambil data user" },
+      { status: 500 }
+    );
+  }
+}
+
 function getAcademicYear(): string {
   const now = new Date();
   const year = now.getFullYear();
