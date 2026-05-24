@@ -117,6 +117,7 @@ export default function SiswaDashboardPage() {
               style={{
                 fontSize: "var(--right-card-highlight-size)",
                 transition: "font-size var(--right-card-transition-duration) var(--right-card-transition-ease)",
+                marginTop: "-4px",
               }}
             >
               Jadilah yang Pertama!
@@ -163,20 +164,20 @@ export default function SiswaDashboardPage() {
                 style={{
                   width: "var(--right-card-arrow-size)",
                   height: "var(--right-card-arrow-size)",
-                  transition:
-                    "transform 0.3s ease, width var(--right-card-transition-duration) var(--right-card-transition-ease), height var(--right-card-transition-duration) var(--right-card-transition-ease)",
-                  transform: "translateX(var(--right-card-arrow-shift))",
+                  transition: "transform 0.3s ease, width var(--right-card-transition-duration) var(--right-card-transition-ease), height var(--right-card-transition-duration) var(--right-card-transition-ease)",
+                  marginBottom: "4px",
                 }}
-                className="group-hover:translate-x-[10px]"
+                className="translate-x-[var(--right-card-arrow-shift)] group-hover:translate-x-[5px] group-hover:scale-105"
               />
               <span
-                className="overflow-hidden whitespace-nowrap font-semibold leading-tight text-brand-600"
+                className="overflow-hidden whitespace-nowrap font-semibold leading-tight text-brand-600 transition-transform duration-200 group-hover:scale-105 sm:text-xl"
                 style={{
                   fontSize: "var(--right-card-link-size)",
                   opacity: "var(--right-card-link-opacity)",
-                  maxWidth: "var(--right-card-link-max-width)",
+                  maxWidth: "var(--right-card-link-max-width)", 
                   marginLeft: "var(--right-card-link-gap)",
                   transition: "max-width 0.22s ease, margin-left 0.22s ease",
+                  marginBottom: "4px",
                 }}
               >
                 Ayo mulai belajar sekarang!
