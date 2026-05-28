@@ -30,18 +30,31 @@ export async function GET() {
     const avatarUrl =
       (user.user_metadata?.avatar_url as string | undefined) ?? null;
 
-    const className =
+    const studentNumber =
       dbUser.role === "siswa" && dbUser.student
-        ? `${dbUser.student.class.className} ${dbUser.student.class.group}`
+        ? dbUser.student.studentNumber
         : null;
 
-    const gender = dbUser.role === "siswa" && dbUser.student ? dbUser.student.gender : null;
+    const className =
+      dbUser.role === "siswa" && dbUser.student
+        ? dbUser.student.class.className
+        : null;
+
+    const group =
+      dbUser.role === "siswa" && dbUser.student
+        ? dbUser.student.class.group
+        : null;
+
+    const gender =
+      dbUser.role === "siswa" && dbUser.student ? dbUser.student.gender : null;
 
     return NextResponse.json({
       name: dbUser.name,
       role: dbUser.role,
       avatarUrl,
+      studentNumber,
       className,
+      group,
       gender,
     });
   } catch (err) {
