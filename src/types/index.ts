@@ -10,6 +10,14 @@ export interface User {
   kelasId?: string;
 }
 
+export interface UserProfile {
+  name: string;
+  role: string;
+  avatarUrl: string | null;
+  className: string | null;
+  gender?: string | null;
+}
+
 // Materi
 export interface Materi {
   id: string;

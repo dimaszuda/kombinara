@@ -1,91 +1,143 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-const materiData: Record<string, any> = {
+interface MateriPage {
+  title: string;
+  content: string;
+}
+
+interface MateriItem {
+  title: string;
+  icon: string;
+  description: string;
+  pages: MateriPage[];
+}
+
+const materiData: Record<string, MateriItem> = {
   "kaidah-pencacahan": {
     title: "Kaidah Pencacahan",
     icon: "/images/Kaidah pencacahan.png",
-    description: "Materi kaidah pencacahan membahas tentang cara menghitung banyaknya kemungkinan suatu kejadian tanpa harus menuliskan semua kemungkinan satu per satu.",
-    content: `
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Pengertian Kaidah Pencacahan</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        Kaidah pencacahan adalah aturan menghitung banyaknya cara suatu kejadian dapat terjadi. Dengan kaidah pencacahan, kita dapat menentukan banyaknya hasil tanpa menuliskan semua hasil satu per satu.
-      </p>
+    description:
+      "Materi kaidah pencacahan membahas tentang cara menghitung banyaknya kemungkinan suatu kejadian tanpa harus menuliskan semua kemungkinan satu per satu.",
+    pages: [
+      {
+        title: "Pengertian & Latar Belakang",
+        content: `
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Apa itu Kaidah Pencacahan?</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 14px;">
+            Kaidah pencacahan adalah aturan menghitung banyaknya cara suatu kejadian dapat terjadi. Dengan kaidah ini, kita tidak perlu menuliskan semua kemungkinan satu per satu — cukup dengan perhitungan sistematis.
+          </p>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 14px;">
+            Dalam kehidupan sehari-hari, kita sering menghadapi pertanyaan seperti: <em>"Berapa banyak password yang bisa dibuat dari 4 digit angka?"</em> — inilah yang dijawab oleh kaidah pencacahan.
+          </p>
+        `,
+      },
+      {
+        title: "Prinsip Penjumlahan & Perkalian",
+        content: `
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Prinsip Penjumlahan</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 14px;">
+            Jika suatu pekerjaan dapat dilakukan dengan <strong>m cara</strong> atau <strong>n cara</strong> (tidak bersamaan), maka total cara = <strong>(m + n) cara</strong>.
+          </p>
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 20px; margin-bottom: 12px;">Prinsip Perkalian</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 14px;">
+            Jika terdapat beberapa tahap berurutan, banyaknya cara = <strong>hasil kali</strong> cara di tiap tahap.
+          </p>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 0;">
+            <strong>Contoh:</strong> 3 baju × 2 celana × 4 sepatu = <strong>24 cara</strong> berpakaian.
+          </p>
+        `,
+      },
+      {
+        title: "Contoh Soal",
+        content: `
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Soal 1</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 8px;">
+            Dari kota A ke B ada 3 rute, dari B ke C ada 4 rute. Berapa cara perjalanan A ke C via B?
+          </p>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 20px;"><strong>Jawab:</strong> 3 × 4 = 12 cara</p>
 
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Prinsip Dasar</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
-        Ada dua prinsip dasar dalam kaidah pencacahan:
-      </p>
-      <ul style="font-size: 14px; line-height: 1.8; margin-bottom: 16px; margin-left: 20px;">
-        <li><strong>Prinsip Penjumlahan:</strong> Jika suatu pekerjaan dapat dilakukan dengan m cara atau n cara, maka banyaknya cara melakukan pekerjaan tersebut adalah (m + n) cara.</li>
-        <li><strong>Prinsip Perkalian:</strong> Jika suatu pekerjaan dapat dilakukan dengan m cara, dan untuk setiap cara tersebut dapat dilanjutkan dengan n cara, maka banyaknya cara melakukan pekerjaan tersebut adalah (m × n) cara.</li>
-      </ul>
-
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Contoh Soal</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
-        Seorang siswa memiliki 3 pilihan baju, 2 pilihan celana, dan 4 pilihan sepatu. Berapa banyak cara siswa tersebut dapat berpakaian lengkap?
-      </p>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        <strong>Jawab:</strong> Menggunakan prinsip perkalian, banyaknya cara = 3 × 2 × 4 = 24 cara.
-      </p>
-    `,
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Soal 2</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 8px;">
+            Menu terdiri dari 4 makanan dan 3 minuman. Berapa kombinasi menu?
+          </p>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 0;"><strong>Jawab:</strong> 4 × 3 = 12 kombinasi</p>
+        `,
+      },
+    ],
   },
   "permutasi": {
     title: "Permutasi",
     icon: "/images/permutasi.png",
-    description: "Materi permutasi membahas tentang cara menghitung banyaknya susunan objek ketika urutan diperhatikan.",
-    content: `
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Pengertian Permutasi</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        Permutasi adalah banyaknya cara menyusun objek-objek dengan memperhatikan urutan. Permutasi merupakan bagian dari kaidah pencacahan yang digunakan ketika urutan sangat penting.
-      </p>
-
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Rumus Permutasi</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
-        Permutasi r objek dari n objek dinotasikan dengan P(n,r) atau <sup>n</sup>P<sub>r</sub>
-      </p>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        <strong>Rumus:</strong> P(n,r) = n! / (n-r)!
-      </p>
-
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Contoh Soal</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
-        Berapa banyak cara menyusun 3 huruf dari 5 huruf A, B, C, D, E?
-      </p>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        <strong>Jawab:</strong> P(5,3) = 5! / (5-3)! = 5! / 2! = (5 × 4 × 3 × 2 × 1) / (2 × 1) = 60 cara.
-      </p>
-    `,
+    description:
+      "Materi permutasi membahas tentang cara menghitung banyaknya susunan objek ketika urutan diperhatikan.",
+    pages: [
+      {
+        title: "Pengertian Permutasi",
+        content: `
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Apa itu Permutasi?</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 14px;">
+            Permutasi adalah banyaknya cara menyusun objek-objek dengan <strong>memperhatikan urutan</strong>. Permutasi digunakan ketika urutan sangat penting — AB berbeda dengan BA.
+          </p>
+        `,
+      },
+      {
+        title: "Rumus & Contoh Soal",
+        content: `
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Rumus Permutasi</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 14px;">
+            Permutasi r objek dari n objek:
+          </p>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 20px;">
+            <strong>P(n,r) = n! / (n-r)!</strong>
+          </p>
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Contoh Soal</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 8px;">
+            Berapa banyak cara menyusun 3 huruf dari 5 huruf A, B, C, D, E?
+          </p>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 0;">
+            <strong>Jawab:</strong> P(5,3) = 5! / 2! = 60 cara.
+          </p>
+        `,
+      },
+    ],
   },
   "kombinasi": {
     title: "Kombinasi",
     icon: "/images/kombinasi.png",
-    description: "Materi kombinasi membahas tentang cara menghitung banyaknya pilihan objek ketika urutan tidak diperhatikan.",
-    content: `
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Pengertian Kombinasi</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        Kombinasi adalah banyaknya cara memilih objek-objek tanpa memperhatikan urutan. Kombinasi merupakan bagian dari kaidah pencacahan yang digunakan ketika urutan tidak penting.
-      </p>
-
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Rumus Kombinasi</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
-        Kombinasi r objek dari n objek dinotasikan dengan C(n,r) atau <sup>n</sup>C<sub>r</sub>
-      </p>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        <strong>Rumus:</strong> C(n,r) = n! / (r! × (n-r)!)
-      </p>
-
-      <h3 style="font-size: 24px; font-weight: 600; color: #346739; margin-top: 24px; margin-bottom: 12px;">Contoh Soal</h3>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
-        Berapa banyak cara memilih 3 orang dari 5 orang untuk membentuk sebuah tim?
-      </p>
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
-        <strong>Jawab:</strong> C(5,3) = 5! / (3! × 2!) = (5 × 4 × 3 × 2 × 1) / ((3 × 2 × 1) × (2 × 1)) = 10 cara.
-      </p>
-    `,
+    description:
+      "Materi kombinasi membahas tentang cara menghitung banyaknya pilihan objek ketika urutan tidak diperhatikan.",
+    pages: [
+      {
+        title: "Pengertian Kombinasi",
+        content: `
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Apa itu Kombinasi?</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 14px;">
+            Kombinasi adalah banyaknya cara memilih objek-objek <strong>tanpa memperhatikan urutan</strong>. AB sama dengan BA dalam kombinasi.
+          </p>
+        `,
+      },
+      {
+        title: "Rumus & Contoh Soal",
+        content: `
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Rumus Kombinasi</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 14px;">
+            <strong>C(n,r) = n! / (r! × (n-r)!)</strong>
+          </p>
+          <h3 style="font-size: 22px; font-weight: 700; color: #346739; margin-top: 0; margin-bottom: 12px;">Contoh Soal</h3>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 8px;">
+            Berapa cara memilih 3 orang dari 5 orang untuk membentuk tim?
+          </p>
+          <p style="font-size: 15px; line-height: 1.75; margin-bottom: 0;">
+            <strong>Jawab:</strong> C(5,3) = 5! / (3! × 2!) = 10 cara.
+          </p>
+        `,
+      },
+    ],
   },
 };
 
@@ -95,6 +147,8 @@ export default function MateriDetailPage({
   params: { slug: string };
 }) {
   const materi = materiData[params.slug];
+  const [currentPage, setCurrentPage] = useState(0);
+  const router = useRouter();
 
   if (!materi) {
     return (
@@ -109,117 +163,198 @@ export default function MateriDetailPage({
     );
   }
 
+  const totalPages = materi.pages.length;
+  const isFirstPage = currentPage === 0;
+  const isLastPage = currentPage === totalPages - 1;
+  const progressPercent = ((currentPage + 1) / totalPages) * 100;
+
+  const handleBack = () => {
+    if (!isFirstPage) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (!isLastPage) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
   return (
-    <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "32px" }}>
-        <Link href="/dashboard/siswa">
-          <button style={{
+    <div style={{ padding: "32px 24px 80px", margin: "0 auto" }}>
+      {/* Back to Dashboard */}
+      <Link href="/siswa">
+        <button
+          style={{
             background: "none",
             border: "none",
             color: "#346739",
             cursor: "pointer",
             fontSize: "14px",
-            marginBottom: "16px",
+            marginBottom: "20px",
             padding: "0",
-          }}>
-            ← Kembali
-          </button>
-        </Link>
-        
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "24px", marginBottom: "24px" }}>
-          <div style={{ flex: 1 }}>
-            <h1 style={{
-              color: "#346739",
-              fontSize: "48px",
-              fontWeight: 700,
-              marginTop: 0,
-              marginBottom: "12px",
-            }}>
-              {materi.title}
-            </h1>
-            <p style={{
-              color: "#666",
-              fontSize: "16px",
-              lineHeight: "1.6",
-              marginBottom: 0,
-            }}>
-              {materi.description}
-            </p>
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          ← Kembali ke Dashboard
+        </button>
+      </Link>
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "24px", marginBottom: "28px" }}>
+        <div style={{ flex: 1 }}>
+          <h1 style={{ color: "#346739", fontSize: "40px", fontWeight: 700, marginTop: 0, marginBottom: "8px" }}>
+            {materi.title}
+          </h1>
+          <p style={{ color: "#666", fontSize: "15px", lineHeight: "1.6", marginBottom: 0 }}>
+            {materi.description}
+          </p>
+        </div>
+        {materi.icon && (
+          <div style={{ flexShrink: 0 }}>
+            <Image src={materi.icon} alt={materi.title} width={120} height={120} />
           </div>
-          {materi.icon && (
-            <div style={{ flexShrink: 0 }}>
-              <Image
-                src={materi.icon}
-                alt={materi.title}
-                width={150}
-                height={150}
-              />
-            </div>
-          )}
+        )}
+      </div>
+
+      {/* Progress */}
+      <div style={{ marginBottom: "24px" }}>
+        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+          HALAMAN {currentPage + 1} DARI {totalPages} &mdash; {materi.pages[currentPage].title}
+        </p>
+        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden" }}>
+          <div
+            style={{
+              height: "100%",
+              width: `${progressPercent}%`,
+              background: "#346739",
+              borderRadius: "4px",
+              transition: "width 0.4s ease",
+            }}
+          />
+        </div>
+        <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+          {materi.pages.map((_, i) => (
+            <div
+              key={i}
+              onClick={() => setCurrentPage(i)}
+              style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                cursor: "pointer",
+                backgroundColor:
+                  i === currentPage ? "#346739" : i < currentPage ? "#7aad7f" : "#ccc",
+                transform: i === currentPage ? "scale(1.3)" : "scale(1)",
+                transition: "all 0.3s",
+              }}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Content */}
-      <div style={{
-        backgroundColor: "#f9f9f9",
-        borderRadius: "12px",
-        padding: "24px",
-        marginBottom: "24px",
-        lineHeight: "1.8",
-      }}>
-        <div dangerouslySetInnerHTML={{ __html: materi.content }} />
+      {/* Content Card */}
+      <div
+        key={currentPage}
+        style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          padding: "32px",
+          marginBottom: "24px",
+          border: "1px solid #e8e8e8",
+          minHeight: "300px",
+          animation: "fadeIn 0.3s ease",
+        }}
+      >
+        <div dangerouslySetInnerHTML={{ __html: materi.pages[currentPage].content }} />
       </div>
 
-      {/* Action Buttons */}
-      <div style={{
-        display: "flex",
-        gap: "16px",
-        marginTop: "32px",
-      }}>
-        <Link href={`/dashboard/siswa/quiz`}>
-          <button style={{
-            backgroundColor: "#346739",
-            color: "white",
-            border: "none",
-            padding: "12px 24px",
-            borderRadius: "8px",
-            fontSize: "16px",
+      {/* Bottom Navigation */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px" }}>
+        {/* Kembali - selalu ada tapi disable di halaman pertama */}
+        <button
+          onClick={handleBack}
+          disabled={isFirstPage}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "12px 22px",
+            borderRadius: "30px",
+            fontSize: "15px",
             fontWeight: 600,
-            cursor: "pointer",
-            transition: "background-color 0.3s ease",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2d5a2e")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#346739")}
-          >
-            Mulai Quiz
-          </button>
-        </Link>
-        <Link href={`/dashboard/siswa/ulangan`}>
-          <button style={{
-            backgroundColor: "white",
+            cursor: isFirstPage ? "not-allowed" : "pointer",
+            background: "white",
             color: "#346739",
             border: "2px solid #346739",
-            padding: "12px 24px",
-            borderRadius: "8px",
-            fontSize: "16px",
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "all 0.3s ease",
+            opacity: isFirstPage ? 0.3 : 1,
+            transition: "all 0.2s",
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#346739";
-            e.currentTarget.style.color = "white";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "white";
-            e.currentTarget.style.color = "#346739";
-          }}
+        >
+          ← Kembali
+        </button>
+
+        <span style={{ fontSize: "13px", color: "#999", fontFamily: "monospace" }}>
+          {currentPage + 1} / {totalPages}
+        </span>
+
+        {/* Next atau Quiz di halaman terakhir */}
+        {isLastPage ? (
+          <Link href="/dashboard/siswa/quiz">
+            <button
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 22px",
+                borderRadius: "30px",
+                fontSize: "15px",
+                fontWeight: 600,
+                cursor: "pointer",
+                background: "#346739",
+                color: "white",
+                border: "2px solid #346739",
+                transition: "background-color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2d5a2e")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#346739")}
+            >
+              Mulai Quiz →
+            </button>
+          </Link>
+        ) : (
+          <button
+            onClick={handleNext}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "12px 22px",
+              borderRadius: "30px",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: "pointer",
+              background: "#346739",
+              color: "white",
+              border: "2px solid #346739",
+              transition: "background-color 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2d5a2e")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#346739")}
           >
-            Mulai Ulangan
+            Lanjutkan →
           </button>
-        </Link>
+        )}
       </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

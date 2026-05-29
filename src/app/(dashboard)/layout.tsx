@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import DashboardShell from "@/components/dashboard/DashboardShell";
-import type { UserProfile } from "@/components/dashboard/DashboardShell";
+import type { UserProfile } from "@/types";
 
 // Server Component — profile di-fetch server-side saat SSR,
 // sehingga icon profil langsung muncul tanpa waterfall client-side.

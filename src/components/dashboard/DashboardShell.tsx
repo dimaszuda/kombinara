@@ -5,14 +5,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Sidebar from "@/components/dashboard/Sidebar";
-
-export interface UserProfile {
-  name: string;
-  role: string;
-  avatarUrl: string | null;
-  className: string | null;
-  gender?: string | null;
-}
+import { UserProfile } from "@/types";
 
 // Tooltip styles injected once as a global <style> tag via a small component
 function TooltipStyles() {
