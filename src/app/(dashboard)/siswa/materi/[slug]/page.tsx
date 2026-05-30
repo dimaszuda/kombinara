@@ -1,8 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import SelectionToolbar from "@/components/materi/SelectionToolbar";
+import ChatbotShell from "@/components/materi/ChatbotShell";
 
 interface MateriPage {
   title: string;
@@ -161,9 +163,12 @@ export default function MateriDetailPage({
   }
 
   const totalPages = materi.pages.length;
+  const contentRef = useRef<HTMLDivElement>(null);
 
   return (
+    <ChatbotShell>
     <div style={{ padding: "32px 24px 80px", margin: "0 auto" }}>
+      <SelectionToolbar contentRef={contentRef} />
       {/* Back to Dashboard */}
       <Link href="/siswa">
         <button
@@ -202,39 +207,41 @@ export default function MateriDetailPage({
       </div>
 
       {/* Sections — all rendered sequentially */}
-      {materi.pages.map((page, i) => {
-        const sectionProgress = ((i + 1) / totalPages) * 100;
-        return (
-          <div key={i} style={{ marginBottom: "40px" }}>
-            {/* Sub-materi label + fill bar */}
-            <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
-              {page.title}
-            </p>
-            <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
+      <div ref={contentRef}>
+        {materi.pages.map((page, i) => {
+          const sectionProgress = ((i + 1) / totalPages) * 100;
+          return (
+            <div key={i} style={{ marginBottom: "40px" }}>
+              {/* Sub-materi label + fill bar */}
+              <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+                {page.title}
+              </p>
+              <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${sectionProgress}%`,
+                    background: "#346739",
+                    borderRadius: "4px",
+                  }}
+                />
+              </div>
+
+              {/* Content Card */}
               <div
                 style={{
-                  height: "100%",
-                  width: `${sectionProgress}%`,
-                  background: "#346739",
-                  borderRadius: "4px",
+                  backgroundColor: "white",
+                  borderRadius: "16px",
+                  padding: "32px",
+                  border: "1px solid #e8e8e8",
                 }}
-              />
+              >
+                <div dangerouslySetInnerHTML={{ __html: page.content }} />
+              </div>
             </div>
-
-            {/* Content Card */}
-            <div
-              style={{
-                backgroundColor: "white",
-                borderRadius: "16px",
-                padding: "32px",
-                border: "1px solid #e8e8e8",
-              }}
-            >
-              <div dangerouslySetInnerHTML={{ __html: page.content }} />
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
       {/* Mulai Quiz — paling bawah */}
       <div style={{ display: "flex", justifyContent: "center", marginTop: "16px" }}>
@@ -262,5 +269,6 @@ export default function MateriDetailPage({
         </Link>
       </div>
     </div>
+    </ChatbotShell>
   );
 }
