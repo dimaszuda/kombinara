@@ -52,7 +52,7 @@ export default function SiswaDashboardPage() {
                 <h2 className="m-0 text-2xl font-semibold leading-tight text-brand-600 sm:text-3xl lg:text-4xl">{materi.title}</h2>
                 <p className="mt-3 text-sm leading-relaxed text-zinc-800 sm:text-[15px]">{materi.description}</p>
               </div>
-              <div className="self-center sm:self-start">
+              <div className="mx-auto self-center sm:mx-0 sm:self-start">
                 <Image src={materi.image} alt={materi.alt} width={120} height={120} className="h-auto w-[96px] sm:w-[110px]" />
               </div>
             </div>

@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 interface MateriPage {
   title: string;
@@ -147,14 +146,12 @@ export default function MateriDetailPage({
   params: { slug: string };
 }) {
   const materi = materiData[params.slug];
-  const [currentPage, setCurrentPage] = useState(0);
-  const router = useRouter();
 
   if (!materi) {
     return (
       <div style={{ padding: "24px" }}>
         <h1>Materi tidak ditemukan</h1>
-        <Link href="/dashboard/siswa">
+        <Link href="/siswa">
           <button style={{ padding: "10px 20px", marginTop: "16px", cursor: "pointer" }}>
             Kembali
           </button>
@@ -164,21 +161,6 @@ export default function MateriDetailPage({
   }
 
   const totalPages = materi.pages.length;
-  const isFirstPage = currentPage === 0;
-  const isLastPage = currentPage === totalPages - 1;
-  const progressPercent = ((currentPage + 1) / totalPages) * 100;
-
-  const handleBack = () => {
-    if (!isFirstPage) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (!isLastPage) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
 
   return (
     <div style={{ padding: "32px 24px 80px", margin: "0 auto" }}>
@@ -203,7 +185,7 @@ export default function MateriDetailPage({
       </Link>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "24px", marginBottom: "28px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "24px", marginBottom: "36px" }}>
         <div style={{ flex: 1 }}>
           <h1 style={{ color: "#346739", fontSize: "40px", fontWeight: 700, marginTop: 0, marginBottom: "8px" }}>
             {materi.title}
@@ -219,121 +201,52 @@ export default function MateriDetailPage({
         )}
       </div>
 
-      {/* Progress */}
-      <div style={{ marginBottom: "24px" }}>
-        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
-          HALAMAN {currentPage + 1} DARI {totalPages} &mdash; {materi.pages[currentPage].title}
-        </p>
-        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden" }}>
-          <div
-            style={{
-              height: "100%",
-              width: `${progressPercent}%`,
-              background: "#346739",
-              borderRadius: "4px",
-              transition: "width 0.4s ease",
-            }}
-          />
-        </div>
-        <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
-          {materi.pages.map((_, i) => (
+      {/* Sections — all rendered sequentially */}
+      {materi.pages.map((page, i) => {
+        const sectionProgress = ((i + 1) / totalPages) * 100;
+        return (
+          <div key={i} style={{ marginBottom: "40px" }}>
+            {/* Sub-materi label + fill bar */}
+            <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+              {page.title}
+            </p>
+            <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${sectionProgress}%`,
+                  background: "#346739",
+                  borderRadius: "4px",
+                }}
+              />
+            </div>
+
+            {/* Content Card */}
             <div
-              key={i}
-              onClick={() => setCurrentPage(i)}
               style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                cursor: "pointer",
-                backgroundColor:
-                  i === currentPage ? "#346739" : i < currentPage ? "#7aad7f" : "#ccc",
-                transform: i === currentPage ? "scale(1.3)" : "scale(1)",
-                transition: "all 0.3s",
+                backgroundColor: "white",
+                borderRadius: "16px",
+                padding: "32px",
+                border: "1px solid #e8e8e8",
               }}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Content Card */}
-      <div
-        key={currentPage}
-        style={{
-          backgroundColor: "white",
-          borderRadius: "16px",
-          padding: "32px",
-          marginBottom: "24px",
-          border: "1px solid #e8e8e8",
-          minHeight: "300px",
-          animation: "fadeIn 0.3s ease",
-        }}
-      >
-        <div dangerouslySetInnerHTML={{ __html: materi.pages[currentPage].content }} />
-      </div>
-
-      {/* Bottom Navigation */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px" }}>
-        {/* Kembali - selalu ada tapi disable di halaman pertama */}
-        <button
-          onClick={handleBack}
-          disabled={isFirstPage}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "12px 22px",
-            borderRadius: "30px",
-            fontSize: "15px",
-            fontWeight: 600,
-            cursor: isFirstPage ? "not-allowed" : "pointer",
-            background: "white",
-            color: "#346739",
-            border: "2px solid #346739",
-            opacity: isFirstPage ? 0.3 : 1,
-            transition: "all 0.2s",
-          }}
-        >
-          ← Kembali
-        </button>
-
-        <span style={{ fontSize: "13px", color: "#999", fontFamily: "monospace" }}>
-          {currentPage + 1} / {totalPages}
-        </span>
-
-        {/* Next atau Quiz di halaman terakhir */}
-        {isLastPage ? (
-          <Link href="/dashboard/siswa/quiz">
-            <button
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "12px 22px",
-                borderRadius: "30px",
-                fontSize: "15px",
-                fontWeight: 600,
-                cursor: "pointer",
-                background: "#346739",
-                color: "white",
-                border: "2px solid #346739",
-                transition: "background-color 0.2s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2d5a2e")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#346739")}
             >
-              Mulai Quiz →
-            </button>
-          </Link>
-        ) : (
+              <div dangerouslySetInnerHTML={{ __html: page.content }} />
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Mulai Quiz — paling bawah */}
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "16px" }}>
+        <Link href="/siswa/quiz">
           <button
-            onClick={handleNext}
             style={{
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              padding: "12px 22px",
+              padding: "14px 32px",
               borderRadius: "30px",
-              fontSize: "15px",
+              fontSize: "16px",
               fontWeight: 600,
               cursor: "pointer",
               background: "#346739",
@@ -344,17 +257,10 @@ export default function MateriDetailPage({
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2d5a2e")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#346739")}
           >
-            Lanjutkan →
+            Mulai Quiz →
           </button>
-        )}
+        </Link>
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

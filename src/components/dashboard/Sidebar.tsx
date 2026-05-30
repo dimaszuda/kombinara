@@ -425,7 +425,7 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
           className={`absolute inset-0 bg-black/40 transition-opacity ${mobileOpen ? "opacity-100" : "opacity-0"}`}
         />
         <aside
-          className={`absolute left-0 top-0 h-full w-64 overflow-y-auto bg-brand-600 p-4 transition-transform duration-300 ${
+          className={`absolute left-0 top-0 h-full w-52 overflow-y-auto bg-brand-600 p-4 transition-transform duration-300 ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           style={{ display: "flex", flexDirection: "column" }}

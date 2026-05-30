@@ -94,10 +94,15 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
             <button
               type="button"
               onClick={() => setMobileSidebarOpen(true)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand-600 bg-brand-50 md:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full md:hidden"
+              style={{ backgroundColor: "#346739", border: "none" }}
               aria-label="Buka menu navigasi"
             >
-              <Image src="/icons/expand side bar.png" alt="Menu" width={18} height={18} />
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="2" y="4" width="16" height="2" rx="1" fill="white"/>
+                <rect x="2" y="9" width="16" height="2" rx="1" fill="white"/>
+                <rect x="2" y="14" width="16" height="2" rx="1" fill="white"/>
+              </svg>
             </button>
 
             {/* Kombinara icon — mobile */}
@@ -130,8 +135,8 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
                 className="h-11 w-11 shrink-0 rounded-full object-cover"
               />
               {profile && (
-                <div className="hidden flex-col leading-tight sm:flex">
-                  <span className="whitespace-nowrap text-sm font-semibold text-zinc-900">{profile.name}</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="whitespace-nowrap text-sm font-semibold text-zinc-900">{profile.name.split(" ").slice(0, 2).join(" ")}</span>
                   <span className="whitespace-nowrap text-xs text-zinc-600">
                     {profile.className ? `Kelas ${profile.className}` : "Guru"}
                   </span>
@@ -158,7 +163,7 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
 
       {/* ─── DESKTOP LAYOUT ─── */}
       <div
-        style={{ display: "flex", height: "100vh", overflow: "hidden", position: "relative", flexDirection: "row" }}
+        style={{ height: "100vh", overflow: "hidden", position: "relative", flexDirection: "row" }}
         className="hidden md:flex"
       >
         <div style={{ position: "relative", flexShrink: 0, height: "100vh", width: "auto" }}>
