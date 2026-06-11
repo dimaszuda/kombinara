@@ -38,8 +38,8 @@ export default function SiswaDashboardPage() {
     <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,730px)_minmax(300px,1fr)]">
       <section className="flex flex-col gap-4">
         {materiCards.map((materi) => (
-          <article
-            key={materi.id}
+          <Link
+            href={materi.id}
             className="flex min-h-[270px] flex-col rounded-[28px] bg-[#DBFFD5] pb-5 pl-6 pr-4 pt-5 sm:pl-7 sm:pr-5 md:h-[270px]"
           >
             <div className="flex items-center gap-3">
@@ -69,7 +69,7 @@ export default function SiswaDashboardPage() {
                 className="h-9 w-9 transition-transform duration-200 group-hover:translate-x-1"
               />
             </Link>
-          </article>
+          </Link>
         ))}
       </section>
 

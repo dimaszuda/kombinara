@@ -108,12 +108,12 @@ function NavItem({ item, isActive, expanded }: NavItemProps) {
         <Image
           src={item.icon}
           alt={item.label}
-          width={24}
-          height={24}
+          width={16}
+          height={16}
           style={{
             objectFit: "contain",
             flexShrink: 0,
-            transform: expanded ? "translateX(0px)" : "translateX(4px)",
+            transform: expanded ? "translateX(0px)" : "translateX(8px)",
             transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         />
@@ -164,7 +164,7 @@ function ExpandButton({ onToggle }: { onToggle: (val: boolean) => void }) {
         }}
         aria-label="Expand sidebar"
       >
-        <Image src="/icons/expand side bar.png" alt="Expand" width={24} height={24} style={{ objectFit: "contain" }} />
+        <Image src="/icons/expand side bar.png" alt="Expand" width={20} height={20} style={{ objectFit: "contain" }} />
       </button>
 
       {hovered && <PortalTooltip label="Expand" anchorRef={ref} offset={20} />}
