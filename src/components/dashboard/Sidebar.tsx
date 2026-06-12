@@ -18,10 +18,20 @@ const NAV_ITEMS = [
     icon: "/icons/materi.png",
   },
   {
-    label: "Ulangan Harian",
+    label: "Assesmen Akhir",
     href: "/siswa/ulangan",
     icon: "/icons/test.png",
   },
+  {
+    label: "Aktivitas Siswa",
+    href: "/siswa/aktivitas",
+    icon: "/icons/activity.png"
+  },
+  {
+    label: "Download Modul",
+    href: "/siswa/aktivitas",
+    icon: "/icons/download.png"
+  }
 ];
 
 interface SidebarProps {
@@ -231,12 +241,12 @@ function LogoutButton({ expanded, onClick }: LogoutButtonProps) {
         <Image
           src="/icons/logout.png"
           alt="Logout"
-          width={24}
-          height={24}
+          width={20}
+          height={20}
           style={{
             objectFit: "contain",
             flexShrink: 0,
-            transform: expanded ? "translateX(0px)" : "translateX(4px)",
+            transform: expanded ? "translateX(0px)" : "translateX(8px)",
             transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         />

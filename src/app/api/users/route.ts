@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getProfileForApi, invalidateProfileCache } from "@/lib/data/user-profile";
 
 export async function GET() {
   const supabase = createSupabaseServerClient();
@@ -14,51 +15,15 @@ export async function GET() {
   }
 
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: {
-        student: {
-          include: { class: true },
-        },
-      },
-    });
+    const data = await getProfileForApi(user.id, user);
 
-    if (!dbUser) {
+    if (!data) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const avatarUrl =
-      (user.user_metadata?.avatar_url as string | undefined) ?? null;
-
-    const studentNumber =
-      dbUser.role === "siswa" && dbUser.student
-        ? dbUser.student.studentNumber
-        : null;
-
-    const className =
-      dbUser.role === "siswa" && dbUser.student
-        ? dbUser.student.class.className
-        : null;
-
-    const group =
-      dbUser.role === "siswa" && dbUser.student
-        ? dbUser.student.class.group
-        : null;
-
-    const gender =
-      dbUser.role === "siswa" && dbUser.student ? dbUser.student.gender : null;
-
-    return NextResponse.json({
-      name: dbUser.name,
-      role: dbUser.role,
-      avatarUrl,
-      studentNumber,
-      className,
-      group,
-      gender,
-    });
+    return NextResponse.json(data);
   } catch (err) {
-    console.error("[GET /api/users] Prisma error:", err);
+    console.error("[GET /api/users] Error:", err);
     return NextResponse.json(
       { error: "Gagal mengambil data user" },
       { status: 500 }
@@ -141,6 +106,9 @@ export async function POST(request: NextRequest) {
         classId: dbClass.id,
       },
     });
+
+    // 4. Invalidate Redis cache agar next read ambil data terbaru
+    await invalidateProfileCache(user.id);
 
     return NextResponse.json({ user: dbUser, student: dbStudent });
   } catch (err) {

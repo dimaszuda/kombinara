@@ -66,6 +66,8 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
     ["--right-card-link-gap" as string]: expanded ? "0px" : "16px",
     ["--right-card-arrow-size" as string]: expanded ? "50px" : "28px",
     ["--right-card-arrow-shift" as string]: expanded ? "8px" : "4px",
+    ["--dashboard-heading-size" as string]: expanded ? "1.25rem" : "1.75rem",
+    ["--materi-heading-size" as string]: expanded ? "1.75rem" : "2.5rem",
   };
 
   useEffect(() => {

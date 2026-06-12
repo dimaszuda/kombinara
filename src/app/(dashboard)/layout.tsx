@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma/client";
+import { getProfileForLayout } from "@/lib/data/user-profile";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import type { UserProfile } from "@/types";
 
-// Server Component — profile di-fetch server-side saat SSR,
-// sehingga icon profil langsung muncul tanpa waterfall client-side.
+// Server Component — profile di-fetch server-side dengan Redis cache,
+// sehingga icon profil langsung muncul tanpa waterfall client-side
+// dan tanpa query Prisma di setiap page load.
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = createSupabaseServerClient();
   const {
@@ -16,32 +17,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   if (user) {
     try {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: {
-          name: true,
-          role: true,
-          student: {
-            select: {
-              gender: true,
-              class: { select: { className: true, group: true } },
-            },
-          },
-        },
-      });
-
-      if (dbUser) {
-        profile = {
-          name: dbUser.name,
-          role: dbUser.role,
-          avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
-          className:
-            dbUser.role === "siswa" && dbUser.student
-              ? `${dbUser.student.class.className} ${dbUser.student.class.group}`
-              : null,
-          gender: dbUser.role === "siswa" && dbUser.student ? dbUser.student.gender : null,
-        };
-      }
+      profile = await getProfileForLayout(user.id, user);
     } catch {
       // Gagal fetch profile tidak boleh crash layout
     }

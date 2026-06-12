@@ -18,13 +18,14 @@ export interface UserProfile {
   gender?: string | null;
 }
 
-// Materi
+// Materi — corresponding to Prisma Materi model
 export interface Materi {
-  id: string;
+  id: number;
   slug: string;
   judul: string;
-  konten: TipTapJSON; // TipTap JSON format
+  konten: TipTapJSON; // TipTap JSON format (Prisma Json → JsonValue at runtime)
   urutan: number;
+  publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

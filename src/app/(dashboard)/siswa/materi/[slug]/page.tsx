@@ -192,7 +192,7 @@ export default function MateriDetailPage({
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: "24px", marginBottom: "36px" }}>
         <div style={{ flex: 1 }}>
-          <h1 style={{ color: "#346739", fontSize: "40px", fontWeight: 700, marginTop: 0, marginBottom: "8px" }}>
+          <h1 style={{ color: "#346739", fontSize: "var(--materi-heading-size)", fontWeight: 700, marginTop: 0, marginBottom: "8px" }}>
             {materi.title}
           </h1>
           <p style={{ color: "#666", fontSize: "15px", lineHeight: "1.6", marginBottom: 0 }}>
