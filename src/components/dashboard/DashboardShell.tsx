@@ -115,7 +115,8 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
                   alt="Kombinara"
                   width={150}
                   height={170}
-                  className="h-auto w-[110px] sm:w-[130px] md:w-[150px]"
+                  style={{ height: "auto", maxWidth: "100%" }}
+                  sizes="(max-width: 640px) 110px, (max-width: 768px) 130px, 150px"
                 />
               </Link>
               <span className="kb-tooltip">Dashboard</span>
@@ -190,7 +191,7 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
                 alt="Kombinara"
                 width={150}
                 height={170}
-                style={{ width: 150, height: "auto", maxWidth: "none" }}
+                style={{ height: "auto", maxWidth: "none" }}
               />
             </Link>
             <span className="kb-tooltip">Dashboard</span>

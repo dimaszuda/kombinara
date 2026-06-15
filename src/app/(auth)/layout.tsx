@@ -13,7 +13,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           alt="Kombinara"
           width={80}
           height={89}
-          className="w-auto h-10"
+          style={{ width: "auto", height: 40 }}
         />
       </div>
       <main className="min-h-screen flex items-start lg:items-center justify-center pt-16 lg:pt-0">

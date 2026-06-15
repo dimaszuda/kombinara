@@ -289,7 +289,7 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
       <div style={{ marginTop: "24px" }}>
         {NAV_ITEMS.map((item) => (
           <NavItem
-            key={item.href}
+            key={item.label}
             item={item}
             isActive={pathname === item.href}
             expanded={expanded}
@@ -311,7 +311,7 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
           const isActive = pathname === item.href;
           return (
             <Link
-              key={`mobile-${item.href}`}
+              key={`mobile-${item.label}`}
               href={item.href}
               style={{
                 display: "flex",
