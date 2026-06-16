@@ -316,7 +316,7 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
+                gap: 18,
                 padding: "10px 8px",
                 transition: "background-color 0.2s ease",
                 backgroundColor: isActive ? "rgba(255,255,255,0.15)" : "transparent",
@@ -329,11 +329,11 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
               <Image
                 src={item.icon}
                 alt={item.label}
-                width={24}
-                height={24}
+                width={20}
+                height={20}
                 style={{ objectFit: "contain", flexShrink: 0 }}
               />
-              <span style={{ color: "white", fontSize: 14, fontWeight: isActive ? 600 : 400 }}>
+              <span style={{ color: "white", fontSize: 12, fontWeight: isActive ? 600 : 400 }}>
                 {item.label}
               </span>
             </Link>
@@ -427,7 +427,7 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
       </aside>
 
       {/* Mobile sidebar */}
-      <div className={`fixed inset-0 z-50 md:hidden ${mobileOpen ? "" : "pointer-events-none"}`}>
+      <div className={`fixed inset-0 z-[1100] md:hidden ${mobileOpen ? "" : "pointer-events-none"}`}>
         <button
           type="button"
           aria-label="Tutup menu"

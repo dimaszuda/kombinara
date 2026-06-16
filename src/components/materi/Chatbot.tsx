@@ -61,9 +61,16 @@ interface Message {
   text: string;
 }
 
+// ─── Props ────────────────────────────────────────────────────────────────────
+interface ChatbotProps {
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  otherPanelOpen: boolean;
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function Chatbot() {
-  const [open, setOpen] = useState(false);
+export default function Chatbot({ isOpen, onOpen, onClose, otherPanelOpen }: ChatbotProps) {
   const [hovered, setHovered] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -107,23 +114,25 @@ export default function Chatbot() {
       {/* ══════════════════════════════════════════════════════════════
           DESKTOP — toggle button (right edge, vertically centred)
       ══════════════════════════════════════════════════════════════ */}
-      {!open && (
+      {!isOpen && !otherPanelOpen && (
         <button
           ref={toggleRef}
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => { setHovered(false); onOpen(); }}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
           className="hidden md:flex"
           style={{
             position: "fixed",
-            right: 8,
+            right: 14,
             top: "50%",
             transform: "translateY(-50%)",
             background: "#79AE6F",
             border: "none",
             cursor: "pointer",
-            padding: "14px 10px",
+            padding: 0,
+            width: 48,
+            height: 48,
             borderRadius: "10px 0 0 10px",
             alignItems: "center",
             justifyContent: "center",
@@ -135,35 +144,36 @@ export default function Chatbot() {
           <Image
             src="/icons/AI icon.png"
             alt="AI"
-            width={28}
-            height={28}
-            style={{ objectFit: "contain", display: "block" }}
+            width={32}
+            height={32}
+            style={{ objectFit: "contain", display: "block", width: 24, height: 24 }}
           />
         </button>
       )}
 
       {/* Portal tooltip */}
-      {hovered && !open && (
+      {hovered && !isOpen && !otherPanelOpen && (
         <PortalTooltip label="Tanya AI" anchorRef={toggleRef} />
       )}
 
       {/* ══════════════════════════════════════════════════════════════
           MOBILE — toggle button (bottom-center, with label)
       ══════════════════════════════════════════════════════════════ */}
-      {!open && (
+      {!isOpen && !otherPanelOpen && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => { setHovered(false); onOpen(); }}
           className="flex md:hidden"
           style={{
             position: "fixed",
             bottom: 8,
             left: "50%",
-            transform: "translateX(-50%)",
+            transform: "translateX(10%)",
             background: "#79AE6F",
             border: "none",
             cursor: "pointer",
             padding: "12px 20px",
+            height: 48,
             borderRadius: 10,
             alignItems: "center",
             justifyContent: "center",
@@ -200,14 +210,14 @@ export default function Chatbot() {
       {/* Backdrop */}
       <div
         className="block md:hidden"
-        onClick={() => setOpen(false)}
+        onClick={() => { setHovered(false); onClose(); }}
         style={{
           position: "fixed",
           inset: 0,
           background: "rgba(0,0,0,0.45)",
           zIndex: 1001,
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? "auto" : "none",
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? "auto" : "none",
           transition: "opacity 0.3s ease",
         }}
         aria-hidden="true"
@@ -218,7 +228,7 @@ export default function Chatbot() {
         className="flex md:hidden"
         style={{
           position: "fixed",
-          bottom: open ? 0 : "-82vh",
+          bottom: isOpen ? 0 : "-82vh",
           left: 0,
           right: 0,
           height: "82vh",
@@ -230,40 +240,19 @@ export default function Chatbot() {
           overflow: "hidden",
           boxShadow: "0 -4px 32px rgba(0,0,0,0.22)",
         }}
-        aria-hidden={!open}
+        aria-hidden={!isOpen}
       >
         {/* ── Mobile header ── */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between",
             gap: 10,
             padding: "18px 16px 14px",
             flexShrink: 0,
           }}
         >
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
-              display: "flex",
-              alignItems: "center",
-              flexShrink: 0,
-            }}
-            aria-label="Tutup chatbot"
-          >
-            <Image
-              src="/icons/AI icon.png"
-              alt="AI"
-              width={32}
-              height={32}
-              style={{ objectFit: "contain" }}
-            />
-          </button>
           <span
             style={{
               color: "white",
@@ -274,6 +263,33 @@ export default function Chatbot() {
           >
             Tanyakan AI
           </span>
+
+          <button
+            type="button"
+            onClick={() => { setHovered(false); onClose(); }}
+            style={{
+              background: "rgba(0,0,0,0.12)",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+            aria-label="Tutup chatbot"
+          >
+            <Image
+              src="/icons/close panel.png"
+              alt=""
+              width={22}
+              height={22}
+              style={{ objectFit: "contain", width: 16, height: 16 }}
+            />
+          </button>
         </div>
 
         {/* Divider */}
@@ -417,18 +433,18 @@ export default function Chatbot() {
         style={{
           position: "fixed",
           top: 64,
-          right: open ? 0 : -340,
+          right: isOpen ? 0 : -340,
           width: 320,
           height: "calc(100vh - 64px)",
           background: "#79AE6F",
           flexDirection: "column",
           zIndex: 1000,
           transition: "right 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
-          boxShadow: open ? "-4px 0 24px rgba(0,0,0,0.18)" : "none",
+          boxShadow: isOpen ? "-4px 0 24px rgba(0,0,0,0.18)" : "none",
           borderRadius: "16px 0 0 16px",
           overflow: "hidden",
         }}
-        aria-hidden={!open}
+        aria-hidden={!isOpen}
       >
         {/* Header */}
         <div
@@ -442,7 +458,7 @@ export default function Chatbot() {
         >
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={() => { setHovered(false); onClose(); }}
             style={{
               background: "none",
               border: "none",
