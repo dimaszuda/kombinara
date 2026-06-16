@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, Overlock } from "next/font/google";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });

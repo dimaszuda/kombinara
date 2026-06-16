@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { RichText } from "@/components/shared/RichText";
 
 const materiCards = [
   {
@@ -127,6 +128,7 @@ function DaftarIsi() {
           <span className="kp-toc-halaman"></span>
         </div>
       ))}
+      <hr className="kp-divider" />
     </article>
   );
 }
@@ -229,8 +231,131 @@ function PetunjukPenggunaan() {
           </tr>
         </tbody>
       </table>
+      <hr className="kp-divider" />
     </article>
   );
+}
+
+function PetaKonsep() {
+  return (
+    <article className="kp-wrap">
+      <h2 className="kp-subtitle text-center">Peta Konsep</h2>
+      <Image
+        src="/images/peta-konsep.svg"
+        alt="Peta Konsep"
+        width={673}
+        height={712}
+        className="mt-8"
+      />
+      <blockquote className="kp-quote text-justify">
+        🔗 <b>Koneksi Kunci</b>: Faktorial bukan kaidah pencacahan — ia adalah <b>alat matematis</b> yang mempersingkat penulisan perkalian berurutan. Tanpa faktorial, rumus permutasi dan kombinasi tidak bisa ditulis secara ringkas. Itulah mengapa ia dipelajari sebagai <b>jembatan</b>, bukan sebagai aturan pencacahan tersendiri.
+      </blockquote>
+      <hr className="kp-divider" />
+    </article>
+  )
+}
+
+const TUJUAN_PEMBELAJARAN = [
+  "Melalui eksplorasi kontekstual, siswa mampu <b>menjelaskan perbedaan konseptual</b> antara aturan penjumlahan dan aturan perkalian beserta alasan penggunaannya dengan menggunakan representasi verbal maupun visual secara tepat.",
+  "Melalui eksplorasi pola perkalian beruntun, siswa mampu <b>menjelaskan faktorial</b> sebagai notasi matematis yang muncul secara alami dari aturan perkalian, menghitung nilainya secara efisien termasuk $0! = 1$, dan memposisikannya sebagai alat matematis penunjang permutasi dan kombinasi bukan sebagai kaidah pencacahan tersendiri.",
+  "Melalui investigasi daftar susunan dan latihan bertingkat, siswa mampu <b>membangun konsep permutasi</b> secara mandiri sebagai generalisasi urutan perkalian, menerapkan rumus permutasi untuk menyelesaikan masalah kontekstual, serta menjelaskan mengapa urutan diperhatikan dalam permutasi menggunakan argumen yang logis.",
+  "Melalui eksplorasi dan analisis perhitungan ganda, siswa mampu <b>membangun konsep kombinasi</b> sebagai koreksi atas permutasi yang tidak memperhatikan urutan, menerapkan rumus kombinasi untuk menyelesaikan masalah kontekstual, serta menjelaskan mengapa kombinasi membagi dengan $r!$ secara bermakna.",
+  "Melalui analisis kritis berbagai situasi kontekstual, siswa mampu <b>membedakan penggunaan permutasi dan kombinasi</b> berdasarkan peran urutan dalam konteks soal bukan berdasarkan pengenalan kata tertentu dan membuktikan hubungan matematis antara kombinasi dan permutasi secara konseptual maupun aljabar.",
+  "Melalui pemecahan masalah berlapis, siswa mampu mengintegrasikan lebih dari satu konsep kaidah pencacahan secara tepat, memilih strategi penyelesaian yang paling efisien (langsung atau komplemen), dan memvalidasi kebenaran solusinya melalui cara alternatif atau pengecekan kontekstual.",
+  "Melalui diskusi dan presentasi kelompok, siswa mampu mengomunikasikan pemahaman konseptualnya termasuk makna konsep, alasan pemilihan metode, dan justifikasi solusi secara lisan maupun tulisan menggunakan bahasa dan notasi matematis yang tepat."
+]
+
+const PEMAHAMAN_MAKNA = [
+  "Siswa dapat menjelaskan dengan kata-katanya sendiri bahwa <b>aturan penjumlahan</b> digunakan ketika hanya satu pilihan yang diambil dari beberapa kelompok yang saling lepas, dan <b>aturan perkalian</b> digunakan ketika semua tahap keputusan harus dilalui secara berurutan.",
+  "Siswa dapat menjelaskan bahwa <b>faktorial</b> bukan kaidah pencacahan, melainkan notasi matematis yang meringkas perkalian berurutan dan menjelaskan mengapa ia muncul secara alami dari aturan perkalian.",
+  "Siswa dapat menjelaskan mengapa $0! = 1$ menggunakan argumen dari sifat rekursif $n! = n \\times (n-1)!$, bukan sekadar menyebut \"itu memang aturannya\".",
+  "Siswa dapat menjelaskan mengapa urutan diperhatikan dalam <b>permutasi</b> menggunakan argumen kontekstual yang nyata, bukan sekadar menyebut definisi.",
+  "Siswa dapat menjelaskan mengapa urutan tidak diperhatikan dalam <b>kombinasi</b> dan mengapa perbedaan ini mengharuskan pembagian dengan $r!$ bukan melalui manipulasi aljabar, melainkan melalui penjelasan tentang penghitungan ganda yang dikoreksi."
+]
+
+const PEMAHAMAN_RELASI = [
+  "Siswa dapat menjelaskan bahwa <b>permutasi</b> adalah generalisasi formal dari aturan perkalian yaitu permutasi muncul ketika aturan perkalian diterapkan pada pemilihan tanpa pengulangan secara berurutan.",
+  "Siswa dapat menjelaskan <b>hubungan</b> $C(n,r) = \\frac{P(n,r)}{r!}$ secara bermakna: kombinasi diperoleh dari permutasi dengan menghilangkan pengaruh urutan, sehingga setiap kelompok yang sama tidak dihitung berulang.",
+  "Siswa dapat menggambarkan alur logis <b>keterhubungan lima konsep</b> dalam kombinatorika: aturan perkalian &rarr; faktorial &rarr; permutasi &rarr; kombinasi, dan menjelaskan mengapa urutan belajar tersebut bukan kebetulan.",
+  "Siswa dapat menjelaskan sifat $C(n,r) = C(n, n-r)$ secara intuitif: memilih $r$ dari $n$ objek secara otomatis berarti menyisakan $n-r$ objek, sehingga jumlah caranya sama.",
+  "Siswa dapat menjelaskan hubungan linear bahwa $(n-1)! = \\frac{n!}{n}$ karena setiap susunan melingkar unik dihitung $n$ kali dalam permutasi linear akibat rotasi."
+]
+
+const PEMAHAMAN_KONDISI = [
+  "Siswa dapat mengidentifikasi dari konteks soal apakah suatu situasi memerlukan <b>aturan penjumlahan atau perkalian</b>, berdasarkan pertanyaan kunci: \"apakah semua pilihan harus diambil, atau hanya satu?\".",
+  "Siswa dapat menentukan apakah suatu masalah memerlukan <b>permutasi atau kombinasi</b> berdasarkan analisis peran urutan dalam konteks bukan berdasarkan kata tertentu dalam soal dan memberikan justifikasi logis atas pilihannya.",
+  "Siswa dapat mengenali kapan <b>permutasi</b> unsur yang sama harus digunakan, yaitu ketika ada objek yang identik sehingga sebagian susunan menghasilkan hasil yang tidak berbeda secara visual.",
+  "Siswa dapat <b>menentukan kapan strategi komplemen</b> (total dikurangi pengecualian) lebih efisien daripada menghitung langsung, dan menjelaskan alasannya."
+]
+
+const FLEKSIBILITAS_REPRESENTASI = [
+  "Siswa dapat merepresentasikan masalah <b>aturan perkalian</b> dalam bentuk diagram pohon dan menunjukkan bahwa hasil perkalian jumlah cabang di tiap tingkat sesuai dengan total pilihan akhir.",
+  "Siswa dapat merepresentasikan masalah pencacahan bertahap dalam bentuk <b>visualisasi kotak pengisian tempat</b>, mengisi banyaknya pilihan di setiap kotak, dan menggunakannya sebagai jembatan menuju penulisan formal.",
+  "Siswa dapat menyajikan <b>masalah kombinasi</b> dengan syarat dalam bentuk tabel kasus yang terstruktur, dan menjelaskan mengapa setiap baris tabel mewakili kasus yang berbeda.",
+  "Siswa dapat berpindah secara fleksibel antara <b>representasi verbal</b> (konteks soal), diagram/tabel (visualisasi), dan simbolik (rumus), serta menjelaskan apa yang diwakili oleh setiap representasi."
+]
+
+const GENERALISASI = [
+  "Siswa dapat membangun <b>rumus faktorial</b> secara mandiri dari pola tabel perkalian berurutan ($1 \\times 1$, $2 \\times 1$, $3 \\times 2 \\times 1$, ...), bukan sekadar menerima rumus dari guru.",
+  "Siswa dapat membangun rumus permutasi linear $\\frac{n!}{(n-r)!}$, <b>rumus permutasi</b> siklis $(n-1)!$, dan rumus permutasi dari generalisasi aturan perkalian bertahap tanpa pengulangan, dan memverifikasi bahwa hasilnya setara.",
+  "Siswa dapat membangun <b>rumus kombinasi</b> dari eksplorasi daftar kelompok, menemukan sendiri bahwa setiap kelompok dihitung sebanyak $r!$ kali dalam permutasi, dan menyimpulkan rumus $C(n,r) = \\frac{P(n,r)}{r!}$.",
+  "Siswa dapat membuat konjektur berdasarkan pola yang diamati misalnya \"nilai kombinasi tidak pernah melebihi permutasi untuk nilai $n$ dan $r$ yang sama\" dan memverifikasinya secara matematis."
+]
+
+function TujuanPembelajaran() {
+  return (
+    <article className="kp-wrap">
+      <h2 className="kp-subtitle text-center">Capaian dan Tujuan Pembelajaran</h2>
+      <h3 className="kp-greeting">Capaian Pembelajaran (CP)</h3>
+      <p className="kp-body">
+        <b>Pada akhir fase F, siswa memiliki kemampuan</b> melakukan proses penyelidikan statistika untuk mengidentifikasi dan menjelaskan asosiasi antara dua variabel kategorikal (kualitatif) dan antara dua variabel numerik (kuantitatif); memperkirakan model linear terbaik (best fit linear) pada data numerik (kuantitatif); membedakan sebab-akibat; hubungan menjelaskan asosiasi peluang dan dan menentukan frekuensi harapan dari kejadian majemuk; menyelidiki konsep dari kejadian saling bebas dan saling lepas, dan menentukan peluangnya; serta memahami konsep peluang bersyarat dan kejadian yang saling bebas <b>menggunakan konsep permutasi dan kombinasi.</b>
+      </p>
+      <h3 className="kp-greeting">Tujuan Pembelajaran (TP)</h3>
+      <p className="kp-body">Setelah mempelajari modul ini, diharapkan:</p>
+      <ol className="kp-list">
+        {TUJUAN_PEMBELAJARAN.map((item, i) => (
+          <li key={i}><RichText>{item}</RichText></li>
+        ))}
+      </ol>
+      <h3 className="kp-greeting">Indikator Keberhasilan</h3>
+      <h3 className="kp-greeting text-bold">1. Pemahaman Makna Konsep</h3>
+      <p className="kp-body">Siswa memahami apa yang diwakili oleh suatu konsep dan mengapa konsep itu ada, bukan sekadar mengetahui rumusnya.</p>
+      <ol className="kp-list">
+        {PEMAHAMAN_MAKNA.map((item, i) => (
+          <li key={`1.${i}`}><RichText>{item}</RichText></li>
+        ))}
+      </ol>
+      <h3 className="kp-greeting text-bold">2. Pemahaman Relasi Antar Konsep</h3>
+      <p className="kp-body">Siswa mengenali keterkaitan antar konsep dalam kombinatorika dan memahami alur logis yang menghubungkannya.</p>
+      <ol className="kp-list">
+        {PEMAHAMAN_RELASI.map((item, i) => (
+          <li key={`2.${i}`}><RichText>{item}</RichText></li>
+        ))}
+      </ol>
+      <h3 className="kp-greeting text-bold">3. Pemahaman Kondisi Penggunaan</h3>
+      <p className="kp-body">Siswa mengetahui kapan suatu konsep tepat digunakan dan dapat memberikan justifikasi atas pilihannya.</p>
+      <ol className="kp-list">
+        {PEMAHAMAN_KONDISI.map((item, i) => (
+          <li key={`3.${i}`}><RichText>{item}</RichText></li>
+        ))}
+      </ol>
+      <h3 className="kp-greeting text-bold">4. Fleksibilitas Representasi</h3>
+      <p className="kp-body">Siswa dapat menyajikan konsep kombinatorika dalam berbagai bentuk representasi dan berpindah di antara representasi tersebut secara fleksibel.</p>
+      <ol className="kp-list">
+        {FLEKSIBILITAS_REPRESENTASI.map((item, i) => (
+          <li key={`4.${i}`}><RichText>{item}</RichText></li>
+        ))}
+      </ol>
+      <h3 className="kp-greeting text-bold">5. Generalisasi</h3>
+      <p className="kp-body">Siswa mampu membangun pemahaman umum dari pola yang ditemukan dalam kasus-kasus konkret.</p>
+      <ol className="kp-list">
+        {GENERALISASI.map((item, i) => (
+          <li key={`5.${i}`}><RichText>{item}</RichText></li>
+        ))}
+      </ol>
+      <hr className="kp-divider" />
+    </article>
+  )
 }
 
 export default function SiswaDashboardPage() {
@@ -251,6 +376,12 @@ export default function SiswaDashboardPage() {
           </ScrollReveal>
           <ScrollReveal variant="fade-up" delay={240}>
             <PetunjukPenggunaan />
+          </ScrollReveal>
+          <ScrollReveal variant="fade-up" delay={360}>
+            <PetaKonsep/>
+          </ScrollReveal>
+          <ScrollReveal variant="fade-up" delay={480}>
+            <TujuanPembelajaran/>
           </ScrollReveal>
         </div>
 
