@@ -26,12 +26,9 @@
 
 ## About the Project
 
-Kombinara is a text-based (non-video) interactive e-module platform for high school combinatorics. The concept is similar to Dicoding — students read the material, interact directly with the content, and receive AI-based feedback.
-
-The platform is used by a single school with two roles: **teacher** and **student**.
+Kombinara is a text-based interactive e-module platform for high school combinatorics.
 
 **Name:** Kombinara
-**Etymology:** from Latin *combinare* (to combine) + suffix *-ara* (Sanskrit, meaning "that which carries" or "a means/vehicle")
 
 **Content Coverage:**
 - Counting Principles
@@ -69,13 +66,6 @@ The platform is used by a single school with two roles: **teacher** and **studen
 - Daily exams with countdown timer, auto-submit, and anti-cheat
 - Progress tracking per module
 - Badges and achievements for certain milestones
-
-### For Teachers
-- Dashboard for visualizing student progress and grades
-- Student activeness system with configurable component weights per class
-- Export exam results to PDF
-- Module and enrollment management via Module Key
-
 ---
 
 ## System Architecture
@@ -87,7 +77,7 @@ Student highlights text in the material
   -> floating toolbar appears
   -> clicks "Ask AI"
   -> selected text + 2 context paragraphs (sliding window) sent to API Route
-  -> Edge Runtime forwards to Claude Haiku with streaming
+  -> Edge Runtime forwards to GPT-4o-mini with streaming
   -> response streamed to UI via Vercel AI SDK useChat
 ```
 
@@ -138,7 +128,7 @@ activity_score = (
 |---|---|---|
 | Reading Engagement | 25% | Intersection Observer API — time-on-section per material (not scroll %) |
 | Question Frequency | 25% | Normalized: `number_of_questions / study_time_minutes` |
-| Question Depth | 30% | Scored async by Claude, score 1–5, categories: clarification / conceptual / application / critical |
+| Question Depth | 30% | Scored async by GPT-4o-mini, score 1–5, categories: clarification / conceptual / application / critical |
 | Quiz & Exam Score | 20% | Cumulative score from all assessments |
 
 These weights are **configurable per class** by the teacher — stored as settings in the DB.
@@ -194,25 +184,10 @@ Only sends relevant text (selected text + 2 surrounding paragraphs), not the ent
 
 ---
 
-## Roles & Access
-
-| Feature | Student | Teacher |
-|---|---|---|
-| Read material | Yes | Yes |
-| Ask AI | Yes | - |
-| Take quiz / exam | Yes | - |
-| View own progress | Yes | - |
-| View all students' progress | - | Yes |
-| Configure activeness weights | - | Yes |
-| Export exam results to PDF | - | Yes |
-| Manage modules & enrollment | - | Yes |
-
 **Student auth flow:**
 1. Sign up via Google OAuth
 2. Required to complete profile: Full Name, Class, Student Number
 3. Enroll in a class via Module Key provided by the teacher
-
-**Account provisioning:** Pre-generate student accounts via admin script (recommended over self-signup) to avoid Supabase Auth per-IP rate limits on shared school WiFi networks.
 
 ---
 
