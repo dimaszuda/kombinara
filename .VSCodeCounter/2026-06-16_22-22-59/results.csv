@@ -1,0 +1,84 @@
+"filename", "language", "JavaScript", "JSON", "JSON with Comments", "TypeScript", "XML", "Markdown", "TypeScript JSX", "MS SQL", "PostCSS", "comment", "blank", "total"
+"d:\PROJECTS\SELF PROJECT\kombinara\.eslintrc.json", "JSON with Comments", 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 1, 7
+"d:\PROJECTS\SELF PROJECT\kombinara\README.md", "Markdown", 0, 0, 0, 0, 0, 177, 0, 0, 0, 0, 64, 241
+"d:\PROJECTS\SELF PROJECT\kombinara\docs\decisions.md", "Markdown", 0, 0, 0, 0, 0, 37, 0, 0, 0, 0, 37, 74
+"d:\PROJECTS\SELF PROJECT\kombinara\next-env.d.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 6
+"d:\PROJECTS\SELF PROJECT\kombinara\next.config.js", "JavaScript", 18, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 22
+"d:\PROJECTS\SELF PROJECT\kombinara\package-lock.json", "JSON", 0, 10015, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10016
+"d:\PROJECTS\SELF PROJECT\kombinara\package.json", "JSON", 0, 59, 0, 0, 0, 0, 0, 0, 0, 0, 1, 60
+"d:\PROJECTS\SELF PROJECT\kombinara\postcss.config.js", "JavaScript", 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7
+"d:\PROJECTS\SELF PROJECT\kombinara\prisma\migrations\manual\add_hash_password.sql", "MS SQL", 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 3
+"d:\PROJECTS\SELF PROJECT\kombinara\prisma\migrations\manual\add_user_profil_fields.sql", "MS SQL", 0, 0, 0, 0, 0, 0, 0, 3, 0, 1, 1, 5
+"d:\PROJECTS\SELF PROJECT\kombinara\prisma\migrations\manual\create_leaderboard_mv.sql", "MS SQL", 0, 0, 0, 0, 0, 0, 0, 36, 0, 8, 6, 50
+"d:\PROJECTS\SELF PROJECT\kombinara\prisma\seed.ts", "TypeScript", 0, 0, 0, 86, 0, 0, 0, 0, 0, 8, 13, 107
+"d:\PROJECTS\SELF PROJECT\kombinara\public\images\peta-konsep.svg", "XML", 0, 0, 0, 0, 4, 0, 0, 0, 0, 1, 0, 5
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(auth)\complete-profil\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 252, 0, 0, 10, 30, 292
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(auth)\forgot-password\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 87, 0, 0, 0, 9, 96
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(auth)\join\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 75, 0, 0, 0, 10, 85
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(auth)\layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 2, 25
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(auth)\login\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 169, 0, 0, 1, 22, 192
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(auth)\reset-password\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 153, 0, 0, 0, 16, 169
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(auth)\signup\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 224, 0, 0, 1, 24, 249
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\guru\kelas\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 1, 5
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\guru\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 3, 0, 0, 4, 1, 8
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\guru\settings\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 3, 0, 0, 6, 1, 10
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\guru\siswa\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 1, 5
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 19, 0, 0, 4, 4, 27
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\leaderboard\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 3, 0, 0, 4, 1, 8
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\materi\[slug]\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 256, 0, 0, 6, 12, 274
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\materi\kombinasi\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 103, 0, 0, 4, 5, 112
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\materi\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 1, 5
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\materi\permutasi\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 103, 0, 0, 4, 4, 111
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 394, 0, 0, 12, 35, 441
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\profile\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 319, 0, 0, 14, 36, 369
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\quiz\[id]\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 7, 0, 0, 4, 1, 12
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\quiz\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 1, 5
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\ulangan\[id]\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 7, 0, 0, 5, 1, 13
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\(dashboard)\siswa\ulangan\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 1, 5
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\activity\route.ts", "TypeScript", 0, 0, 0, 6, 0, 0, 0, 0, 0, 6, 2, 14
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\ai\chat\route.ts", "TypeScript", 0, 0, 0, 4, 0, 0, 0, 0, 0, 10, 2, 16
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\ai\depth-score\route.ts", "TypeScript", 0, 0, 0, 4, 0, 0, 0, 0, 0, 9, 2, 15
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\ai\handwritten\route.ts", "TypeScript", 0, 0, 0, 4, 0, 0, 0, 0, 0, 10, 2, 16
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\auth\logout\route.ts", "TypeScript", 0, 0, 0, 43, 0, 0, 0, 0, 0, 2, 7, 52
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\auth\report-error\route.ts", "TypeScript", 0, 0, 0, 40, 0, 0, 0, 0, 0, 11, 11, 62
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\auth\signup\route.ts", "TypeScript", 0, 0, 0, 142, 0, 0, 0, 0, 0, 2, 15, 159
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\export\route.ts", "TypeScript", 0, 0, 0, 3, 0, 0, 0, 0, 0, 7, 1, 11
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\leaderboard\route.ts", "TypeScript", 0, 0, 0, 3, 0, 0, 0, 0, 0, 4, 1, 8
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\progress\route.ts", "TypeScript", 0, 0, 0, 6, 0, 0, 0, 0, 0, 5, 2, 13
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\quiz\route.ts", "TypeScript", 0, 0, 0, 6, 0, 0, 0, 0, 0, 4, 2, 12
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\ulangan\route.ts", "TypeScript", 0, 0, 0, 6, 0, 0, 0, 0, 0, 5, 2, 13
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\users\avatar\route.ts", "TypeScript", 0, 0, 0, 90, 0, 0, 0, 0, 0, 9, 21, 120
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\api\users\route.ts", "TypeScript", 0, 0, 0, 103, 0, 0, 0, 0, 0, 4, 15, 122
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\auth\callback\route.ts", "TypeScript", 0, 0, 0, 86, 0, 0, 0, 0, 0, 5, 14, 105
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\globals.css", "PostCSS", 0, 0, 0, 0, 0, 0, 0, 0, 240, 20, 24, 284
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 5, 29
+"d:\PROJECTS\SELF PROJECT\kombinara\src\app\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 2, 8
+"d:\PROJECTS\SELF PROJECT\kombinara\src\components\dashboard\DashboardShell.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 244, 0, 0, 9, 17, 270
+"d:\PROJECTS\SELF PROJECT\kombinara\src\components\dashboard\Sidebar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 426, 0, 0, 6, 27, 459
+"d:\PROJECTS\SELF PROJECT\kombinara\src\components\materi\Chatbot.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 587, 0, 0, 29, 28, 644
+"d:\PROJECTS\SELF PROJECT\kombinara\src\components\materi\ChatbotShell.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 37, 0, 0, 0, 6, 43
+"d:\PROJECTS\SELF PROJECT\kombinara\src\components\materi\SelectionToolbar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 137, 0, 0, 6, 18, 161
+"d:\PROJECTS\SELF PROJECT\kombinara\src\components\materi\TableContent.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 514, 0, 0, 20, 33, 567
+"d:\PROJECTS\SELF PROJECT\kombinara\src\components\shared\RichText.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 63, 0, 0, 20, 15, 98
+"d:\PROJECTS\SELF PROJECT\kombinara\src\components\ui\ScrollReveal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 42, 0, 0, 5, 7, 54
+"d:\PROJECTS\SELF PROJECT\kombinara\src\hooks\useScrollReveal.ts", "TypeScript", 0, 0, 0, 38, 0, 0, 0, 0, 0, 3, 10, 51
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\activity\calculator.ts", "TypeScript", 0, 0, 0, 31, 0, 0, 0, 0, 0, 3, 6, 40
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\ai\models.ts", "TypeScript", 0, 0, 0, 3, 0, 0, 0, 0, 0, 4, 3, 10
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\ai\prompts.ts", "TypeScript", 0, 0, 0, 62, 0, 0, 0, 0, 0, 2, 7, 71
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\alerts.ts", "TypeScript", 0, 0, 0, 85, 0, 0, 0, 0, 0, 10, 13, 108
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\data\materi.ts", "TypeScript", 0, 0, 0, 41, 0, 0, 0, 0, 0, 22, 14, 77
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\data\siswa-dashboard.ts", "TypeScript", 0, 0, 0, 121, 0, 0, 0, 0, 0, 0, 11, 132
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\data\user-profile.ts", "TypeScript", 0, 0, 0, 97, 0, 0, 0, 0, 0, 31, 18, 146
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\logger.ts", "TypeScript", 0, 0, 0, 43, 0, 0, 0, 0, 0, 8, 6, 57
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\prisma\client.ts", "TypeScript", 0, 0, 0, 10, 0, 0, 0, 0, 0, 1, 4, 15
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\redis\cache.ts", "TypeScript", 0, 0, 0, 56, 0, 0, 0, 0, 0, 52, 13, 121
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\redis\client.ts", "TypeScript", 0, 0, 0, 20, 0, 0, 0, 0, 0, 21, 10, 51
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\supabase\client.ts", "TypeScript", 0, 0, 0, 9, 0, 0, 0, 0, 0, 1, 3, 13
+"d:\PROJECTS\SELF PROJECT\kombinara\src\lib\supabase\server.ts", "TypeScript", 0, 0, 0, 17, 0, 0, 0, 0, 0, 1, 2, 20
+"d:\PROJECTS\SELF PROJECT\kombinara\src\middleware.ts", "TypeScript", 0, 0, 0, 66, 0, 0, 0, 0, 0, 6, 12, 84
+"d:\PROJECTS\SELF PROJECT\kombinara\src\types\css.d.ts", "TypeScript", 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 2
+"d:\PROJECTS\SELF PROJECT\kombinara\src\types\database.ts", "TypeScript", 0, 0, 0, 7, 0, 0, 0, 0, 0, 3, 2, 12
+"d:\PROJECTS\SELF PROJECT\kombinara\src\types\index.ts", "TypeScript", 0, 0, 0, 80, 0, 0, 0, 0, 0, 7, 14, 101
+"d:\PROJECTS\SELF PROJECT\kombinara\tailwind.config.js", "JavaScript", 21, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 23
+"d:\PROJECTS\SELF PROJECT\kombinara\tsconfig.json", "JSON with Comments", 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 1, 25
+"Total", "-", 45, 10074, 30, 1419, 4, 214, 4293, 40, 240, 495, 781, 17635

@@ -433,7 +433,6 @@ export default function SiswaDashboardPage() {
           </Link>
         ))}
       </section>
-
     </div>
     </>
   );

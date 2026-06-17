@@ -378,13 +378,13 @@ export default function TableContent({
             position: "fixed",
             right: 14,
             top: "50%",
-            transform: "translateY(75%)",
+            transform: "translateY(90%)",
             background: "#79AE6F",
             border: "none",
             cursor: "pointer",
             padding: 0,
-            width: 48,
-            height: 48,
+            width: 32,
+            height: 32,
             borderRadius: "10px 0 0 10px",
             alignItems: "center",
             justifyContent: "center",
@@ -398,7 +398,7 @@ export default function TableContent({
             alt=""
             width={28}
             height={28}
-            style={{ objectFit: "contain", display: "block", width: 20, height: 20 }}
+            style={{ objectFit: "contain", display: "block", width: 12, height: 12 }}
           />
         </button>
       )}

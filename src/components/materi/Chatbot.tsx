@@ -131,8 +131,8 @@ export default function Chatbot({ isOpen, onOpen, onClose, otherPanelOpen }: Cha
             border: "none",
             cursor: "pointer",
             padding: 0,
-            width: 48,
-            height: 48,
+            width: 32,
+            height: 32,
             borderRadius: "10px 0 0 10px",
             alignItems: "center",
             justifyContent: "center",
@@ -144,9 +144,9 @@ export default function Chatbot({ isOpen, onOpen, onClose, otherPanelOpen }: Cha
           <Image
             src="/icons/AI icon.png"
             alt="AI"
-            width={32}
-            height={32}
-            style={{ objectFit: "contain", display: "block", width: 24, height: 24 }}
+            width={20}
+            height={20}
+            style={{ objectFit: "contain", display: "block", width: 20, height: 20 }}
           />
         </button>
       )}
