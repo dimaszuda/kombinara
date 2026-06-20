@@ -51,6 +51,11 @@ export interface GradingResult {
   score: number;
   /** Detail per-nomor */
   questions: QuestionResult[];
+  /** 
+   * Feedback tindak lanjut untuk siswa yang belum lulus.
+   * null jika lulus atau tidak ada rekomendasi khusus.
+   */
+  feedback: string | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -143,6 +148,9 @@ export const ANSWER_KEY: QuestionKey[] = [
       { type: "numeric", expected: 5 },                                  // 3 jus + 2 susu = 5 pilihan (atau → +)
       { type: "numeric", expected: 12 },                                 // 3 baju × 4 celana = 12 (dan → ×)
       { type: "numeric", expected: 15 },                                 // 5 rute × 3 rute = 15 (dan → ×)
+      { type: "text", expected: "+", alternatives: ["plus", "tambah", "penjumlahan", "jumlah"] },    // operasi baris 1: atau → +
+      { type: "text", expected: "×", alternatives: ["x", "*", "kali", "perkalian"] },                // operasi baris 2: dan → ×
+      { type: "text", expected: "×", alternatives: ["x", "*", "kali", "perkalian"] },                // operasi baris 3: dan → ×
     ],
   },
 
@@ -211,6 +219,83 @@ export const ANSWER_KEY: QuestionKey[] = [
     ],
   },
 ];
+
+// ═══════════════════════════════════════════════════════════════
+// Block Definitions
+// ═══════════════════════════════════════════════════════════════
+
+/** Mapping blok → nomor soal */
+export const BLOCK_MAP: Record<string, number[]> = {
+  A: [1, 2],   // Operasi dan Penyederhanaan Bilangan
+  B: [3, 4],   // Persamaan Sederhana
+  C: [5, 6],   // Konsep Himpunan
+  D: [7, 8],   // Logika "Atau / Dan"
+  E: [9, 10],  // Membaca Soal Cerita
+};
+
+/** Semua blok (kecuali E) untuk pengecekan "mayoritas A-D" */
+const BLOCKS_A_TO_D = ["A", "B", "C", "D"] as const;
+
+/**
+ * Menghasilkan feedback tindak lanjut berdasarkan hasil grading.
+ * Hanya mengembalikan teks "tindak lanjut" — bukan profil hasil atau kondisi.
+ *
+ * Prioritas aturan:
+ * 1. Blok A–D mayoritas salah (≥ 5/8) → pendampingan khusus
+ * 2. Blok A atau B BANYAK salah (semua soal di blok tsb salah) → review singkat
+ * 3. Blok C atau D BANYAK salah → review mendalam
+ * 4. Blok E sempurna → kandidat tutor sebaya
+ *
+ * "BANYAK salah" dalam satu blok = SEMUA soal di blok tersebut salah.
+ */
+export function getFeedback(result: GradingResult): string | null {
+  const { questions } = result;
+
+  // Helper: apakah suatu soal benar?
+  const isCorrect = (qNum: number): boolean => {
+    const q = questions.find((q) => q.number === qNum);
+    return q?.correct ?? false;
+  };
+
+  // Helper: apakah suatu blok SEMUA SALAH?
+  const isBlockAllWrong = (block: string): boolean => {
+    const nums = BLOCK_MAP[block];
+    if (!nums) return false;
+    return nums.every((n) => !isCorrect(n));
+  };
+
+  // Hitung total benar di Blok A–D
+  const totalADCorrect = BLOCKS_A_TO_D.reduce((sum, block) => {
+    return sum + BLOCK_MAP[block].filter((n) => isCorrect(n)).length;
+  }, 0);
+  const totalADQuestions = BLOCKS_A_TO_D.reduce(
+    (sum, block) => sum + BLOCK_MAP[block].length,
+    0
+  ); // = 8
+
+  // Rule 3: Blok A–D mayoritas salah (≥ 5/8 wrong → ≤ 3/8 correct)
+  if (totalADCorrect <= totalADQuestions / 2) {
+    return "Pertimbangkan pendampingan individual atau kelompok kecil sebelum mengikuti kelas";
+  }
+
+  // Rule 1: Blok A atau B semua salah
+  if (isBlockAllWrong("A") || isBlockAllWrong("B")) {
+    return "Review 10 – 15 menit: cara menyederhanakan pecahan dan pola perkalian berurutan sebelum masuk materi";
+  }
+
+  // Rule 2: Blok C atau D semua salah
+  if (isBlockAllWrong("C") || isBlockAllWrong("D")) {
+    return "Review konsep himpunan dan logika AND/OR dulu karena ini fondasi konseptual kaidah pencacahan";
+  }
+
+  // Rule 4: Blok E sempurna (keduanya benar)
+  const blockE = BLOCK_MAP["E"];
+  if (blockE && blockE.every((n) => isCorrect(n))) {
+    return "Tandai sebagai kandidat tutor sebaya atau peserta pengayaan";
+  }
+
+  return null;
+}
 
 // ═══════════════════════════════════════════════════════════════
 // Grading Logic
@@ -301,14 +386,23 @@ export function gradeAnswers(answers: StudentAnswers): GradingResult {
 
   const totalQuestions = ANSWER_KEY.length;
   const score = Math.round((correctCount / totalQuestions) * 100);
+  const isPass = correctCount >= 7;
 
-  return {
+  const baseResult: GradingResult = {
     correctCount,
     totalQuestions,
-    isPass: correctCount >= 7,
+    isPass,
     score,
     questions,
+    feedback: null,
   };
+
+  // Hanya hitung feedback jika belum lulus
+  if (!isPass) {
+    baseResult.feedback = getFeedback(baseResult);
+  }
+
+  return baseResult;
 }
 
 /**

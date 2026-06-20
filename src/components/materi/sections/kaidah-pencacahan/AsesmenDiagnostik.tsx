@@ -188,7 +188,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                     backgroundColor: "white",
                     borderRadius: "16px",
                     padding: "32px",
-                    border: "1px solid #e8e8e8",
+                    border: "1px solid #346739",
                 }}
                 className="flex flex-col gap-8"
             >
@@ -301,7 +301,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                     <QuestionRow number={4}>
                         <div className="flex items-center gap-2 flex-wrap">
                             <RichText>
-                                {"Jika $n - r = 7$ dan $n = 7$, maka nilai $r$ adalah"}
+                                {"Jika $n - r = 2$ dan $n = 7$, maka nilai $r$ adalah"}
                             </RichText>
                             <input
                                 type="text"
@@ -448,8 +448,24 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                             <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
                                                 {situation}
                                             </td>
-                                            <td className="px-4 py-3 text-center text-gray-400 italic border-t border-gray-100">
-                                                + / ×
+                                            <td className="px-4 py-3 text-center border-t border-gray-100">
+                                                <select
+                                                    name={`q7-op-${i}`}
+                                                    value={getAnswer(7, i + 3)}
+                                                    onChange={(e) => setAnswer(7, i + 3, e.target.value)}
+                                                    className={`${inputBase} w-16 text-center mx-auto block cursor-pointer appearance-none text-gray-500`}
+                                                    style={{ color: getAnswer(7, i + 3) ? undefined : "#d1d5db" }}
+                                                >
+                                                    <option value="" disabled className="text-gray-300">
+                                                        + / ×
+                                                    </option>
+                                                    <option value="+" className="text-gray-700">
+                                                        +
+                                                    </option>
+                                                    <option value="×" className="text-gray-700">
+                                                        ×
+                                                    </option>
+                                                </select>
                                             </td>
                                             <td className="px-4 py-3 text-center border-t border-gray-100">
                                                 <input
@@ -602,7 +618,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                     Memeriksa jawaban...
                                 </>
                             ) : (
-                                "Kumpulkan Jawaban"
+                                "Submit"
                             )}
                         </button>
                     ) : (
@@ -628,7 +644,7 @@ function ResultFeedback({
     result: GradingResult;
     onRetry: () => void;
 }) {
-    const { isPass, correctCount, totalQuestions, score, questions } = result;
+    const { isPass, correctCount, totalQuestions, score, questions, feedback } = result;
 
     return (
         <div className="flex flex-col items-center gap-4 w-full">
@@ -678,6 +694,26 @@ function ResultFeedback({
                         : ` — Butuh minimal 7 benar. Kurang ${7 - correctCount} nomor lagi.`}
                 </p>
             </div>
+
+            {/* Feedback tindak lanjut (hanya jika belum lulus & ada feedback) */}
+            {!isPass && feedback && (
+                <div
+                    style={{
+                        width: "100%",
+                        maxWidth: "460px",
+                        padding: "14px 18px",
+                        borderRadius: "10px",
+                        background: "#fffbeb",
+                        border: "1px solid #fcd34d",
+                        fontSize: "13px",
+                        lineHeight: "1.6",
+                        color: "#92400e",
+                    }}
+                >
+                    <span style={{ fontWeight: 600 }}>💡 Tindak lanjut: </span>
+                    {feedback}
+                </div>
+            )}
 
             {/* Per-nomor breakdown */}
             <div className="w-full max-w-md flex flex-col gap-1.5 mt-2">

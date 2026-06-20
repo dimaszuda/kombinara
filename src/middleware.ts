@@ -26,7 +26,34 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Dapatkan user dengan fallback — handle network error (ECONNRESET, dll)
+  let user: { id: string; user_metadata?: { role?: string } } | null = null;
+
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user ?? null;
+  } catch (err: any) {
+    logger.warn("auth:middleware", "getUser() failed — falling back to getSession()", {
+      error: err?.message ?? String(err),
+      code: err?.cause?.code,
+    });
+
+    // Fallback: baca session dari cookie (tidak perlu network call ke Supabase)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session?.user) {
+        user = sessionData.session.user;
+        logger.info("auth:middleware", "Session fallback succeeded", {
+          userId: user!.id,
+        });
+      }
+    } catch (sessionErr: any) {
+      logger.error("auth:middleware", "getSession() fallback also failed", {
+        error: sessionErr?.message ?? String(sessionErr),
+      });
+      // Biarkan user tetap null — akan ditangani di bawah
+    }
+  }
 
   const pathname = request.nextUrl.pathname;
 

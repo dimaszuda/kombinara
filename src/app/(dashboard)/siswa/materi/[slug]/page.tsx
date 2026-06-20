@@ -7,10 +7,8 @@ import SelectionToolbar from "@/components/materi/SelectionToolbar";
 import ChatbotShell from "@/components/materi/ChatbotShell";
 import AsesmenDiagnostik from "@/components/materi/sections/kaidah-pencacahan/AsesmenDiagnostik";
 import ApersepsiPemantik from "@/components/materi/sections/kaidah-pencacahan/ApersepsiPemantik";
-import PenjelasanKonsep from "@/components/materi/sections/kaidah-pencacahan/PenjelasanKonsep";
-import AktivitasDeepLearning from "@/components/materi/sections/kaidah-pencacahan/AktivitasDeepLearning";
-import ContohSoalBertahap from "@/components/materi/sections/kaidah-pencacahan/ContohSoalBertahap";
-import RefleksiMini from "@/components/materi/sections/kaidah-pencacahan/RefleksiMini";
+import ApersepsiSection from "@/components/materi/sections/kaidah-pencacahan/ApersepsiPemantik";
+import { EksplorasiKontekstual, DeepLearning, PenjelasanKonsep, ContohSoal, MengapaCorner, RefleksiMini } from "@/components/materi/sections/kaidah-pencacahan/KaidahPenjumlahan";
 
 interface MateriItem {
   title: string;
@@ -21,10 +19,10 @@ interface MateriItem {
 const SECTIONS = [
   { title: "Asesmen Diagnostik", Component: AsesmenDiagnostik },
   { title: "Apersepsi & Pemantik", Component: ApersepsiPemantik },
-  { title: "Penjelasan Konsep", Component: PenjelasanKonsep },
-  { title: "Aktivitas Deep Learning", Component: AktivitasDeepLearning },
-  { title: "Contoh Soal Bertahap", Component: ContohSoalBertahap },
-  { title: "Refleksi Mini", Component: RefleksiMini },
+  // { title: "Penjelasan Konsep", Component: PenjelasanKonsep }
+  // { title: "Aktivitas Deep Learning", Component: AktivitasDeepLearning },
+  // { title: "Contoh Soal Bertahap", Component: ContohSoalBertahap },
+  // { title: "Refleksi Mini", Component: RefleksiMini },
 ];
 
 const materiData: Record<string, MateriItem> = {
@@ -128,6 +126,49 @@ export default function MateriDetailPage({
           />
         </div>
         <AsesmenDiagnostik onPass={setPassAssesment} />
+      </div>
+
+      {/* Asesmen Diagnostik section */}
+      <div key="Apersepsi dan Pemantik" style={{ marginBottom: "40px" }}>
+        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+          Apersepsi dan Pemantik
+        </p>
+        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
+          <div
+            style={{
+              height: "100%",
+              width: "32%",
+              background: "#346739",
+              borderRadius: "4px",
+            }}
+          />
+        </div>
+        <ApersepsiSection/>
+      </div>
+      
+      {/* Asesmen Diagnostik section */}
+      <div key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
+        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+          MATERI 1 : KAIDAH PENJUMLAHAN
+        </p>
+        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
+          <div
+            style={{
+              height: "100%",
+              width: "48%",
+              background: "#346739",
+              borderRadius: "4px",
+            }}
+          />
+        </div>
+        <section className="rounded-xl border border-[#346739] p-7 flex flex-col gap-8">
+          <EksplorasiKontekstual/>
+          <DeepLearning/>
+          <PenjelasanKonsep/>
+          <ContohSoal/>
+          <MengapaCorner/>
+          <RefleksiMini/>
+        </section>
       </div>
     </div>
     </ChatbotShell>
