@@ -18,14 +18,14 @@ const NAV_ITEMS = [
     icon: "/icons/materi.png",
   },
   {
+    label: "Aktivitas Siswa",
+    href: "/siswa/activity",
+    icon: "/icons/activity.png"
+  },
+  {
     label: "Assesmen Akhir",
     href: "/siswa/ulangan",
     icon: "/icons/test.png",
-  },
-  {
-    label: "Aktivitas Siswa",
-    href: "/siswa/aktivitas",
-    icon: "/icons/activity.png"
   },
   {
     label: "Download Modul",
