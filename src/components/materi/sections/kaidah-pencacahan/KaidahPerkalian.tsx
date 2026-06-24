@@ -650,3 +650,114 @@ function LatihanKepahaman() {
     </article>
   );
 }
+
+
+const PANDUAN_ROWS = [
+  { kunci: "Pilihan dilakukan secara berurutan/bertahap", gunakan: "Perkalian" },
+  { kunci: "Pilihan hanya satu dari beberapa kelompok yang dipilih", gunakan: "Penjumlahan" },
+  { kunci: 'Ada kata "DAN" antara tahap\u2013tahap', gunakan: "Perkalian" },
+  { kunci: 'Ada kata "ATAU" antara pilihan', gunakan: "Penjumlahan" },
+  { kunci: "Dua kejadian terjadi bersamaan", gunakan: "Perkalian" },
+  { kunci: "Dua kejadian tidak bersamaan / saling lepas", gunakan: "Penjumlahan" },
+];
+
+function PanduanCepat() {
+  return (
+    <article>
+      <SectionBadge>Panduan Cepat</SectionBadge>
+      <h3 className="mb-1 text-lg font-semibold text-[#2C2C2A]">
+        Aturan Penjumlahan vs Perkalian
+      </h3>
+      <p className="mb-4 text-sm text-[#2C2C2A99]">
+        Gunakan tabel ini untuk menentukan aturan mana yang tepat dipakai.
+      </p>
+
+      <div className="overflow-hidden rounded-2xl border border-[#34673920]">
+        {/* Header */}
+        <div className="grid grid-cols-[1fr_auto] bg-[#346739]">
+          <div className="px-5 py-3 text-sm font-semibold text-[#DBFFD5]">
+            Pertanyaan Kunci
+          </div>
+          <div className="w-36 px-5 py-3 text-center text-sm font-semibold text-[#DBFFD5]">
+            Gunakan
+          </div>
+        </div>
+
+        {/* Rows */}
+        {PANDUAN_ROWS.map((row, i) => {
+          const isEven = i % 2 === 0;
+          const isPerkalian = row.gunakan === "Perkalian";
+          return (
+            <div
+              key={i}
+              className="grid grid-cols-[1fr_auto] items-center"
+              style={{ backgroundColor: isEven ? "#DBFFD5" : "#ffffff" }}
+            >
+              <div className="px-5 py-3.5 text-sm leading-snug text-[#2C2C2A]">
+                {row.kunci}
+              </div>
+              <div className="w-36 px-5 py-3.5 flex justify-center">
+                <span
+                  className="rounded-full px-3 py-1 text-xs font-semibold"
+                  style={
+                    isPerkalian
+                      ? { backgroundColor: "#346739", color: "#DBFFD5" }
+                      : { backgroundColor: "#663362", color: "#ffffff" }
+                  }
+                >
+                  {row.gunakan}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </article>
+  );
+}
+
+const REFLEKSI_QUESTIONS = [
+  "Apa perbedaan mendasar antara aturan penjumlahan dan perkalian?",
+  'Mengapa kata "DAN" identik dengan perkalian?',
+  "Buatlah contoh soal dari kehidupan sehari-hari yang menggunakan KEDUA aturan sekaligus.",
+];
+
+function RefleksiMini() {
+  const [answers, setAnswers] = useState<string[]>(["", "", ""]);
+
+  const handleChange = (i: number, value: string) => {
+    setAnswers((prev) => prev.map((a, idx) => (idx === i ? value : a)));
+  };
+
+  return (
+    <article>
+      <SectionBadge>Refleksi Mini</SectionBadge>
+      <h3 className="mb-1 text-lg font-semibold text-[#2C2C2A]">Pikirkan dan Jawab</h3>
+      <p className="mb-5 text-sm text-[#2C2C2A99]">
+        Luangkan waktu untuk merefleksikan pemahamanmu sebelum melanjutkan.
+      </p>
+
+      <div className="flex flex-col gap-5">
+        {REFLEKSI_QUESTIONS.map((question, i) => (
+          <div key={i} className="rounded-2xl border border-[#34673920] bg-[#DBFFD5] p-4">
+            <label className="mb-2 flex items-start gap-2.5">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-[#DBFFD5]">
+                {i + 1}
+              </span>
+              <span className="text-sm font-medium leading-snug text-[#2C2C2A]">
+                {question}
+              </span>
+            </label>
+            <textarea
+              value={answers[i]}
+              onChange={(e) => handleChange(i, e.target.value)}
+              placeholder="Tuliskan jawabanmu di sini..."
+              rows={3}
+              className="w-full resize-y rounded-xl border border-[#34673930] bg-white px-4 py-3 text-sm leading-relaxed text-[#2C2C2A] placeholder:text-[#34673966] focus:border-[#346739] focus:outline-none focus:ring-2 focus:ring-[#34673920]"
+            />
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}

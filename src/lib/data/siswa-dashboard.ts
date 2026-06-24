@@ -2,7 +2,7 @@ export const MATERI_CARDS = [
   {
     id: "1",
     title: "Kaidah Pencacahan",
-    href: "/siswa/materi/kaidah-pencacahan",
+    href: "/siswa/activity/kaidah-pencacahan",
     description:
       "Materi kaidah pencacahan membahas tentang cara menghitung banyaknya kemungkinan suatu kejadian tanpa harus menuliskan semua kemungkinan satu per satu.",
     image: "/images/Kaidah pencacahan.png",
@@ -11,7 +11,7 @@ export const MATERI_CARDS = [
   {
     id: "2",
     title: "Permutasi",
-    href: "/siswa/materi/permutasi",
+    href: "/siswa/activity/permutasi",
     description:
       "Materi permutasi membahas tentang cara menghitung banyaknya susunan objek ketika urutan diperhatikan.",
     image: "/images/permutasi.png",
@@ -20,7 +20,7 @@ export const MATERI_CARDS = [
   {
     id: "3",
     title: "Kombinasi",
-    href: "/siswa/materi/kombinasi",
+    href: "/siswa/activity/kombinasi",
     description:
       "Materi kombinasi membahas tentang cara menghitung banyaknya pilihan objek ketika urutan tidak diperhatikan.",
     image: "/images/kombinasi.png",
