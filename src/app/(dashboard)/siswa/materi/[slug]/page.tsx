@@ -6,9 +6,9 @@ import Link from "next/link";
 import SelectionToolbar from "@/components/materi/SelectionToolbar";
 import ChatbotShell from "@/components/materi/ChatbotShell";
 import AsesmenDiagnostik from "@/components/materi/sections/kaidah-pencacahan/AsesmenDiagnostik";
-import ApersepsiPemantik from "@/components/materi/sections/kaidah-pencacahan/ApersepsiPemantik";
 import ApersepsiSection from "@/components/materi/sections/kaidah-pencacahan/ApersepsiPemantik";
-import { EksplorasiKontekstual, DeepLearning, PenjelasanKonsep, ContohSoal, MengapaCorner, RefleksiMini } from "@/components/materi/sections/kaidah-pencacahan/KaidahPenjumlahan";
+import KaidahPenjumlahan from "@/components/materi/sections/kaidah-pencacahan/KaidahPenjumlahan";
+import KaidahPerkalian from "@/components/materi/sections/kaidah-pencacahan/KaidahPerkalian";
 
 interface MateriItem {
   title: string;
@@ -18,7 +18,7 @@ interface MateriItem {
 
 const SECTIONS = [
   { title: "Asesmen Diagnostik", Component: AsesmenDiagnostik },
-  { title: "Apersepsi & Pemantik", Component: ApersepsiPemantik },
+  { title: "Apersepsi & Pemantik", Component: ApersepsiSection },
   // { title: "Penjelasan Konsep", Component: PenjelasanKonsep }
   // { title: "Aktivitas Deep Learning", Component: AktivitasDeepLearning },
   // { title: "Contoh Soal Bertahap", Component: ContohSoalBertahap },
@@ -53,6 +53,7 @@ export default function MateriDetailPage({
 }) {
   const materi = materiData[params.slug];
   const [passAssesmen, setPassAssesment] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   if (!materi) {
     return (
@@ -67,11 +68,9 @@ export default function MateriDetailPage({
     );
   }
 
-  const contentRef = useRef<HTMLDivElement>(null);
-
   return (
     <ChatbotShell>
-    <div style={{ padding: "32px 24px 80px", margin: "0 auto" }}>
+    <div ref={contentRef} style={{ padding: "32px 24px 80px", margin: "0 auto" }}>
       <SelectionToolbar contentRef={contentRef} />
       {/* Back to Dashboard */}
       <Link href="/siswa">
@@ -119,7 +118,7 @@ export default function MateriDetailPage({
           <div
             style={{
               height: "100%",
-              width: "16%",
+              width: "25%",
               background: "#346739",
               borderRadius: "4px",
             }}
@@ -137,7 +136,7 @@ export default function MateriDetailPage({
           <div
             style={{
               height: "100%",
-              width: "32%",
+              width: "50%",
               background: "#346739",
               borderRadius: "4px",
             }}
@@ -146,7 +145,7 @@ export default function MateriDetailPage({
         <ApersepsiSection/>
       </div>
       
-      {/* Asesmen Diagnostik section */}
+      {/* MATERI 1 section */}
       <div key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
         <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
           MATERI 1 : KAIDAH PENJUMLAHAN
@@ -155,20 +154,31 @@ export default function MateriDetailPage({
           <div
             style={{
               height: "100%",
-              width: "48%",
+              width: "75%",
               background: "#346739",
               borderRadius: "4px",
             }}
           />
         </div>
-        <section className="rounded-xl border border-[#346739] p-7 flex flex-col gap-8">
-          <EksplorasiKontekstual/>
-          <DeepLearning/>
-          <PenjelasanKonsep/>
-          <ContohSoal/>
-          <MengapaCorner/>
-          <RefleksiMini/>
-        </section>
+        <KaidahPenjumlahan/>
+      </div>
+
+      {/* MATERI 2 section */}
+      <div key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
+        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+          MATERI 2 : KAIDAH PERKALIAN
+        </p>
+        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
+          <div
+            style={{
+              height: "100%",
+              width: "100%",
+              background: "#346739",
+              borderRadius: "4px",
+            }}
+          />
+        </div>
+        <KaidahPerkalian/>
       </div>
     </div>
     </ChatbotShell>

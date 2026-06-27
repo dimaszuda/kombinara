@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const result = gradeAnswers(answers);
+    const result = await gradeAnswers(answers);
 
     return new Response(JSON.stringify(result), {
       status: 200,

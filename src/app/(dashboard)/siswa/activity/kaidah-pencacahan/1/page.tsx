@@ -184,7 +184,7 @@ export default function AktivitasKP1() {
 
   return (
     <div className="min-h-screen py-8 px-4 bg-white">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div
           className="border-2 rounded-2xl p-6 space-y-8"
           style={{ borderColor: C.greenLight }}

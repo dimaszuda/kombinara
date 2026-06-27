@@ -4,7 +4,12 @@
  * Scoring rule: per nomor, SEMUA sub-jawaban harus benar.
  * Jika salah satu sub saja salah → nomor dianggap salah.
  * Passing threshold: 7/10 benar (70%).
+ *
+ * Nomor 6, 9, 10 → dinilai pakai AI (alasan/esai).
+ * Nomor lainnya → rule-based (jawaban pasti).
  */
+
+import { AsesmenDiagnostikPrompt } from "@/lib/ai/client";
 
 // ═══════════════════════════════════════════════════════════════
 // Types
@@ -221,6 +226,20 @@ export const ANSWER_KEY: QuestionKey[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════
+// AI Question Definitions
+// ═══════════════════════════════════════════════════════════════
+
+/** Nomor soal yang dinilai pakai AI (esai / penalaran) */
+const AI_QUESTION_NUMBERS = new Set([6, 9, 10]);
+
+/** Teks soal lengkap untuk masing-masing nomor AI */
+const QUESTION_TEXTS: Record<number, string> = {
+  6: "Apakah {Ari, Budi} dan {Budi, Ari} adalah himpunan yang sama atau berbeda?",
+  9: "Dari 10 siswa akan dipilih Ketua, Sekretaris, dan Bendahara OSIS. Apakah susunan 'Ari=Ketua, Nina=Sekretaris' sama dengan 'Nina=Ketua, Ari=Sekretaris'?",
+  10: "Dari 10 siswa akan dipilih 3 orang sebagai perwakilan lomba cerdas cermat. Apakah 'Rani, Dedi, Revan' sama dengan 'Dedi, Revan, Rani'? Apa perbedaan mendasar antara soal nomor 9 dan 10?",
+};
+
+// ═══════════════════════════════════════════════════════════════
 // Block Definitions
 // ═══════════════════════════════════════════════════════════════
 
@@ -360,29 +379,85 @@ function checkSubAnswer(studentAnswer: string, key: SubAnswerKey): boolean {
 }
 
 /**
+ * Grade satu nomor soal pakai AI.
+ * Fallback ke rule-based kalau AI gagal.
+ */
+async function gradeWithAI(
+  qKey: QuestionKey,
+  answers: StudentAnswers
+): Promise<QuestionResult> {
+  let soal = QUESTION_TEXTS[qKey.number] ?? `Soal nomor ${qKey.number}`;
+
+  // Nomor 10 membandingkan dengan nomor 9 → kirim konteks soal 9 juga
+  if (qKey.number === 10 && QUESTION_TEXTS[9]) {
+    soal = `Soal nomor 9: ${QUESTION_TEXTS[9]}\n\nSoal nomor 10: ${soal}`;
+  }
+
+  // sub-0 = pilihan (radio), sub-1 = alasan (text)
+  const pilihan = answers[`${qKey.number}-0`] ?? "";
+  const alasan = answers[`${qKey.number}-1`] ?? "";
+
+  try {
+    const aiResult = await AsesmenDiagnostikPrompt(soal, pilihan, alasan);
+    const isCorrect = aiResult.isCorrect;
+
+    return {
+      number: qKey.number,
+      correct: isCorrect,
+      details: [
+        { subIndex: 0, correct: isCorrect },
+        { subIndex: 1, correct: isCorrect },
+      ],
+    };
+  } catch (err) {
+    console.error(`[asesmen-diagnostik] AI gagal untuk nomor ${qKey.number}, fallback ke rule-based:`, err);
+    // Fallback: gunakan rule-based
+    return gradeRuleBased(qKey, answers);
+  }
+}
+
+/**
+ * Grade satu nomor soal pakai rule-based (jawaban pasti).
+ */
+function gradeRuleBased(
+  qKey: QuestionKey,
+  answers: StudentAnswers
+): QuestionResult {
+  const details: QuestionResult["details"] = [];
+  let allCorrect = true;
+
+  for (let i = 0; i < qKey.subQuestions.length; i++) {
+    const answerKey = `${qKey.number}-${i}`;
+    const studentAnswer = answers[answerKey] ?? "";
+    const correct = checkSubAnswer(studentAnswer, qKey.subQuestions[i]);
+    details.push({ subIndex: i, correct });
+    if (!correct) allCorrect = false;
+  }
+
+  return { number: qKey.number, correct: allCorrect, details };
+}
+
+/**
  * Grade student answers against the answer key.
+ * Nomor 6, 9, 10 → AI. Sisanya → rule-based.
  * @param answers Flat map: "nomor-subIndex" → answer string
  * @returns GradingResult with isPass, per-question details
  */
-export function gradeAnswers(answers: StudentAnswers): GradingResult {
+export async function gradeAnswers(answers: StudentAnswers): Promise<GradingResult> {
   const questions: QuestionResult[] = [];
-  let correctCount = 0;
 
-  for (const qKey of ANSWER_KEY) {
-    const details: QuestionResult["details"] = [];
-    let allCorrect = true;
+  // Jalankan AI & rule-based secara paralel
+  const results = await Promise.all(
+    ANSWER_KEY.map((qKey) => {
+      if (AI_QUESTION_NUMBERS.has(qKey.number)) {
+        return gradeWithAI(qKey, answers);
+      }
+      return Promise.resolve(gradeRuleBased(qKey, answers));
+    })
+  );
 
-    for (let i = 0; i < qKey.subQuestions.length; i++) {
-      const answerKey = `${qKey.number}-${i}`;
-      const studentAnswer = answers[answerKey] ?? "";
-      const correct = checkSubAnswer(studentAnswer, qKey.subQuestions[i]);
-      details.push({ subIndex: i, correct });
-      if (!correct) allCorrect = false;
-    }
-
-    if (allCorrect) correctCount++;
-    questions.push({ number: qKey.number, correct: allCorrect, details });
-  }
+  questions.push(...results);
+  const correctCount = questions.filter((q) => q.correct).length;
 
   const totalQuestions = ANSWER_KEY.length;
   const score = Math.round((correctCount / totalQuestions) * 100);

@@ -78,7 +78,7 @@ function ActivityCard({ data }: ActivityCardProps) {
 
   return (
     <div
-      className="min-w-[280px] w-80 bg-white rounded-2xl border-2 p-5 flex flex-col flex-shrink-0"
+      className="flex-1 min-w-0 bg-white rounded-2xl border-2 p-5 flex flex-col"
       style={{ borderColor: C.greenLight }}
     >
       {/* Header: number + label */}
@@ -171,8 +171,8 @@ function ActivityCard({ data }: ActivityCardProps) {
 export default function AktivitasSiswa() {
   return (
     <div className="min-h-screen py-8 px-4" style={{ backgroundColor: C.white }}>
-      <div className="max-w-5xl mx-auto">
-        <div className="flex flex-row gap-5 flex-wrap pb-4">
+      <div className="max-w-[1400px] mx-auto">
+        <div className="flex flex-row gap-5 flex-nowrap pb-4">
           {aktivitas.map((a) => (
             <ActivityCard key={a.nomor} data={a} />
           ))}

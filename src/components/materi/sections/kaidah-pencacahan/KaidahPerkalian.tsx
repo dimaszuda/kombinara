@@ -35,7 +35,7 @@ import {
   SOAL_DATA,
   SoalKepahaman,
 } from "./contoh-soal-perkalian/latihan";
-
+import { CheckIcon } from "@/components/ui/IconButton";
 // ============================================================================
 // Shared types
 // ============================================================================
@@ -186,6 +186,17 @@ function EksplorasiKontekstual() {
                     className="w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966]"
                 />
             </div>
+            <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
+              <button
+                type="submit"
+                // disabled={isChecking} // ganti sesuai logic validasi form kamu
+                className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
+              >
+                <CheckIcon />
+                Simpan Jawaban
+              </button>
+            </div>
+            <div className="border-b-2 border-[#34673966] mt-4" />
         </article>
     )
 }
@@ -199,199 +210,206 @@ function DeepLearning() {
   const [kotak, setKotak] = useState(["", "", ""]);
  
   return (
-    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: C.white }}>
-      <div className="max-w-3xl mx-auto space-y-8">
-        {/* ============ SECTION 1: PENGISIAN TEMPAT ============ */}
-        <section className="bg-white rounded-2xl border-2 p-5 sm:p-7" style={{ borderColor: C.greenLight }}>
-          <SectionLabel>🔍 Visualisasi: Aturan Pengisian Tempat</SectionLabel>
+    <article>
+      <SectionBadge>Deep Learning</SectionBadge>
+      {/* ============ SECTION 1: PENGISIAN TEMPAT ============ */}
+      <SectionLabel>🔍 Visualisasi: Aturan Pengisian Tempat</SectionLabel>
+
+      <p className="text-slate-700 leading-relaxed mb-3">
+        Sebelum masuk ke prinsip umumnya, mari kita "lihat" kaidah perkalian secara konkret.
+        Bayangkan setiap tahap keputusan sebagai sebuah kotak tempat yang harus diisi satu per satu.
+      </p>
+
+      <p className="font-semibold mb-1" style={{ color: C.purple }}>
+        Contoh: Kode PIN 3 digit dari angka 1–5 tanpa pengulangan.
+      </p>
+      <p className="text-slate-700 mb-3">Perhatikan ilustrasi berikut!</p>
+
+      <ul className="space-y-2.5 mb-4 pl-1">
+        <li className="text-slate-700 leading-relaxed">
+          <span style={{ color: C.green }} className="font-bold mr-1">•</span>
+          Digit ke-1 ada angka 1, 2, 3, 4, 5 yang bisa digunakan, misal kamu pilih angka 5 untuk
+          digit ke-1, sisa angka ada berapa?
+          <InputBlank answer={4} />
+        </li>
+        <li className="text-slate-700 leading-relaxed">
+          <span style={{ color: C.green }} className="font-bold mr-1">•</span>
+          Digit ke-2 berarti masih ada 4 angka yaitu 1, 2, 3, 4 yang bisa digunakan, misal kamu
+          pilih angka 1, sisa angka ada berapa?
+          <InputBlank answer={3} />
+        </li>
+        <li className="text-slate-700 leading-relaxed">
+          <span style={{ color: C.green }} className="font-bold mr-1">•</span>
+          Digit ke-3 berarti tinggal 3 angka yang bisa dipilih yaitu 2, 3, 4.
+        </li>
+      </ul>
+
+      <p className="text-slate-700 mb-2">
+        Coba masukkan ilustrasi ke kerangka perhitungan berupa pengisian tempat berikut!
+      </p>
+
+      <div className="space-y-2 mb-2">
+        <p className="text-slate-700">
+          Kotak ke-1 = Digit ke-1, ada berapa kemungkinan angka yang bisa dipakai?
+          <input
+            type="text"
+            value={kotak[0]}
+            onChange={(e) => setKotak([e.target.value, kotak[1], kotak[2]])}
+            placeholder="..."
+            style={{ borderColor: "#94a3b8", color: C.green }}
+            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
+          />
+        </p>
+        <p className="text-slate-700">
+          Kotak ke-2 = Digit ke-2, ada berapa kemungkinan angka yang bisa dipakai?
+          <input
+            type="text"
+            value={kotak[1]}
+            onChange={(e) => setKotak([kotak[0], e.target.value, kotak[2]])}
+            placeholder="..."
+            style={{ borderColor: "#94a3b8", color: C.green }}
+            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
+          />
+          <span className="text-slate-500"> (Ingat: satu angka sudah dipakai)</span>
+        </p>
+        <p className="text-slate-700">
+          Kotak ke-3 = Digit ke-3, ada berapa kemungkinan angka yang bisa dipakai?
+          <input
+            type="text"
+            value={kotak[2]}
+            onChange={(e) => setKotak([kotak[0], kotak[1], e.target.value])}
+            placeholder="..."
+            style={{ borderColor: "#94a3b8", color: C.green }}
+            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
+          />
+          <span className="text-slate-500"> (Ingat: 2 angka sudah dipakai)</span>
+        </p>
+        <p className="text-slate-700">
+          Jadi berapa kemungkinan PIN yang bisa dibentuk?
+          <InputBlank answer={60} width={64} />
+        </p>
+      </div>
+
+      <KotakPengisian values={kotak} labels={["Kotak ke-1", "Kotak ke-2", "Kotak ke-3"]} />
+
+      <p className="text-slate-700 leading-relaxed">
+        Inilah cara paling mudah "melihat" kaidah perkalian secara visual. Kamu cukup menggambar
+        kotak sejumlah tahap, lalu isi banyaknya pilihan di tiap kotak, kemudian kalikan semuanya.
+      </p>
+
+      <div
+        className="mt-4 rounded-xl border-2 p-4 flex gap-3"
+        style={{ backgroundColor: C.greenLight, borderColor: C.green }}
+      >
+        <IconLightbulb/>
+        <p className="text-sm leading-relaxed" style={{ color: C.green }}>
+          <span className="font-bold">Catatan Penting:</span> Aturan pengisian tempat dan kaidah
+          perkalian adalah hal yang sama, yang satu adalah gambaran visualnya, yang lain adalah
+          prinsip matematisnya. Setelah kamu terbiasa berpikir bertahap, kamu tidak perlu lagi
+          menggambar kotak dan bisa langsung menggunakan kaidah perkalian secara langsung.
+        </p>
+      </div>
  
-          <p className="text-slate-700 leading-relaxed mb-3">
-            Sebelum masuk ke prinsip umumnya, mari kita "lihat" kaidah perkalian secara konkret.
-            Bayangkan setiap tahap keputusan sebagai sebuah kotak tempat yang harus diisi satu per satu.
+      {/* ============ SECTION 2: DIAGRAM POHON ============ */}
+      <section className="bg-white rounded-2xl border-2 p-5 sm:p-7 mt-8" style={{ borderColor: C.greenLight }}>
+        <SectionLabel>🔍 Eksplorasi: Diagram Pohon Keputusan</SectionLabel>
+ 
+        <p className="text-slate-700 leading-relaxed mb-4">
+          Di kantin sekolahmu tersedia 2 menu makanan yaitu soto dan sop serta 3 menu minuman yaitu
+          es teh, es jeruk, es buah. Kamu ingin memesan menu paketan di kantin. Berapa macam menu
+          paketan yang bisa kamu pesan?
+        </p>
+ 
+        <PohonKeputusan />
+ 
+        <div className="space-y-3 mt-4">
+          <p className="text-slate-700">
+            Hitung cabang paling ujung: ada berapa?
+            <InputBlank answer={6} />
           </p>
- 
-          <p className="font-semibold mb-1" style={{ color: C.purple }}>
-            Contoh: Kode PIN 3 digit dari angka 1–5 tanpa pengulangan.
-          </p>
-          <p className="text-slate-700 mb-3">Perhatikan ilustrasi berikut!</p>
- 
-          <ul className="space-y-2.5 mb-4 pl-1">
-            <li className="text-slate-700 leading-relaxed">
-              <span style={{ color: C.green }} className="font-bold mr-1">•</span>
-              Digit ke-1 ada angka 1, 2, 3, 4, 5 yang bisa digunakan, misal kamu pilih angka 5 untuk
-              digit ke-1, sisa angka ada berapa?
-              <InputBlank answer={4} />
-            </li>
-            <li className="text-slate-700 leading-relaxed">
-              <span style={{ color: C.green }} className="font-bold mr-1">•</span>
-              Digit ke-2 berarti masih ada 4 angka yaitu 1, 2, 3, 4 yang bisa digunakan, misal kamu
-              pilih angka 1, sisa angka ada berapa?
-              <InputBlank answer={3} />
-            </li>
-            <li className="text-slate-700 leading-relaxed">
-              <span style={{ color: C.green }} className="font-bold mr-1">•</span>
-              Digit ke-3 berarti tinggal 3 angka yang bisa dipilih yaitu 2, 3, 4.
-            </li>
-          </ul>
- 
-          <p className="text-slate-700 mb-2">
-            Coba masukkan ilustrasi ke kerangka perhitungan berupa pengisian tempat berikut!
-          </p>
- 
-          <div className="space-y-2 mb-2">
-            <p className="text-slate-700">
-              Kotak ke-1 = Digit ke-1, ada berapa kemungkinan angka yang bisa dipakai?
-              <input
-                type="text"
-                value={kotak[0]}
-                onChange={(e) => setKotak([e.target.value, kotak[1], kotak[2]])}
-                placeholder="..."
-                style={{ borderColor: "#94a3b8", color: C.green }}
-                className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
-              />
-            </p>
-            <p className="text-slate-700">
-              Kotak ke-2 = Digit ke-2, ada berapa kemungkinan angka yang bisa dipakai?
-              <input
-                type="text"
-                value={kotak[1]}
-                onChange={(e) => setKotak([kotak[0], e.target.value, kotak[2]])}
-                placeholder="..."
-                style={{ borderColor: "#94a3b8", color: C.green }}
-                className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
-              />
-              <span className="text-slate-500"> (Ingat: satu angka sudah dipakai)</span>
-            </p>
-            <p className="text-slate-700">
-              Kotak ke-3 = Digit ke-3, ada berapa kemungkinan angka yang bisa dipakai?
-              <input
-                type="text"
-                value={kotak[2]}
-                onChange={(e) => setKotak([kotak[0], kotak[1], e.target.value])}
-                placeholder="..."
-                style={{ borderColor: "#94a3b8", color: C.green }}
-                className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
-              />
-              <span className="text-slate-500"> (Ingat: 2 angka sudah dipakai)</span>
-            </p>
-            <p className="text-slate-700">
-              Jadi berapa kemungkinan PIN yang bisa dibentuk?
-              <InputBlank answer={60} width={64} />
-            </p>
-          </div>
- 
-          <KotakPengisian values={kotak} labels={["Kotak ke-1", "Kotak ke-2", "Kotak ke-3"]} />
  
           <p className="text-slate-700 leading-relaxed">
-            Inilah cara paling mudah "melihat" kaidah perkalian secara visual. Kamu cukup menggambar
-            kotak sejumlah tahap, lalu isi banyaknya pilihan di tiap kotak, kemudian kalikan semuanya.
+            Coba perhatikan! Ketika kamu memesan menu paketan, kamu memesan
+            <ChoiceToggle
+              options={["makanan dan minuman", "makanan atau minuman"]}
+              correct="makanan dan minuman"
+            />
           </p>
  
-          <div
-            className="mt-4 rounded-xl border-2 p-4 flex gap-3"
-            style={{ backgroundColor: C.greenLight, borderColor: C.green }}
-          >
-            <IconLightbulb/>
-            <p className="text-sm leading-relaxed" style={{ color: C.green }}>
-              <span className="font-bold">Catatan Penting:</span> Aturan pengisian tempat dan kaidah
-              perkalian adalah hal yang sama, yang satu adalah gambaran visualnya, yang lain adalah
-              prinsip matematisnya. Setelah kamu terbiasa berpikir bertahap, kamu tidak perlu lagi
-              menggambar kotak dan bisa langsung menggunakan kaidah perkalian secara langsung.
-            </p>
-          </div>
-        </section>
- 
-        {/* ============ SECTION 2: DIAGRAM POHON ============ */}
-        <section className="bg-white rounded-2xl border-2 p-5 sm:p-7" style={{ borderColor: C.greenLight }}>
-          <SectionLabel>🔍 Eksplorasi: Diagram Pohon Keputusan</SectionLabel>
- 
-          <p className="text-slate-700 leading-relaxed mb-4">
-            Di kantin sekolahmu tersedia 2 menu makanan yaitu soto dan sop serta 3 menu minuman yaitu
-            es teh, es jeruk, es buah. Kamu ingin memesan menu paketan di kantin. Berapa macam menu
-            paketan yang bisa kamu pesan?
+          <p className="text-slate-700">
+            Kata kunci yang kamu pegang apa?
+            <ChoiceToggle options={["dan", "atau"]} correct="dan" />
           </p>
  
-          <PohonKeputusan />
+          <p className="text-slate-700">
+            Jadi ada berapa menu paketan yang bisa kamu pesan?
+            <InputBlank answer={2} width={44} /> (makanan) ×
+            <InputBlank answer={3} width={44} /> (minuman) =
+            <InputBlank answer={6} width={44} />
+          </p>
+          <p className="text-slate-500 text-sm italic">Sebutkan!</p>
+        </div>
  
-          <div className="space-y-3 mt-4">
-            <p className="text-slate-700">
-              Hitung cabang paling ujung: ada berapa?
-              <InputBlank answer={6} />
+        <div
+          className="mt-5 rounded-xl border-2 p-4 flex gap-3"
+          style={{ backgroundColor: C.white, borderColor: C.purple }}
+        >
+          <IconHelpCircle/>
+          <div className="text-sm flex-1 min-w-0">
+            <p className="font-bold mb-1" style={{ color: C.purple }}>
+              Apa yang kamu simpulkan?
             </p>
- 
-            <p className="text-slate-700 leading-relaxed">
-              Coba perhatikan! Ketika kamu memesan menu paketan, kamu memesan
-              <ChoiceToggle
-                options={["makanan dan minuman", "makanan atau minuman"]}
-                correct="makanan dan minuman"
-              />
-            </p>
- 
-            <p className="text-slate-700">
-              Kata kunci yang kamu pegang apa?
-              <ChoiceToggle options={["dan", "atau"]} correct="dan" />
-            </p>
- 
-            <p className="text-slate-700">
-              Jadi ada berapa menu paketan yang bisa kamu pesan?
-              <InputBlank answer={2} width={44} /> (makanan) ×
-              <InputBlank answer={3} width={44} /> (minuman) =
-              <InputBlank answer={6} width={44} />
-            </p>
-            <p className="text-slate-500 text-sm italic">Sebutkan!</p>
-          </div>
- 
-          <div
-            className="mt-5 rounded-xl border-2 p-4 flex gap-3"
-            style={{ backgroundColor: C.white, borderColor: C.purple }}
-          >
-            <IconHelpCircle/>
-            <div className="text-sm">
-              <p className="font-bold mb-1" style={{ color: C.purple }}>
-                Apa yang kamu simpulkan?
-              </p>
-              <p className="text-slate-700">Apakah ini sama dengan aturan penjumlahan?</p>
+            <p className="text-slate-700">Apakah ini sama dengan aturan penjumlahan?</p>
+            <div className="mt-2 flex items-center gap-4 border-t border-[#34673926] pt-4">
               <textarea
                 placeholder="Tulis jawabanmu di sini..."
-                rows={2}
+                rows={3}
                 style={{ borderColor: C.purple, color: C.green }}
-                className="mt-2 w-full border-2 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"
+                className="flex-1 border-2 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"
               />
+              <button
+                type="submit"
+                // disabled={isChecking} // ganti sesuai logic validasi form kamu
+                className="flex shrink-0 items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
+              >
+                <CheckIcon />
+                Simpan Jawaban
+              </button>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
  
-        {/* ============ SECTION 3: KESIMPULAN ============ */}
-        <section className="rounded-2xl p-5 sm:p-7" style={{ backgroundColor: C.green }}>
-          <h2 className="text-lg sm:text-xl font-bold mb-3 flex items-center gap-2 text-white">
-            ✅ Tiga Cara Merepresentasikan Kaidah Perkalian
-          </h2>
-          <p className="text-sm leading-relaxed mb-5" style={{ color: C.greenLight }}>
-            Dari bagian ekplorasi kontekstual dan aktivitas deep learning, ada 3 cara untuk
-            merepresentasikan kaidah perkalian yaitu:
-          </p>
+      {/* ============ SECTION 3: KESIMPULAN ============ */}
+      <section className="rounded-2xl p-5 sm:p-7 mt-4" style={{ backgroundColor: C.green }}>
+        <h2 className="text-lg sm:text-xl font-bold mb-3 flex items-center gap-2 text-white">
+          ✅ Tiga Cara Merepresentasikan Kaidah Perkalian
+        </h2>
+        <p className="text-sm leading-relaxed mb-5" style={{ color: C.greenLight }}>
+          Dari bagian ekplorasi kontekstual dan aktivitas deep learning, ada 3 cara untuk
+          merepresentasikan kaidah perkalian yaitu:
+        </p>
  
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { icon: IconTable, label: "Tabel" },
-              { icon: IconGrid, label: "Pengisian Tempat" },
-              { icon: IconBranch, label: "Diagram Pohon" },
-            ].map(({ icon: Icon, label }) => (
-              <div
-                key={label}
-                className="rounded-xl p-4 flex flex-col items-center gap-2 text-center"
-                style={{ backgroundColor: C.greenLight }}
-              >
-                <Icon/>
-                <span className="font-semibold text-sm" style={{ color: C.green }}>
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-    </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            { icon: IconTable, label: "Tabel" },
+            { icon: IconGrid, label: "Pengisian Tempat" },
+            { icon: IconBranch, label: "Diagram Pohon" },
+          ].map(({ icon: Icon, label }) => (
+            <div
+              key={label}
+              className="rounded-xl p-4 flex flex-col items-center gap-2 text-center"
+              style={{ backgroundColor: C.greenLight }}
+            >
+              <Icon/>
+              <span className="font-semibold text-sm" style={{ color: C.green }}>
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </article>
   );
 }
 
@@ -433,6 +451,7 @@ function PenjelasanKonsep() {
           <b>Ingat</b>Diagram pohon selalu menghasilkan perkalian jumlah cabang di setiap tingkat!
         </p>
       </div>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
 }
@@ -502,6 +521,7 @@ function ContohSoal() {
           />
         ))}
       </div>
+      <SectionBadge>Contoh Soal Bertahap</SectionBadge>
 
       {passedCount === TOTAL && (
         <div className="mb-6 rounded-xl bg-[#346739] px-5 py-4 text-center text-white font-semibold text-base">
@@ -515,7 +535,7 @@ function ContohSoal() {
           status={statusFor(0)}
           level="mudah"
           title="Contoh 1: Pelat Nomor Kendaraan 📝"
-          illustrationSrc="/illustrations/kaidah-perkalian/plat-nomor.svg"
+          illustrationSrc="/images/plat.png"
           illustrationAlt="Ilustrasi pelat nomor kendaraan"
           lockedHint="Contoh 1: Pelat Nomor Kendaraan — selesaikan contoh sebelumnya dulu"
           onCheck={() => check(0, EXPECTED_PLAT, values1, setResults1, setFeedback1)}
@@ -613,6 +633,7 @@ function MengapaCorner() {
         Bayangkan membuat keputusan secara bertahap. 
         Di setiap tahap, kamu "membuka" seluruh pilihan yang ada. Untuk setiap satu pilihan yang sudah dibuat di tahap sebelumnya, ada sejumlah pilihan baru yang terbuka. Ini seperti pohon yang terus bercabang dan total daun (pilihan akhir) adalah hasil perkalian semua jumlah cabang di setiap tingkat. 
       </blockquote>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
 }
@@ -620,12 +641,13 @@ function MengapaCorner() {
 function AktivitasSiswa() {
   return (
     <article>
-      <SectionBadge>Refleksi Mini ✅</SectionBadge>
+      <SectionBadge>Aktivitas Siswa</SectionBadge>
       <div className="mt-6 flex items-start gap-3.5 rounded-2xl bg-[#663362] p-5">
         <p className="text-xl leading-relaxed text-white">
           🧾 JANGAN LUPA kerjakan aktivitas kamu di halaman Aktivitas yang ada di panel sebelah kiri ya! 
         </p>
       </div>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   )
 }
@@ -647,6 +669,17 @@ function LatihanKepahaman() {
           />
         ))}
       </div>
+      <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
+        <button
+          type="submit"
+          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
+        >
+          <CheckIcon />
+          Simpan Jawaban
+        </button>
+      </div>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
 }
@@ -712,6 +745,7 @@ function PanduanCepat() {
           );
         })}
       </div>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
 }
@@ -758,6 +792,35 @@ function RefleksiMini() {
           </div>
         ))}
       </div>
+      <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
+        <button
+          type="submit"
+          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
+        >
+          <CheckIcon />
+          Simpan Jawaban
+        </button>
+      </div>
     </article>
   );
+}
+
+export default function KaidahPerkalian() {
+  return (
+    <section className="rounded-xl border border-[#346739] p-7 flex flex-col gap-8">
+      <h2 className="kp-subtitle" style={{ color: "#346739" }}>
+          Kaidah Perkalian
+      </h2>
+      <EksplorasiKontekstual/>
+      <DeepLearning/>
+      <PenjelasanKonsep/>
+      <ContohSoal/>
+      <MengapaCorner/>
+      <AktivitasSiswa/>
+      <LatihanKepahaman/>
+      <PanduanCepat/>
+      <RefleksiMini/>
+    </section>
+  )
 }

@@ -16,6 +16,7 @@ import {
   EXPECTED_TRANSPORT,
   ExampleTransport,
 } from "./contoh-soal-penjumlahan/examples";
+import { CheckIcon } from "@/components/ui/IconButton";
 
 // ============================================================================
 // Shared types
@@ -26,8 +27,7 @@ type ToggleValue = "yes" | "no" | null;
 // ============================================================================
 // Eksplorasi Kontekstual
 // ============================================================================
-
-export function EksplorasiKontekstual() {
+function EksplorasiKontekstual() {
   const [choice1, setChoice1] = useState<ToggleValue>(null);
   const [reasoning1, setReasoning1] = useState("");
   const [choice2, setChoice2] = useState<ToggleValue>(null);
@@ -106,6 +106,17 @@ export function EksplorasiKontekstual() {
           className="w-full rounded-lg border border-[#34673933] bg-white px-4 py-2.5 text-sm placeholder:text-[#34673966]"
         />
       </div>
+      <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
+        <button
+          type="submit"
+          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
+        >
+          <CheckIcon />
+          Simpan Jawaban
+        </button>
+      </div>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
 }
@@ -114,7 +125,7 @@ export function EksplorasiKontekstual() {
 // Deep Learning
 // ============================================================================
 
-export function DeepLearning() {
+function DeepLearning() {
   const situations = [
     {
       situation: "Pilih transportasi (pesawat atau kapal)",
@@ -203,6 +214,17 @@ export function DeepLearning() {
         placeholder="Tulis jawabanmu..."
         className="mt-2 w-full rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966]"
       />
+      <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
+        <button
+          type="submit"
+          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
+        >
+          <CheckIcon />
+          Simpan Jawaban
+        </button>
+      </div>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
 }
@@ -211,7 +233,7 @@ export function DeepLearning() {
 // Penjelasan Konsep
 // ============================================================================
 
-export function PenjelasanKonsep() {
+function PenjelasanKonsep() {
   return (
     <article>
       <SectionBadge>Penjelasan Konsep</SectionBadge>
@@ -274,6 +296,7 @@ export function PenjelasanKonsep() {
           <RichText>{"Total = $n_1 + n_2 + n_3 + ... + n_k$"}</RichText>
         </div>
       </div>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
 }
@@ -282,7 +305,7 @@ export function PenjelasanKonsep() {
 // Contoh Soal
 // ============================================================================
 
-export function ContohSoal() {
+function ContohSoal() {
   const [passedCount, setPassedCount] = useState(0);
 
   const [valuesDrinks, setValuesDrinks] = useState<Record<string, string>>({});
@@ -325,71 +348,75 @@ export function ContohSoal() {
   }
 
   return (
-    <section>
-      {/* Progress bar */}
-      <div className="mb-6 flex gap-2" aria-hidden="true">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="h-2 flex-1 rounded-full transition-colors duration-300"
-            style={{ backgroundColor: i < passedCount ? "#346739" : "#34673926" }}
-          />
-        ))}
-      </div>
+    <article>
+      <SectionBadge>Contoh Soal Bertahap</SectionBadge>
+      <section>
+        {/* Progress bar */}
+        <div className="mb-6 flex gap-2" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-2 flex-1 rounded-full transition-colors duration-300"
+              style={{ backgroundColor: i < passedCount ? "#346739" : "#34673926" }}
+            />
+          ))}
+        </div>
 
-      <div className="flex flex-col gap-4">
-        <ExampleShell
-          status={statusFor(0)}
-          level="mudah"
-          title="Contoh 1: Minuman Kantin"
-          illustrationSrc="/illustrations/minuman.svg"
-          illustrationAlt="Ilustrasi minuman panas dan dingin"
-          lockedHint="Contoh 1: Minuman Kantin"
-          onCheck={checkDrinks}
-          feedback={feedbackDrinks}
-        >
-          <ExampleDrinks
-            values={valuesDrinks}
-            results={resultsDrinks}
-            onChange={(id, v) => setValuesDrinks((prev) => ({ ...prev, [id]: v }))}
-          />
-        </ExampleShell>
+        <div className="flex flex-col gap-4">
+          <ExampleShell
+            status={statusFor(0)}
+            level="mudah"
+            title="Contoh 1: Minuman Kantin"
+            illustrationSrc="/images/minuman.png"
+            illustrationAlt="Ilustrasi minuman panas dan dingin"
+            lockedHint="Contoh 1: Minuman Kantin"
+            onCheck={checkDrinks}
+            feedback={feedbackDrinks}
+          >
+            <ExampleDrinks
+              values={valuesDrinks}
+              results={resultsDrinks}
+              onChange={(id, v) => setValuesDrinks((prev) => ({ ...prev, [id]: v }))}
+            />
+          </ExampleShell>
 
-        <ExampleShell
-          status={statusFor(1)}
-          level="sedang"
-          title="Contoh 2: Buku Perpustakaan"
-          illustrationSrc="/illustrations/buku.svg"
-          illustrationAlt="Ilustrasi rak buku perpustakaan"
-          lockedHint="Contoh 2: Buku Perpustakaan — selesaikan Contoh 1 dulu"
-          onCheck={checkBooks}
-          feedback={feedbackBooks}
-        >
-          <ExampleBooks
-            values={valuesBooks}
-            results={resultsBooks}
-            onChange={(id, v) => setValuesBooks((prev) => ({ ...prev, [id]: v }))}
-          />
-        </ExampleShell>
+          <ExampleShell
+            status={statusFor(1)}
+            level="sedang"
+            title="Contoh 2: Buku Perpustakaan"
+            illustrationSrc="/illustrations/floating-book.svg"
+            illustrationAlt="Ilustrasi rak buku perpustakaan"
+            lockedHint="Contoh 2: Buku Perpustakaan — selesaikan Contoh 1 dulu"
+            onCheck={checkBooks}
+            feedback={feedbackBooks}
+          >
+            <ExampleBooks
+              values={valuesBooks}
+              results={resultsBooks}
+              onChange={(id, v) => setValuesBooks((prev) => ({ ...prev, [id]: v }))}
+            />
+          </ExampleShell>
 
-        <ExampleShell
-          status={statusFor(2)}
-          level="hots"
-          title="Contoh 3: Rute Andi ke Sekolah"
-          illustrationSrc="/illustrations/transportasi.svg"
-          illustrationAlt="Ilustrasi pilihan transportasi ke sekolah"
-          lockedHint="Contoh 3: Rute Andi ke Sekolah — selesaikan Contoh 2 dulu"
-          onCheck={checkTransport}
-          feedback={feedbackTransport}
-        >
-          <ExampleTransport
-            values={valuesTransport}
-            results={resultsTransport}
-            onChange={(id, v) => setValuesTransport((prev) => ({ ...prev, [id]: v }))}
-          />
-        </ExampleShell>
-      </div>
-    </section>
+          <ExampleShell
+            status={statusFor(2)}
+            level="hots"
+            title="Contoh 3: Rute Andi ke Sekolah"
+            illustrationSrc="/illustrations/car.svg"
+            illustrationAlt="Ilustrasi pilihan transportasi ke sekolah"
+            lockedHint="Contoh 3: Rute Andi ke Sekolah — selesaikan Contoh 2 dulu"
+            onCheck={checkTransport}
+            feedback={feedbackTransport}
+          >
+            <ExampleTransport
+              values={valuesTransport}
+              results={resultsTransport}
+              onChange={(id, v) => setValuesTransport((prev) => ({ ...prev, [id]: v }))}
+            />
+          </ExampleShell>
+        </div>
+      </section>
+      <div className="border-b-2 border-[#34673966] mt-4" />
+    </article>
   );
 }
 
@@ -397,7 +424,7 @@ export function ContohSoal() {
 // Mengapa? Corner
 // ============================================================================
 
-export function MengapaCorner() {
+function MengapaCorner() {
   return (
     <article>
       <SectionBadge>Mengapa? Corner</SectionBadge>
@@ -410,6 +437,7 @@ export function MengapaCorner() {
         kanan, total pintu yang bisa kamu gunakan (hanya satu) adalah 3 + 4 = 7. Kamu tidak
         mengalikan karena tidak melewati semua pintu sekaligus!
       </blockquote>
+      <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
 }
@@ -418,7 +446,7 @@ export function MengapaCorner() {
 // Refleksi Mini
 // ============================================================================
 
-export function RefleksiMini() {
+function RefleksiMini() {
   return (
     <article>
       <SectionBadge>Refleksi Mini ✅</SectionBadge>
@@ -460,4 +488,20 @@ export function RefleksiMini() {
       </div>
     </article>
   );
+}
+
+export default function KaidahPenjumlahan() {
+  return (
+    <section className="rounded-xl border border-[#346739] p-7 flex flex-col gap-8">
+      <h2 className="kp-subtitle" style={{ color: "#346739" }}>
+          Kaidah Penjumlahan
+      </h2>
+      <EksplorasiKontekstual/>
+      <DeepLearning/>
+      <PenjelasanKonsep/>
+      <ContohSoal/>
+      <MengapaCorner/>
+      <RefleksiMini/>
+    </section>
+  )
 }

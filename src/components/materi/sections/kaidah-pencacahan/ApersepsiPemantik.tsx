@@ -8,7 +8,6 @@ import { VehicleIcons, ClothesIcons, BadgeIcons, ToggleButton, CheckIcon, Lightb
 
 type ApersepsiItem = {
   id: string;
-  timeLabel: string;
   timeRange: string;
   question: string;
   icon: "vehicles" | "clothes" | "badges";
@@ -17,7 +16,6 @@ type ApersepsiItem = {
 const APERSEPSI_DATA: ApersepsiItem[] = [
   {
     id: "transportasi",
-    timeLabel: "Pagi",
     timeRange: "06.00",
     question:
       "Kamu punya 3 sepeda, 2 motor, dan 1 mobil. Ayah membolehkanmu pakai salah satu buat belajar kelompok. Kira-kira ada berapa kemungkinan kendaraan yang bisa kamu pilih?",
@@ -25,7 +23,6 @@ const APERSEPSI_DATA: ApersepsiItem[] = [
   },
   {
     id: "outfit",
-    timeLabel: "Siang",
     timeRange: "12.00",
     question:
       "Kamu punya 4 baju dan 3 celana. Kira-kira ada berapa kombinasi outfit berbeda yang bisa kamu pakai buat pergi?",
@@ -33,7 +30,6 @@ const APERSEPSI_DATA: ApersepsiItem[] = [
   },
   {
     id: "pengurus",
-    timeLabel: "Sore",
     timeRange: "16.00",
     question:
       "Ada 3 kandidat pengurus karang taruna. Dari situ akan dipilih 1 ketua dan 1 sekretaris. Kira-kira ada berapa susunan pengurus yang mungkin terbentuk?",
@@ -123,12 +119,53 @@ export default function ApersepsiSection() {
   // stub state, ganti ke logic simpan-ke-DB pas wiring backend
   const [answers, setAnswers] = useState<AnswerState>({});
   const [showResult, setShowResult] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [feedback, setFeedback] = useState<Record<string, string | null>>({});
 
   function updateAnswer(id: string, field: "perkiraan" | "caraHitung", value: string) {
     setAnswers((prev) => ({
       ...prev,
       [id]: { ...prev[id], [field]: value },
     }));
+  }
+
+  async function handleApersepsiSubmit() {
+    setIsChecking(true);
+    setFeedback({});
+
+    const newFeedback: Record<string, string | null> = {};
+
+    for (const item of APERSEPSI_DATA) {
+      const ans = answers[item.id];
+      if (!ans?.perkiraan || !ans?.caraHitung) continue;
+
+      try {
+        const res = await fetch("/api/ai/apersepsi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            soal: item.question,
+            jawaban: ans.perkiraan,
+            cara_menghitung: ans.caraHitung,
+          }),
+        });
+
+        if (!res.ok) {
+          console.error(`[apersepsi] API error for ${item.id}:`, res.status);
+          newFeedback[item.id] = null;
+          continue;
+        }
+
+        const data = await res.json();
+        newFeedback[item.id] = data.feedback ?? null;
+      } catch (err) {
+        console.error(`[apersepsi] fetch error for ${item.id}:`, err);
+        newFeedback[item.id] = null;
+      }
+    }
+
+    setFeedback(newFeedback);
+    setIsChecking(false);
   }
 
   // Section Pemantik
@@ -148,6 +185,9 @@ export default function ApersepsiSection() {
 
   return (
     <section className="rounded-xl border border-[#346739] p-7">
+      <h2 className="kp-subtitle" style={{ color: "#346739" }}>
+          Apersepsi dan Pemantik
+      </h2>
       <span className="inline-block rounded-full bg-[#663362] px-3 py-1 text-xs font-medium text-white mt-8">
         Apersepsi
       </span>
@@ -182,16 +222,6 @@ export default function ApersepsiSection() {
               />
 
               <div className="rounded-xl bg-white p-4 pb-4">
-                <span
-                  className="rounded-full px-2.5 py-1 text-xs font-medium"
-                  style={{
-                    color: dotColor,
-                    backgroundColor: dotColor === "#346739" ? "#DBFFD5" : "#F1E6EE",
-                  }}
-                >
-                  {item.timeLabel} · {item.timeRange}
-                </span>
-
                 <div className="mt-3 flex items-start gap-4">
                   <ScenarioIcon icon={item.icon} />
                   <p className="text-sm leading-relaxed text-[#2C2C2A]">{item.question}</p>
@@ -222,6 +252,16 @@ export default function ApersepsiSection() {
                     />
                   </div>
                 </div>
+
+                {/* AI Feedback per item */}
+                {feedback[item.id] && (
+                  <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+                    <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+                    <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                      {feedback[item.id]}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -230,12 +270,25 @@ export default function ApersepsiSection() {
       {/* ═══════════════ Submit & Feedback ═══════════════ */}
       <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
         <button
-          type="submit"
-          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          type="button"
+          onClick={handleApersepsiSubmit}
+          disabled={isChecking}
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
-          <CheckIcon />
-          Cek Jawabanku
+          {isChecking ? (
+            <>
+              <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Mengecek...
+            </>
+          ) : (
+            <>
+              <CheckIcon />
+              Simpan Jawaban
+            </>
+          )}
         </button>
       </div>
 
@@ -386,7 +439,7 @@ export default function ApersepsiSection() {
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
           <CheckIcon />
-          Cek Jawabanku
+          Simpan Jawaban
         </button>
       </div>
 
@@ -444,7 +497,7 @@ export default function ApersepsiSection() {
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
           <CheckIcon />
-          Cek Jawabanku
+          Simpan Jawaban
         </button>
       </div>
     </section>

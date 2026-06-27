@@ -85,7 +85,7 @@ export default function ActivityPage() {
 
                 {/* CTA Button */}
                 <Link
-                  href={card.href}
+                  href={card.activity}
                   className="flex items-center justify-center gap-2 bg-green-800 hover:bg-green-900 text-white font-semibold text-sm rounded-xl py-3 px-4 transition-colors"
                 >
                   Mulai Aktivitas
