@@ -114,13 +114,41 @@ function RouteDiagram() {
   );
 }
 
+const ApersepsiFeedback: string[] = [
+  "Bagus, kamu telah menjawab pertanyaan ini. Tapi apakah jawaban kamu benar atau salah? Mari kita bahas di materi selanjutnya, ya!",
+  "Menarik cara kamu hitung jawaban akhirnya. Nanti pas kita sudah masuk materi, kita akan tahu apakah cara hitung kamu benar ataupun salah.",
+  "Catatan caramu udah tersimpan. Nanti kita cek lagi setelah masuk ke materi.",
+  "Perkiraan dan cara hitungmu sudah tersimpan. Lanjut ke tantangan berikutnya.",
+  "Tersimpan. Cara berpikirmu ini akan jadi pembanding yang menarik nanti.",
+  "Oke, sudah tercatat. Yuk lanjut, ada beberapa hal menarik lagi yang akan kita bahas",
+  "Caramu sudah disimpan. Simpan juga di kepala, nanti kita bahas lagi."
+]
 
-export default function ApersepsiSection() {
+const PemantikFeedbackPool: string[] = [
+  "Pilihan dan alasanmu sudah tersimpan. Lanjut ke tantangan selanjutnya.",
+  "Apakah jawaban dan alasanmu benar? kita akan tahu setelah membahas lebih dalam materi ini nanti",
+  "Jawabanmu sudah kesimpan. Tiap tantangan punya situasinya sendiri, jangan buru-buru disamakan caranya.",
+  "Oke, lanjut ke tantangan berikutnya. Bandingkan sendiri, apakah caramu masih sama atau mulai berubah.",
+  "Tersimpan. Perhatikan baik-baik, situasi tiap tantangan sengaja dibuat tidak identik.",
+];
+
+
+const refleksiSebelumMulaiFeedback: string[] = [
+  "Refleksimu sudah tersimpan. Ayo kita lanjut lagi",
+  "Tercatat. Yuk lanjut ke materi, nanti kita lihat lagi apakah jawabanmu ini berubah.",
+  "Jawabanmu sudah kesimpan. Materi nanti akan menjawab beberapa hal yang kamu pikirkan.",
+  "Tersimpan. Pertanyaan yang kamu tulis ini bagus buat dibawa ke materi selanjutnya.",
+  "Oke, sudah tercatat. Kamu akan lihat cara yang lebih sistematis di materi berikutnya.",
+];
+
+export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: string[] }) {
   // stub state, ganti ke logic simpan-ke-DB pas wiring backend
   const [answers, setAnswers] = useState<AnswerState>({});
   const [showResult, setShowResult] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, string | null>>({});
+  const [textColor, setTextColor] = useState<Record<string, string | null>>({});
+  const [apersepsiSubmitted, setApersepsiSubmitted] = useState(false);
 
   function updateAnswer(id: string, field: "perkiraan" | "caraHitung", value: string) {
     setAnswers((prev) => ({
@@ -134,38 +162,113 @@ export default function ApersepsiSection() {
     setFeedback({});
 
     const newFeedback: Record<string, string | null> = {};
+    const newColor: Record<string, string | null> = {};
+
+    const allComplete = APERSEPSI_DATA.every((item) => {
+      const ans = answers[item.id];
+      return ans?.perkiraan && ans?.caraHitung;
+    });
 
     for (const item of APERSEPSI_DATA) {
       const ans = answers[item.id];
-      if (!ans?.perkiraan || !ans?.caraHitung) continue;
-
-      try {
-        const res = await fetch("/api/ai/apersepsi", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            soal: item.question,
-            jawaban: ans.perkiraan,
-            cara_menghitung: ans.caraHitung,
-          }),
-        });
-
-        if (!res.ok) {
-          console.error(`[apersepsi] API error for ${item.id}:`, res.status);
-          newFeedback[item.id] = null;
-          continue;
-        }
-
-        const data = await res.json();
-        newFeedback[item.id] = data.feedback ?? null;
-      } catch (err) {
-        console.error(`[apersepsi] fetch error for ${item.id}:`, err);
-        newFeedback[item.id] = null;
+      if (!ans?.perkiraan || !ans?.caraHitung) {
+        newFeedback[item.id] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
+        newColor[item.id] = "text-red-500";
+      } else if (allComplete) {
+        newFeedback[item.id] = pool[Math.floor(Math.random() * pool.length)];
+        newColor[item.id] = "text-[#2C2C2A]";
       }
     }
 
     setFeedback(newFeedback);
+    setTextColor(newColor);
+    if (allComplete) setApersepsiSubmitted(true);
     setIsChecking(false);
+  }
+
+  async function handlePemantikSubmit() {
+    setIsCheckingPemantik(true);
+    setPemantikFeedback({});
+    setPemantikTextColor({});
+
+    const items = [
+      {
+        id: "password",
+        jawaban: passwordGuess,
+        alasan: passwordReasoning,
+      },
+      {
+        id: "team",
+        jawaban:
+          teamChoice === "yes"
+            ? "Sama"
+            : teamChoice === "no"
+              ? "Beda"
+              : "",
+        alasan: teamReasoning,
+      },
+      {
+        id: "courier",
+        jawaban:
+          courierChoice === "yes"
+            ? "Perlu"
+            : courierChoice === "no"
+              ? "Nggak perlu"
+              : "",
+        alasan: courierReasoning,
+      },
+    ];
+
+    const allComplete = items.every((item) => item.jawaban && item.alasan);
+
+    const newFeedback: Record<string, string | null> = {};
+    const newColor: Record<string, string | null> = {};
+
+    for (const item of items) {
+      if (!item.jawaban || !item.alasan) {
+        newFeedback[item.id] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
+        newColor[item.id] = "text-red-500";
+      } else if (allComplete) {
+        newFeedback[item.id] = PemantikFeedbackPool[Math.floor(Math.random() * PemantikFeedbackPool.length)];
+        newColor[item.id] = "text-[#2C2C2A]";
+      }
+    }
+
+    setPemantikFeedback(newFeedback);
+    setPemantikTextColor(newColor);
+    if (allComplete) setPemantikSubmitted(true);
+    setIsCheckingPemantik(false);
+  }
+
+  async function handleRefleksiSubmit() {
+    setIsCheckingRefleksi(true);
+    setRefleksiFeedback({});
+    setRefleksiTextColor({});
+
+    const items = [
+      { id: "methodSufficient", jawaban: methodSufficient },
+      { id: "whatToLearn", jawaban: whatToLearn },
+    ];
+
+    const allComplete = items.every((item) => item.jawaban);
+
+    const newFeedback: Record<string, string | null> = {};
+    const newColor: Record<string, string | null> = {};
+
+    for (const item of items) {
+      if (!item.jawaban) {
+        newFeedback[item.id] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
+        newColor[item.id] = "text-red-500";
+      } else if (allComplete) {
+        newFeedback[item.id] = refleksiSebelumMulaiFeedback[Math.floor(Math.random() * refleksiSebelumMulaiFeedback.length)];
+        newColor[item.id] = "text-[#2C2C2A]";
+      }
+    }
+
+    setRefleksiFeedback(newFeedback);
+    setRefleksiTextColor(newColor);
+    if (allComplete) setRefleksiSubmitted(true);
+    setIsCheckingRefleksi(false);
   }
 
   // Section Pemantik
@@ -179,9 +282,19 @@ export default function ApersepsiSection() {
   const [courierReasoning, setCourierReasoning] = useState("");
   const [courierCalc, setCourierCalc] = useState("");
 
+  const [isCheckingPemantik, setIsCheckingPemantik] = useState(false);
+  const [pemantikFeedback, setPemantikFeedback] = useState<Record<string, string | null>>({});
+  const [pemantikTextColor, setPemantikTextColor] = useState<Record<string, string | null>>({});
+  const [pemantikSubmitted, setPemantikSubmitted] = useState(false);
+
   // section refleksi
   const [methodSufficient, setMethodSufficient] = useState("");
   const [whatToLearn, setWhatToLearn] = useState("");
+
+  const [isCheckingRefleksi, setIsCheckingRefleksi] = useState(false);
+  const [refleksiFeedback, setRefleksiFeedback] = useState<Record<string, string | null>>({});
+  const [refleksiTextColor, setRefleksiTextColor] = useState<Record<string, string | null>>({});
+  const [refleksiSubmitted, setRefleksiSubmitted] = useState(false);
 
   return (
     <section className="rounded-xl border border-[#346739] p-7">
@@ -257,7 +370,7 @@ export default function ApersepsiSection() {
                 {feedback[item.id] && (
                   <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
                     <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
-                    <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                    <p className={`text-sm leading-relaxed ${textColor[item.id] || "text-[#2C2C2A]"}`}>
                       {feedback[item.id]}
                     </p>
                   </div>
@@ -272,7 +385,7 @@ export default function ApersepsiSection() {
         <button
           type="button"
           onClick={handleApersepsiSubmit}
-          disabled={isChecking}
+          disabled={isChecking || apersepsiSubmitted}
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
           {isChecking ? (
@@ -282,6 +395,11 @@ export default function ApersepsiSection() {
                 <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
               </svg>
               Mengecek...
+            </>
+          ) : apersepsiSubmitted ? (
+            <>
+              <CheckIcon />
+              Tersimpan
             </>
           ) : (
             <>
@@ -346,6 +464,16 @@ export default function ApersepsiSection() {
               />
             </div>
           </div>
+
+          {/* AI Feedback */}
+          {pemantikFeedback["password"] && (
+            <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+              <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+              <p className={`text-sm leading-relaxed ${pemantikTextColor["password"] || "text-[#2C2C2A]"}`}>
+                {pemantikFeedback["password"]}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Tantangan 2 */}
@@ -380,6 +508,16 @@ export default function ApersepsiSection() {
                 className="w-full min-h-[120px] rounded-xl border border-[#34673933] px-3 py-3 text-sm resize-y"
               />
           </div>
+
+          {/* AI Feedback */}
+          {pemantikFeedback["team"] && (
+            <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+              <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+              <p className={`text-sm leading-relaxed ${pemantikTextColor["team"] || "text-[#2C2C2A]"}`}>
+                {pemantikFeedback["team"]}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Tantangan 3 */}
@@ -430,16 +568,44 @@ export default function ApersepsiSection() {
               className="w-full min-h-[100px] rounded-xl border border-[#34673933] px-3 py-3 text-sm resize-y"
             />
           </div>
+
+          {/* AI Feedback */}
+          {pemantikFeedback["courier"] && (
+            <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+              <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+              <p className={`text-sm leading-relaxed ${pemantikTextColor["courier"] || "text-[#2C2C2A]"}`}>
+                {pemantikFeedback["courier"]}
+              </p>
+            </div>
+          )}
         </div>
       </div>
       <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
         <button
-          type="submit"
-          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          type="button"
+          onClick={handlePemantikSubmit}
+          disabled={isCheckingPemantik || pemantikSubmitted}
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
-          <CheckIcon />
-          Simpan Jawaban
+          {isCheckingPemantik ? (
+            <>
+              <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Mengecek...
+            </>
+          ) : pemantikSubmitted ? (
+            <>
+              <CheckIcon />
+              Tersimpan
+            </>
+          ) : (
+            <>
+              <CheckIcon />
+              Simpan Jawaban
+            </>
+          )}
         </button>
       </div>
 
@@ -466,6 +632,14 @@ export default function ApersepsiSection() {
             onChange={(e) => setMethodSufficient(e.target.value)}
             className="w-full resize-y rounded-md border border-[#34673933] px-3 py-2 text-sm"
           />
+          {refleksiFeedback["methodSufficient"] && (
+            <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+              <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+              <p className={`text-sm leading-relaxed ${refleksiTextColor["methodSufficient"] || "text-[#2C2C2A]"}`}>
+                {refleksiFeedback["methodSufficient"]}
+              </p>
+            </div>
+          )}
         </div>
 
         <div>
@@ -479,6 +653,14 @@ export default function ApersepsiSection() {
             onChange={(e) => setWhatToLearn(e.target.value)}
             className="w-full resize-y rounded-md border border-[#34673933] px-3 py-2 text-sm"
           />
+          {refleksiFeedback["whatToLearn"] && (
+            <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+              <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+              <p className={`text-sm leading-relaxed ${refleksiTextColor["whatToLearn"] || "text-[#2C2C2A]"}`}>
+                {refleksiFeedback["whatToLearn"]}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -492,12 +674,30 @@ export default function ApersepsiSection() {
       </div>
       <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
         <button
-          type="submit"
-          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          type="button"
+          onClick={handleRefleksiSubmit}
+          disabled={isCheckingRefleksi || refleksiSubmitted}
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
-          <CheckIcon />
-          Simpan Jawaban
+          {isCheckingRefleksi ? (
+            <>
+              <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Mengecek...
+            </>
+          ) : refleksiSubmitted ? (
+            <>
+              <CheckIcon />
+              Tersimpan
+            </>
+          ) : (
+            <>
+              <CheckIcon />
+              Simpan Jawaban
+            </>
+          )}
         </button>
       </div>
     </section>

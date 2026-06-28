@@ -42,11 +42,67 @@ import { CheckIcon } from "@/components/ui/IconButton";
 
 type ToggleValue = "yes" | "no" | null;
 
+const SOAL_EKSPLORASI_PERKALIAN = `Seragam sekolah tersedia dalam 3 pilihan warna kemeja (putih, biru, abu abu) dan 2 pilihan warna celana/rok (hitam, navy). Berapa banyak kombinasi seragam yang berbeda bisa dikenakan? Apakah hasilnya 3x2?`;
+
 function EksplorasiKontekstual() {
     const [choice1, setChoice1] = useState<ToggleValue>(null);
     const [reasoning1, setReasoning1] = useState("");
     const [choice2, setChoice2] = useState<ToggleValue>(null);
     const [reasoning2, setReasoning2] = useState("");
+
+    const [isChecking, setIsChecking] = useState(false);
+    const [feedback, setFeedback] = useState<Record<string, string | null>>({});
+    const [textColor, setTextColor] = useState<Record<string, string | null>>({});
+    const [submitted, setSubmitted] = useState(false);
+
+    async function handleSubmit() {
+      setIsChecking(true);
+      setFeedback({});
+      setTextColor({});
+
+      const jawaban = choice2 === "yes" ? "Bisa" : choice2 === "no" ? "Tidak" : "";
+      const alasan = reasoning1;
+
+      // Validasi: cek apakah sudah dijawab
+      const newFeedback: Record<string, string | null> = {};
+      const newColor: Record<string, string | null> = {};
+
+      if (!jawaban || !alasan.trim()) {
+        newFeedback["situasi1"] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
+        newColor["situasi1"] = "text-red-500";
+        setFeedback(newFeedback);
+        setTextColor(newColor);
+        setIsChecking(false);
+        return;
+      }
+
+      // Semua lengkap → panggil API
+      try {
+        const res = await fetch("/api/ai/eksplorasi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            soal: SOAL_EKSPLORASI_PERKALIAN,
+            jawaban,
+            alasan,
+          }),
+        });
+
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json();
+        newFeedback["situasi1"] = data.feedback as string;
+        newColor["situasi1"] = "text-[#2C2C2A]";
+      } catch {
+        newFeedback["situasi1"] = "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!";
+        newColor["situasi1"] = "text-[#2C2C2A]";
+      }
+
+      setFeedback(newFeedback);
+      setTextColor(newColor);
+      setSubmitted(true);
+      setIsChecking(false);
+    }
+
     return (
         <article>
             <SectionBadge>Eksplorasi Kontekstual</SectionBadge>
@@ -186,14 +242,43 @@ function EksplorasiKontekstual() {
                     className="w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966]"
                 />
             </div>
+
+            {/* AI Feedback */}
+            {feedback["situasi1"] && (
+              <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+                <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+                <p className={`text-sm leading-relaxed ${textColor["situasi1"] || "text-[#2C2C2A]"}`}>
+                  {feedback["situasi1"]}
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
               <button
-                type="submit"
-                // disabled={isChecking} // ganti sesuai logic validasi form kamu
+                type="button"
+                onClick={handleSubmit}
+                disabled={isChecking || submitted}
                 className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
               >
-                <CheckIcon />
-                Simpan Jawaban
+                {isChecking ? (
+                  <>
+                    <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                      <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+                    </svg>
+                    Mengecek...
+                  </>
+                ) : submitted ? (
+                  <>
+                    <CheckIcon />
+                    Tersimpan
+                  </>
+                ) : (
+                  <>
+                    <CheckIcon />
+                    Simpan Jawaban
+                  </>
+                )}
               </button>
             </div>
             <div className="border-b-2 border-[#34673966] mt-4" />

@@ -34,21 +34,48 @@ export const AsesmenDiagnostikPrompt = async (
   return response.output_parsed ?? { isCorrect: false };
 };
 
-export const ApersepsiPrompt = async (
+export const EskplorasiPrompt = async (
   soal: string,
   jawaban: string,
-  cara_menghitung: string
+  alasan: string
 ): Promise<string> => {
   const response = await client.chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
         role: "system",
-        content: PROMPTS.ApersepsiPrompt.system,
+        content: PROMPTS.EskplorasiPrompt.system,
       },
       {
         role: "user",
-        content: PROMPTS.ApersepsiPrompt.user(soal, jawaban, cara_menghitung),
+        content: PROMPTS.EskplorasiPrompt.user(soal, jawaban, alasan),
+      },
+    ],
+    temperature: 0.7,
+  });
+
+  return (
+    response.choices[0]?.message?.content ??
+    "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!"
+  );
+};
+
+export const PemantikPrompt = async (
+  soal: string,
+  jawaban: string,
+  alasan: string,
+  caraHitung?: string
+): Promise<string> => {
+  const response = await client.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: PROMPTS.PemantikPrompt.system,
+      },
+      {
+        role: "user",
+        content: PROMPTS.PemantikPrompt.user(soal, jawaban, alasan, caraHitung),
       },
     ],
     temperature: 0.7,
