@@ -275,6 +275,11 @@ function DeepLearning() {
   ];
 
   const [foundPattern, setFoundPattern] = useState<ToggleValue>(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmit() {
+    setSubmitted(true);
+  }
 
   return (
     <article>
@@ -346,13 +351,33 @@ function DeepLearning() {
       />
       <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
         <button
-          type="submit"
-          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitted}
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
-          <CheckIcon />
-          Simpan Jawaban
+          {submitted ? (
+            <>
+              <CheckIcon />
+              Tersimpan
+            </>
+          ) : (
+            <>
+              <CheckIcon />
+              Simpan Jawaban
+            </>
+          )}
         </button>
+
+        {/* Feedback */}
+        {submitted && (
+          <div className="w-full rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+            <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+            <p className="text-sm leading-relaxed text-[#2C2C2A]">
+              Jawabanmu sudah tersimpan. Yuk lanjut ke materi berikutnya untuk melihat apakah pola yang kamu temukan sudah tepat!
+            </p>
+          </div>
+        )}
       </div>
       <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
@@ -576,7 +601,51 @@ function MengapaCorner() {
 // Refleksi Mini
 // ============================================================================
 
+type RefleksiItemFeedback = { valid: boolean; feedback: string };
+type RefleksiFeedback = { q1: RefleksiItemFeedback; q2: RefleksiItemFeedback; q3: RefleksiItemFeedback };
+
 function RefleksiMini() {
+  const [answerQ1, setAnswerQ1] = useState("");
+  const [answerQ2, setAnswerQ2] = useState("");
+  const [answerQ3, setAnswerQ3] = useState("");
+
+  const [isChecking, setIsChecking] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [feedback, setFeedback] = useState<RefleksiFeedback | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit() {
+    // Validasi: semua harus terisi
+    if (!answerQ1.trim() || !answerQ2.trim() || !answerQ3.trim()) {
+      setError("Semua pertanyaan harus diisi dulu ya! 📝");
+      return;
+    }
+
+    setIsChecking(true);
+    setError(null);
+    setFeedback(null);
+
+    try {
+      const res = await fetch("/api/ai/refleksi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jawabanQ1: answerQ1, jawabanQ2: answerQ2, jawabanQ3: answerQ3 }),
+      });
+
+      if (!res.ok) {
+        throw new Error("API error");
+      }
+
+      const data: RefleksiFeedback = await res.json();
+      setFeedback(data);
+      setSubmitted(true);
+    } catch {
+      setError("Maaf, ada kendala saat memberikan feedback. Coba lagi ya!");
+    } finally {
+      setIsChecking(false);
+    }
+  }
+
   return (
     <article>
       <SectionBadge>Refleksi Mini ✅</SectionBadge>
@@ -590,8 +659,16 @@ function RefleksiMini() {
           <input
             type="text"
             placeholder="Tulis jawabanmu..."
+            value={answerQ1}
+            onChange={(e) => setAnswerQ1(e.target.value)}
             className="w-full rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966]"
           />
+          {feedback && (
+            <div className="mt-2 rounded-lg border border-[#66336233] bg-[#66336208] p-2.5">
+              <p className="mb-0.5 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+              <p className="text-sm leading-relaxed text-[#2C2C2A]">{feedback.q1.feedback}</p>
+            </div>
+          )}
         </div>
 
         {/* Pertanyaan 2 */}
@@ -601,8 +678,16 @@ function RefleksiMini() {
           </label>
           <input
             placeholder="Tulis jawabanmu..."
+            value={answerQ2}
+            onChange={(e) => setAnswerQ2(e.target.value)}
             className="w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966]"
           />
+          {feedback && (
+            <div className="mt-2 rounded-lg border border-[#66336233] bg-[#66336208] p-2.5">
+              <p className="mb-0.5 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+              <p className="text-sm leading-relaxed text-[#2C2C2A]">{feedback.q2.feedback}</p>
+            </div>
+          )}
         </div>
 
         {/* Pertanyaan 3 */}
@@ -612,9 +697,53 @@ function RefleksiMini() {
           </label>
           <input
             placeholder="Tulis jawabanmu..."
+            value={answerQ3}
+            onChange={(e) => setAnswerQ3(e.target.value)}
             className="w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966]"
           />
+          {feedback && (
+            <div className="mt-2 rounded-lg border border-[#66336233] bg-[#66336208] p-2.5">
+              <p className="mb-0.5 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+              <p className="text-sm leading-relaxed text-[#2C2C2A]">{feedback.q3.feedback}</p>
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Validation error */}
+      {error && (
+        <div className="w-full rounded-lg border border-red-300 bg-red-50 p-3">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
+      <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isChecking || submitted}
+          className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
+        >
+          {isChecking ? (
+            <>
+              <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Mengecek...
+            </>
+          ) : submitted ? (
+            <>
+              <CheckIcon />
+              Tersimpan
+            </>
+          ) : (
+            <>
+              <CheckIcon />
+              Simpan Jawaban
+            </>
+          )}
+        </button>
       </div>
     </article>
   );

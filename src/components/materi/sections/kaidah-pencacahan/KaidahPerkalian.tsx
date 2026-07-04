@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ToggleButton } from "@/components/ui/IconButton";
 import { RichText } from "@/components/shared/RichText";
 import { IconLightbulb, IconHelpCircle, IconTable, IconGrid, IconBranch } from "@/components/ui/IconButton";
@@ -293,6 +293,20 @@ function EksplorasiKontekstual() {
 
 function DeepLearning() {
   const [kotak, setKotak] = useState(["", "", ""]);
+  const [kotakChecked, setKotakChecked] = useState([false, false, false]);
+  const [simpulanText, setSimpulanText] = useState("");
+  const [simpulanSubmitted, setSimpulanSubmitted] = useState(false);
+  const expectedKotak = ["5", "4", "3"];
+
+  function checkKotak(i: number) {
+    setKotakChecked((prev) => prev.map((c, idx) => (idx === i ? true : c)));
+  }
+
+  function handleSimpanSimpulan() {
+    if (simpulanText.trim()) {
+      setSimpulanSubmitted(true);
+    }
+  }
  
   return (
     <article>
@@ -339,35 +353,80 @@ function DeepLearning() {
           <input
             type="text"
             value={kotak[0]}
-            onChange={(e) => setKotak([e.target.value, kotak[1], kotak[2]])}
+            onChange={(e) => {
+              setKotak([e.target.value, kotak[1], kotak[2]]);
+              setKotakChecked([false, kotakChecked[1], kotakChecked[2]]);
+            }}
+            onBlur={() => checkKotak(0)}
             placeholder="..."
-            style={{ borderColor: "#94a3b8", color: C.green }}
+            style={{
+              borderColor: kotakChecked[0]
+                ? (kotak[0].trim() === expectedKotak[0] ? C.green : C.wrong)
+                : "#94a3b8",
+              color: C.green,
+            }}
             className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
           />
+          {kotakChecked[0] && kotak[0].trim() === expectedKotak[0] && (
+            <span className="text-xs font-semibold ml-1" style={{ color: C.green }}>Kerja bagus!</span>
+          )}
+          {kotakChecked[0] && kotak[0].trim() !== expectedKotak[0] && (
+            <span className="text-xs font-medium ml-1" style={{ color: C.wrong }}>Jawaban: {expectedKotak[0]}</span>
+          )}
         </p>
         <p className="text-slate-700">
           Kotak ke-2 = Digit ke-2, ada berapa kemungkinan angka yang bisa dipakai?
           <input
             type="text"
             value={kotak[1]}
-            onChange={(e) => setKotak([kotak[0], e.target.value, kotak[2]])}
+            onChange={(e) => {
+              setKotak([kotak[0], e.target.value, kotak[2]]);
+              setKotakChecked([kotakChecked[0], false, kotakChecked[2]]);
+            }}
+            onBlur={() => checkKotak(1)}
             placeholder="..."
-            style={{ borderColor: "#94a3b8", color: C.green }}
+            style={{
+              borderColor: kotakChecked[1]
+                ? (kotak[1].trim() === expectedKotak[1] ? C.green : C.wrong)
+                : "#94a3b8",
+              color: C.green,
+            }}
             className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
           />
           <span className="text-slate-500"> (Ingat: satu angka sudah dipakai)</span>
+          {kotakChecked[1] && kotak[1].trim() === expectedKotak[1] && (
+            <span className="text-xs font-semibold ml-1" style={{ color: C.green }}>Kerja bagus!</span>
+          )}
+          {kotakChecked[1] && kotak[1].trim() !== expectedKotak[1] && (
+            <span className="text-xs font-medium ml-1" style={{ color: C.wrong }}>Jawaban: {expectedKotak[1]}</span>
+          )}
         </p>
         <p className="text-slate-700">
           Kotak ke-3 = Digit ke-3, ada berapa kemungkinan angka yang bisa dipakai?
           <input
             type="text"
             value={kotak[2]}
-            onChange={(e) => setKotak([kotak[0], kotak[1], e.target.value])}
+            onChange={(e) => {
+              setKotak([kotak[0], kotak[1], e.target.value]);
+              setKotakChecked([kotakChecked[0], kotakChecked[1], false]);
+            }}
+            onBlur={() => checkKotak(2)}
             placeholder="..."
-            style={{ borderColor: "#94a3b8", color: C.green }}
+            style={{
+              borderColor: kotakChecked[2]
+                ? (kotak[2].trim() === expectedKotak[2] ? C.green : C.wrong)
+                : "#94a3b8",
+              color: C.green,
+            }}
             className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
           />
           <span className="text-slate-500"> (Ingat: 2 angka sudah dipakai)</span>
+          {kotakChecked[2] && kotak[2].trim() === expectedKotak[2] && (
+            <span className="text-xs font-semibold ml-1" style={{ color: C.green }}>Kerja bagus!</span>
+          )}
+          {kotakChecked[2] && kotak[2].trim() !== expectedKotak[2] && (
+            <span className="text-xs font-medium ml-1" style={{ color: C.wrong }}>Jawaban: {expectedKotak[2]}</span>
+          )}
         </p>
         <p className="text-slate-700">
           Jadi berapa kemungkinan PIN yang bisa dibentuk?
@@ -428,8 +487,18 @@ function DeepLearning() {
  
           <p className="text-slate-700">
             Jadi ada berapa menu paketan yang bisa kamu pesan?
-            <InputBlank answer={2} width={44} /> (makanan) ×
-            <InputBlank answer={3} width={44} /> (minuman) =
+            <input
+              type="text"
+              placeholder="..."
+              style={{ color: C.green, borderColor: "#94a3b8" }}
+              className="border-2 rounded-md px-2 py-0.5 w-11 text-center font-semibold text-sm mx-1 focus:outline-none"
+            /> (makanan) ×
+            <input
+              type="text"
+              placeholder="..."
+              style={{ color: C.green, borderColor: "#94a3b8" }}
+              className="border-2 rounded-md px-2 py-0.5 w-11 text-center font-semibold text-sm mx-1 focus:outline-none"
+            /> (minuman) =
             <InputBlank answer={6} width={44} />
           </p>
           <p className="text-slate-500 text-sm italic">Sebutkan!</p>
@@ -449,18 +518,33 @@ function DeepLearning() {
               <textarea
                 placeholder="Tulis jawabanmu di sini..."
                 rows={3}
+                value={simpulanText}
+                onChange={(e) => {
+                  setSimpulanText(e.target.value);
+                  setSimpulanSubmitted(false);
+                }}
                 style={{ borderColor: C.purple, color: C.green }}
                 className="flex-1 border-2 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"
               />
               <button
-                type="submit"
-                // disabled={isChecking} // ganti sesuai logic validasi form kamu
+                type="button"
+                onClick={handleSimpanSimpulan}
+                disabled={simpulanSubmitted || !simpulanText.trim()}
                 className="flex shrink-0 items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
               >
                 <CheckIcon />
-                Simpan Jawaban
+                {simpulanSubmitted ? "Tersimpan" : "Simpan Jawaban"}
               </button>
             </div>
+
+            {simpulanSubmitted && (
+              <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
+                <p className="mb-1 text-xs font-medium text-[#663362]">Feedback Kombi</p>
+                <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                  Jawabanmu sudah tersimpan. Yuk lanjut ke materi berikutnya untuk melihat apakah pola yang kamu temukan sudah tepat!
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -714,7 +798,7 @@ function MengapaCorner() {
     <article>
       <SectionBadge>Mengapa? Corner</SectionBadge>
       <blockquote className="kp-quote text-justify">
-        💡 <b>Mengapa kita mengalikan?</b> 
+        💡 <b>Mengapa kita mengalikan? </b> 
         Bayangkan membuat keputusan secara bertahap. 
         Di setiap tahap, kamu "membuka" seluruh pilihan yang ada. Untuk setiap satu pilihan yang sudah dibuat di tahap sebelumnya, ada sejumlah pilihan baru yang terbuka. Ini seperti pohon yang terus bercabang dan total daun (pilihan akhir) adalah hasil perkalian semua jumlah cabang di setiap tingkat. 
       </blockquote>
@@ -737,37 +821,233 @@ function AktivitasSiswa() {
   )
 }
 
+type ScoreTheme = {
+  label: string;
+  color: string;
+  bg: string;
+  badgeColor: string;
+};
+
+function getScoreTheme(score: number): ScoreTheme {
+  if (score >= 80) {
+    return { label: "Luar Biasa!", color: "#346739", bg: "#DBFFD5", badgeColor: "#346739" };
+  }
+  if (score >= 60) {
+    return { label: "Cukup Baik!", color: "#92600A", bg: "#FFF3CD", badgeColor: "#92600A" };
+  }
+  return { label: "Tetap Semangat!", color: "#b91c1c", bg: "#FEE2E2", badgeColor: "#b91c1c" };
+}
+
+const RADIUS = 48;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
 function LatihanKepahaman() {
+  const totalSoal = SOAL_DATA.length;
+  const [answers, setAnswers] = useState<string[]>(Array(totalSoal).fill(""));
+  const [submitted, setSubmitted] = useState(false);
+  const [results, setResults] = useState<boolean[]>([]);
+  const correctCount = results.filter(Boolean).length;
+  const score = submitted ? Math.round((correctCount / totalSoal) * 100) : 0;
+
+  const theme = getScoreTheme(score);
+
+  // ── Animation state: dipisah dari `score` biar bisa di-reset ke 0
+  // setiap kali user submit ulang, bukan loncat dari nilai lama ──
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [ringProgress, setRingProgress] = useState(0);
+  const rafRef = useRef<number | null>(null);
+
+  function handleSubmit() {
+    const newResults = SOAL_DATA.map((soal, i) => answers[i].trim() === String(soal.answer));
+    setResults(newResults);
+    setSubmitted(true);
+  }
+
+  useEffect(() => {
+    if (!submitted) {
+      setAnimatedScore(0);
+      setRingProgress(0);
+      return;
+    }
+
+    // Reset dulu ke 0 sebelum animasi jalan, supaya submit ulang
+    // (misal user ubah jawaban lalu submit lagi) terasa sebagai
+    // animasi baru, bukan loncatan dari posisi lama
+    setRingProgress(0);
+    setAnimatedScore(0);
+
+    const raf1 = requestAnimationFrame(() => {
+      const duration = 800;
+      const start = performance.now();
+
+      function tick(now: number) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setAnimatedScore(Math.round(eased * score));
+        setRingProgress(eased * score);
+        if (progress < 1) {
+          rafRef.current = requestAnimationFrame(tick);
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submitted, score]);
+
+  const dashOffset = CIRCUMFERENCE - (ringProgress / 100) * CIRCUMFERENCE;
+
   return (
     <article>
       <SectionBadge>Latihan Kepahaman</SectionBadge>
       <p className="mt-1 mb-4 text-sm text-[#34673999]">Kerjakan soal–soal berikut!</p>
 
       <div className="space-y-4">
-        {SOAL_DATA.map((soal) => (
+        {SOAL_DATA.map((soal, i) => (
           <SoalKepahaman
             key={soal.question_number}
             question_number={soal.question_number}
             level={soal.level}
             question={soal.question}
             answer={soal.answer}
+            hideCheckButton
+            value={answers[i]}
+            onChange={(v) => {
+              setAnswers((prev) => prev.map((a, idx) => (idx === i ? v : a)));
+              if (submitted) setSubmitted(false);
+            }}
+            checked={submitted}
           />
         ))}
       </div>
-      <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
+
+      {/* ── Score Visualization (only after submit) ── */}
+      {submitted && (
+        <div
+          className="mt-6 rounded-2xl border-2 p-6 transition-colors duration-300"
+          style={{ borderColor: theme.color, backgroundColor: theme.bg }}
+        >
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            {/* Circular progress */}
+            <div className="relative shrink-0">
+              <svg viewBox="0 0 120 120" className="w-28 h-28 sm:w-32 sm:h-32 -rotate-90">
+                <circle cx="60" cy="60" r={RADIUS} fill="none" stroke="#E5E7EB" strokeWidth="8" />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r={RADIUS}
+                  fill="none"
+                  stroke={theme.color}
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={CIRCUMFERENCE}
+                  strokeDashoffset={dashOffset}
+                  style={{ transition: "stroke-dashoffset 0.1s linear" }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold" style={{ color: theme.color }}>
+                  {animatedScore}
+                </span>
+                <span className="text-[10px] text-[#6B7280]">dari 100</span>
+              </div>
+            </div>
+
+            {/* Text summary */}
+            <div className="flex-1 text-center sm:text-left">
+              <p className="text-lg font-bold" style={{ color: theme.color }}>
+                {theme.label}
+              </p>
+              <p className="text-sm text-[#2C2C2A] mt-1">
+                Kamu menjawab{" "}
+                <span className="font-bold" style={{ color: theme.color }}>
+                  {correctCount}
+                </span>{" "}
+                dari <span className="font-bold">{totalSoal}</span> soal dengan benar
+              </p>
+
+              {/* Horizontal bar */}
+              <div className="mt-3 h-3 w-full rounded-full bg-[#00000012] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${score}%`, backgroundColor: theme.color }}
+                />
+              </div>
+
+              {/* Per-question breakdown */}
+              <div className="mt-3 flex flex-wrap justify-center sm:justify-start gap-1.5">
+                {results.map((ok, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-transform"
+                    style={{
+                      backgroundColor: ok ? "#346739" : "#b91c1c",
+                      color: "#fff",
+                      animation: `resultPop 0.3s ease ${i * 0.06}s backwards`,
+                    }}
+                    title={`Soal ${i + 1}: ${ok ? "Benar" : "Salah"}`}
+                  >
+                    <ResultIcon ok={ok} />
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Submit button ── */}
+      <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4 mt-6">
         <button
-          type="submit"
-          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitted}
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
           <CheckIcon />
-          Simpan Jawaban
+          {submitted ? "Tersimpan" : "Simpan Jawaban"}
         </button>
       </div>
       <div className="border-b-2 border-[#34673966] mt-4" />
+
+      <style jsx>{`
+        @keyframes resultPop {
+          from {
+            opacity: 0;
+            transform: scale(0.5);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </article>
   );
 }
+
+// Icon check/x pakai SVG murni, bukan emoji atau lucide-react, biar
+// nggak nambah dependency kalau project ini belum pakai lucide
+function ResultIcon({ ok }: { ok: boolean }) {
+  if (ok) {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+  
 
 
 const PANDUAN_ROWS = [
@@ -790,13 +1070,13 @@ function PanduanCepat() {
         Gunakan tabel ini untuk menentukan aturan mana yang tepat dipakai.
       </p>
 
-      <div className="overflow-hidden rounded-2xl border border-[#34673920]">
+      <div className="mx-auto max-w-[720px] overflow-hidden rounded-2xl border border-[#34673920]">
         {/* Header */}
-        <div className="grid grid-cols-[1fr_auto] bg-[#346739]">
-          <div className="px-5 py-3 text-sm font-semibold text-[#DBFFD5]">
+        <div className="grid grid-cols-[1fr_128px] bg-[#346739]">
+          <div className="px-4 py-2.5 text-sm font-semibold text-[#DBFFD5]">
             Pertanyaan Kunci
           </div>
-          <div className="w-36 px-5 py-3 text-center text-sm font-semibold text-[#DBFFD5]">
+          <div className="px-4 py-2.5 text-center text-sm font-semibold text-[#DBFFD5]">
             Gunakan
           </div>
         </div>
@@ -808,13 +1088,13 @@ function PanduanCepat() {
           return (
             <div
               key={i}
-              className="grid grid-cols-[1fr_auto] items-center"
+              className="grid grid-cols-[1fr_128px] items-center"
               style={{ backgroundColor: isEven ? "#DBFFD5" : "#ffffff" }}
             >
-              <div className="px-5 py-3.5 text-sm leading-snug text-[#2C2C2A]">
+              <div className="px-4 py-3 text-sm leading-snug text-[#2C2C2A]">
                 {row.kunci}
               </div>
-              <div className="w-36 px-5 py-3.5 flex justify-center">
+              <div className="flex justify-center px-4 py-3">
                 <span
                   className="rounded-full px-3 py-1 text-xs font-semibold"
                   style={
@@ -841,12 +1121,55 @@ const REFLEKSI_QUESTIONS = [
   "Buatlah contoh soal dari kehidupan sehari-hari yang menggunakan KEDUA aturan sekaligus.",
 ];
 
+type RefleksiItemFeedback = { valid: boolean; feedback: string };
+type RefleksiFeedback = { q1: RefleksiItemFeedback; q2: RefleksiItemFeedback; q3: RefleksiItemFeedback };
+
 function RefleksiMini() {
   const [answers, setAnswers] = useState<string[]>(["", "", ""]);
+  const [isChecking, setIsChecking] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [feedback, setFeedback] = useState<RefleksiFeedback | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (i: number, value: string) => {
     setAnswers((prev) => prev.map((a, idx) => (idx === i ? value : a)));
   };
+
+  async function handleSubmit() {
+    // Validasi: semua harus terisi
+    if (!answers[0].trim() || !answers[1].trim() || !answers[2].trim()) {
+      setError("Semua pertanyaan harus diisi dulu ya! 📝");
+      return;
+    }
+
+    setIsChecking(true);
+    setError(null);
+    setFeedback(null);
+
+    try {
+      const res = await fetch("/api/ai/refleksi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jawabanQ1: answers[0],
+          jawabanQ2: answers[1],
+          jawabanQ3: answers[2],
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("API error");
+      }
+
+      const data: RefleksiFeedback = await res.json();
+      setFeedback(data);
+      setSubmitted(true);
+    } catch {
+      setError("Maaf, ada kendala saat memberikan feedback. Coba lagi ya!");
+    } finally {
+      setIsChecking(false);
+    }
+  }
 
   return (
     <article>
@@ -874,17 +1197,51 @@ function RefleksiMini() {
               rows={3}
               className="w-full resize-y rounded-xl border border-[#34673930] bg-white px-4 py-3 text-sm leading-relaxed text-[#2C2C2A] placeholder:text-[#34673966] focus:border-[#346739] focus:outline-none focus:ring-2 focus:ring-[#34673920]"
             />
+            {feedback && (
+              <div className="mt-2 rounded-lg border border-[#66336233] bg-[#66336208] p-2.5">
+                <p className="mb-0.5 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+                <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                  {i === 0 ? feedback.q1.feedback : i === 1 ? feedback.q2.feedback : feedback.q3.feedback}
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>
+
+      {/* Validation error */}
+      {error && (
+        <div className="mt-4 w-full rounded-lg border border-red-300 bg-red-50 p-3">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
       <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
         <button
-          type="submit"
-          // disabled={isChecking} // ganti sesuai logic validasi form kamu
+          type="button"
+          onClick={handleSubmit}
+          disabled={isChecking || submitted}
           className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
         >
-          <CheckIcon />
-          Simpan Jawaban
+          {isChecking ? (
+            <>
+              <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Mengecek...
+            </>
+          ) : submitted ? (
+            <>
+              <CheckIcon />
+              Tersimpan
+            </>
+          ) : (
+            <>
+              <CheckIcon />
+              Simpan Jawaban
+            </>
+          )}
         </button>
       </div>
     </article>

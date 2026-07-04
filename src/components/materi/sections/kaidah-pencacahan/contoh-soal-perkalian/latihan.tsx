@@ -106,34 +106,47 @@ export function SoalKepahaman({
   level,
   question,
   answer,
+  // Batch-mode props (optional — when provided, parent controls checking)
+  value: externalValue,
+  onChange: externalOnChange,
+  hideCheckButton = false,
+  checked: externalChecked,
 }: {
   question_number: number;
   level: "mudah" | "menengah" | "hots";
   question: string;
   answer: number;
+  value?: string;
+  onChange?: (v: string) => void;
+  hideCheckButton?: boolean;
+  checked?: boolean;
 }) {
-  const [value, setValue] = useState("");
-  const [checked, setChecked] = useState(false);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [internalValue, setInternalValue] = useState("");
+  const [internalChecked, setInternalChecked] = useState(false);
+
+  const value = externalValue !== undefined ? externalValue : internalValue;
+  const checked = externalChecked !== undefined ? externalChecked : internalChecked;
 
   const isCorrect = value.trim() === String(answer);
   const meta = LEVEL_META[level];
 
   function handleCheck() {
-    setChecked(true);
-    if (isCorrect) setShowAnswer(false);
+    setInternalChecked(true);
   }
 
   function handleChange(v: string) {
-    setValue(v);
-    setChecked(false);
-    setShowAnswer(false);
+    if (externalOnChange) {
+      externalOnChange(v);
+    } else {
+      setInternalValue(v);
+      setInternalChecked(false);
+    }
   }
 
   return (
     <div
       className="rounded-2xl border-2 p-5 space-y-3"
-      style={{ borderColor: checked && isCorrect ? C.green : "#E5E7EB" }}
+      style={{ borderColor: checked && isCorrect ? C.green : checked && !isCorrect ? C.wrong : "#E5E7EB" }}
     >
       {/* Header row */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -158,7 +171,8 @@ export function SoalKepahaman({
       <div className="flex items-center gap-2 flex-wrap">
         <label className="text-sm font-medium text-[#346739]">Jawaban:</label>
         <input
-          type="number"
+          type="text"
+          inputMode="numeric"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="..."
@@ -168,13 +182,15 @@ export function SoalKepahaman({
           }}
           className="w-28 border-2 rounded-lg px-3 py-1.5 text-center font-semibold text-sm focus:outline-none"
         />
-        <button
-          onClick={handleCheck}
-          style={{ backgroundColor: C.green }}
-          className="rounded-lg px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90 transition"
-        >
-          Cek
-        </button>
+        {!hideCheckButton && (
+          <button
+            onClick={handleCheck}
+            style={{ backgroundColor: C.green }}
+            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90 transition"
+          >
+            Cek
+          </button>
+        )}
 
         {/* Feedback */}
         {checked && isCorrect && (
@@ -184,28 +200,12 @@ export function SoalKepahaman({
         )}
         {checked && !isCorrect && (
           <span className="text-sm font-semibold" style={{ color: C.wrong }}>
-            ✗ Coba lagi
+            ✗ Salah
           </span>
         )}
       </div>
 
-      {/* Show answer toggle (only after wrong attempt) */}
-      {checked && !isCorrect && (
-        <div>
-          <button
-            onClick={() => setShowAnswer((v) => !v)}
-            className="text-xs underline"
-            style={{ color: C.purple }}
-          >
-            {showAnswer ? "Sembunyikan jawaban" : "Lihat jawaban"}
-          </button>
-          {showAnswer && (
-            <span className="ml-2 text-xs font-semibold" style={{ color: C.purple }}>
-              Jawaban: {answer}
-            </span>
-          )}
-        </div>
-      )}
+
     </div>
   );
 }

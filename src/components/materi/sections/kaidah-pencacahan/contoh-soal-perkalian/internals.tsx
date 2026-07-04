@@ -51,6 +51,11 @@ export function InputBlank({ answer, width = 56 }: { answer: string | number; wi
       >
         <IconCheck />
       </button>
+      {checked && isCorrect && (
+        <span className="text-xs font-semibold" style={{ color: C.green }}>
+          Kerja bagus!
+        </span>
+      )}
       {checked && !isCorrect && (
         <span className="text-xs font-medium" style={{ color: C.wrong }}>
           Jawaban: {answer}
@@ -66,19 +71,20 @@ export function InputBlank({ answer, width = 56 }: { answer: string | number; wi
 
 export function ChoiceToggle({ options, correct }: { options: string[]; correct: string }) {
   const [selected, setSelected] = React.useState<string | null>(null);
+  const isCorrect = selected === correct;
   return (
-    <span className="inline-flex flex-wrap gap-2 mx-1 align-middle">
+    <span className="inline-flex flex-wrap items-center gap-2 mx-1 align-middle">
       {options.map((opt: string) => {
         const isSelected = selected === opt;
-        const isCorrect = isSelected && opt === correct;
+        const optCorrect = isSelected && opt === correct;
         return (
           <button
             key={opt}
             onClick={() => setSelected(opt)}
             style={{
-              backgroundColor: isSelected ? (isCorrect ? C.green : C.wrong) : C.greenLight,
+              backgroundColor: isSelected ? (optCorrect ? C.green : C.wrong) : C.greenLight,
               color: isSelected ? C.white : C.green,
-              borderColor: isSelected ? (isCorrect ? C.green : C.wrong) : C.green,
+              borderColor: isSelected ? (optCorrect ? C.green : C.wrong) : C.green,
             }}
             className="rounded-full border-2 px-3 py-1 text-sm font-medium transition"
           >
@@ -86,6 +92,11 @@ export function ChoiceToggle({ options, correct }: { options: string[]; correct:
           </button>
         );
       })}
+      {isCorrect && (
+        <span className="text-xs font-semibold" style={{ color: C.green }}>
+          Tepat sekali!
+        </span>
+      )}
     </span>
   );
 }

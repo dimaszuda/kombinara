@@ -60,29 +60,50 @@ export const EskplorasiPrompt = async (
   );
 };
 
-export const PemantikPrompt = async (
-  soal: string,
-  jawaban: string,
-  alasan: string,
-  caraHitung?: string
-): Promise<string> => {
-  const response = await client.chat.completions.create({
+// ---------------------------------------------------------------------------
+// Refleksi Mini
+// ---------------------------------------------------------------------------
+
+const RefleksiItemSchema = z.object({
+  valid: z.boolean(),
+  feedback: z.string(),
+});
+
+const RefleksiSchema = z.object({
+  q1: RefleksiItemSchema,
+  q2: RefleksiItemSchema,
+  q3: RefleksiItemSchema,
+});
+
+export type RefleksiResult = z.infer<typeof RefleksiSchema>;
+
+export const RefleksiPrompt = async (
+  jawabanQ1: string,
+  jawabanQ2: string,
+  jawabanQ3: string
+): Promise<RefleksiResult> => {
+  const response = await client.responses.parse({
     model: "gpt-4o",
-    messages: [
+    input: [
       {
         role: "system",
-        content: PROMPTS.PemantikPrompt.system,
+        content: PROMPTS.RefleksiPrompt.system,
       },
       {
         role: "user",
-        content: PROMPTS.PemantikPrompt.user(soal, jawaban, alasan, caraHitung),
+        content: PROMPTS.RefleksiPrompt.user(jawabanQ1, jawabanQ2, jawabanQ3),
       },
     ],
-    temperature: 0.7,
+    text: {
+      format: zodTextFormat(RefleksiSchema, "refleksi_mini"),
+    },
   });
 
   return (
-    response.choices[0]?.message?.content ??
-    "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!"
+    response.output_parsed ?? {
+      q1: { valid: false, feedback: "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!" },
+      q2: { valid: false, feedback: "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!" },
+      q3: { valid: false, feedback: "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!" },
+    }
   );
 };
