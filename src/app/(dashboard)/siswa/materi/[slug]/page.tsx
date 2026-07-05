@@ -144,7 +144,7 @@ export default function MateriDetailPage({
         </div>
         <ApersepsiSection/>
       </div>
-      
+
       {/* MATERI 1 section */}
       <div key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
         <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>

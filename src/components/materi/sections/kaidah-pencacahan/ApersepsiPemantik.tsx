@@ -2,7 +2,13 @@
 
 import React from "react";
 import { useState } from "react";
-import { VehicleIcons, ClothesIcons, BadgeIcons, ToggleButton, CheckIcon, LightbulbIcon } from "@/components/ui/IconButton";
+import { VehicleIcons, ClothesIcons, BadgeIcons, CheckIcon, LightbulbIcon } from "@/components/ui/IconButton";
+import VehicleChoicePicker from "./VehicleChoicePicker";
+import OutfitComboPicker from "./OutfitComboPicker";
+import CommitteePicker from "./CommitteePicker";
+import PasswordCounterPemantik from "./PasswordCounterPemantik";
+import TeamSelectionComparator from "./TeamSelectionComparator";
+import CourierRouteExplorer from "./CourierRouteExplorer";
 
 // components/materi/ApersepsiSection.tsx
 
@@ -48,22 +54,6 @@ type AnswerState = Record<string, { perkiraan: string; caraHitung: string }>;
 // Section Pemantik
 type ToggleValue = "yes" | "no" | null;
 
-function PasswordSlots() {
-  return (
-    <div className="my-3 flex items-center gap-1.5">
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center gap-1.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-dashed border-[#34673966] text-sm text-[#34673999]">
-            ?
-          </div>
-          {i < 3 && <span className="text-sm font-medium text-[#34673966]">×</span>}
-        </div>
-      ))}
-      <span className="ml-2 text-xs text-[#34673999]">36 pilihan tiap slot</span>
-    </div>
-  );
-}
-
 function TeamGroups() {
   const rolesA = ["Ketua", "Wakil", "Notulen"];
 
@@ -92,25 +82,6 @@ function TeamGroups() {
         </div>
       </div>
     </div>
-  );
-}
-
-function RouteDiagram() {
-  return (
-    <svg width="320" height="100" viewBox="0 0 200 60" className="my-3" aria-hidden="true">
-      <circle cx="15" cy="30" r="11" fill="#ffffff" stroke="#346739" strokeWidth={2} />
-      <text x="15" y="34" textAnchor="middle" fontSize="11" fill="#346739" fontWeight={500}>A</text>
-      <circle cx="100" cy="30" r="11" fill="#ffffff" stroke="#346739" strokeWidth={2} />
-      <text x="100" y="34" textAnchor="middle" fontSize="11" fill="#346739" fontWeight={500}>B</text>
-      <circle cx="185" cy="30" r="11" fill="#ffffff" stroke="#663362" strokeWidth={2} />
-      <text x="185" y="34" textAnchor="middle" fontSize="11" fill="#663362" fontWeight={500}>C</text>
-      {[22, 26, 30, 34, 38].map((y) => (
-        <line key={y} x1={27} y1={y} x2={88} y2={y} stroke="#346739" strokeWidth={1.2} />
-      ))}
-      {[24, 28, 32, 36].map((y) => (
-        <line key={y} x1={112} y1={y} x2={173} y2={y} stroke="#663362" strokeWidth={1.2} />
-      ))}
-    </svg>
   );
 }
 
@@ -335,10 +306,22 @@ export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: 
               />
 
               <div className="rounded-xl bg-white p-4 pb-4">
-                <div className="mt-3 flex items-start gap-4">
-                  <ScenarioIcon icon={item.icon} />
-                  <p className="text-sm leading-relaxed text-[#2C2C2A]">{item.question}</p>
-                </div>
+                {item.icon === "vehicles" ? (
+                  <div className="mt-3">
+                    <p className="mb-3 text-sm leading-relaxed text-[#2C2C2A]">{item.question}</p>
+                    <VehicleChoicePicker />
+                  </div>
+                ) : item.icon === "clothes" ? (
+                  <div className="mt-3">
+                    <p className="mb-3 text-sm leading-relaxed text-[#2C2C2A]">{item.question}</p>
+                    <OutfitComboPicker />
+                  </div>
+                ) : (
+                  <div className="mt-3">
+                    <p className="mb-3 text-sm leading-relaxed text-[#2C2C2A]">{item.question}</p>
+                    <CommitteePicker />
+                  </div>
+                )}
 
                 <div className="mt-3 grid grid-rows gap-3">
                   <div>
@@ -433,9 +416,9 @@ export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: 
             boleh berulang.
           </p>
 
-          <PasswordSlots />
+          <PasswordCounterPemantik />
 
-          <p className="text-sm font-medium leading-relaxed text-[#2C2C2A]">
+          <p className="mt-4 text-sm font-medium leading-relaxed text-[#2C2C2A]">
             Kira-kira sistemmu bisa menampung berapa pelanggan kalau setiap password harus beda?
           </p>
 
@@ -485,29 +468,12 @@ export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: 
             Dari 10 teman, kamu mau pilih 3 orang buat tim lomba, dengan dua aturan berbeda.
           </p>
 
-          <TeamGroups />
-
-          <p className="text-sm font-medium leading-relaxed text-[#2C2C2A]">
-            Menurutmu, dua aturan ini menghasilkan jumlah susunan yang sama atau beda?
-          </p>
-          <p className="text-sm leading-relaxed">
-            Pilih salah satu
-          </p>
-          <div className="mt-2.5 flex gap-2">
-            <ToggleButton label="Sama" active={teamChoice === "yes"} onClick={() => setTeamChoice("yes")} />
-            <ToggleButton label="Beda" active={teamChoice === "no"} onClick={() => setTeamChoice("no")} />
-          </div>
-          <div className="mt-2.5">
-            <label className="mb-1 block text-xs font-medium text-[#663362]">
-              Jelaskan alasanmu
-            </label>
-            <textarea
-                placeholder="ceritain logikamu"
-                value={teamReasoning}
-                onChange={(e) => setTeamReasoning(e.target.value)}
-                className="w-full min-h-[120px] rounded-xl border border-[#34673933] px-3 py-3 text-sm resize-y"
-              />
-          </div>
+          <TeamSelectionComparator
+            choice={teamChoice}
+            onChoiceChange={setTeamChoice}
+            reasoning={teamReasoning}
+            onReasoningChange={setTeamReasoning}
+          />
 
           {/* AI Feedback */}
           {pemantikFeedback["team"] && (
@@ -530,44 +496,14 @@ export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: 
             balik lagi C → A, tapi nggak boleh lewat jalan yang sama.
           </p>
 
-          <RouteDiagram />
-          <p className="mb-2 text-[11px] text-[#34673999]">5 jalan A–B, 4 jalan B–C</p>
-
-          <p className="text-sm font-medium leading-relaxed text-[#2C2C2A]">
-            Perlu nggak aturan kayak gitu buat kurir?
-          </p>
-          <div className="mt-2 flex gap-2">
-            <ToggleButton
-              label="Perlu"
-              active={courierChoice === "yes"}
-              onClick={() => setCourierChoice("yes")}
-            />
-            <ToggleButton
-              label="Nggak perlu"
-              active={courierChoice === "no"}
-              onClick={() => setCourierChoice("no")}
-            />
-          </div>
-          <div className="mt-2.5">
-            <label className="mb-1 block text-xs font-medium text-[#663362]">Alasanmu</label>
-            <textarea
-              placeholder="kenapa menurutmu begitu"
-              value={courierReasoning}
-              onChange={(e) => setCourierReasoning(e.target.value)}
-              className="w-full min-h-[100px] rounded-xl border border-[#34673933] px-3 py-3 text-sm resize-y"
-            />
-          </div>
-          <div className="mt-2.5">
-            <label className="mb-1 block text-xs font-medium text-[#663362]">
-              Cara hitung total rutenya
-            </label>
-            <textarea
-              placeholder="ceritain logikamu"
-              value={courierCalc}
-              onChange={(e) => setCourierCalc(e.target.value)}
-              className="w-full min-h-[100px] rounded-xl border border-[#34673933] px-3 py-3 text-sm resize-y"
-            />
-          </div>
+          <CourierRouteExplorer
+            choice={courierChoice}
+            onChoiceChange={setCourierChoice}
+            reasoning={courierReasoning}
+            onReasoningChange={setCourierReasoning}
+            calcMethod={courierCalc}
+            onCalcMethodChange={setCourierCalc}
+          />
 
           {/* AI Feedback */}
           {pemantikFeedback["courier"] && (

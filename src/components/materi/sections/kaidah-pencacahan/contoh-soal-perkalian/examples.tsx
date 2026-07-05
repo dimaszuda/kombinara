@@ -3,6 +3,10 @@
 // ============================================================================
 
 import { Blank } from "../contoh-soal-bertahap/primitive";
+import LicensePlateExplorer from "../LicensePlateExplorer";
+import PinCodeExplorer from "../PinCodeExplorer";
+import LineupWithConstraintExplorer from "../LineupWithConstraintExplorer";
+import RestaurantMenuExplorer from "../RestaurantMenuExplorer";
 
 // ============================================================================
 // Types & Helpers
@@ -44,7 +48,7 @@ export const EXPECTED_PLAT = {
   a2: "10",
   a3: "10",
   a4: "10",
-  total: "67600000",
+  total: "6760000",
 };
 
 export function ExamplePlat({
@@ -64,18 +68,7 @@ export function ExamplePlat({
         (26) dan angka (0–9) boleh diulang, berapa banyak pelat nomor yang mungkin?
       </p>
 
-      <div className="rounded-lg bg-white p-4 space-y-1.5">
-        <p className="font-medium text-[#346739]">Langkah Berpikir:</p>
-        <ul className="space-y-1 text-sm pl-1">
-          <li>Tahap 1: Huruf ke-1 &rarr; 26 pilihan</li>
-          <li>Tahap 2: Huruf ke-2 &rarr; 26 pilihan</li>
-          <li>Tahap 3: Angka ke-1 &rarr; 10 pilihan</li>
-          <li>Tahap 4–6: Angka ke-2, ke-3, ke-4 &rarr; masing-masing 10 pilihan</li>
-          <li className="font-semibold">
-            Total = 26 × 26 × 10 × 10 × 10 × 10 = 67.600.000 pelat nomor
-          </li>
-        </ul>
-      </div>
+      <LicensePlateExplorer />
 
       <p className="text-sm italic text-[#34673999]">
         Sekarang visualisasikan dalam pengisian tempat!
@@ -110,7 +103,6 @@ export function ExamplePlat({
               ].map(([id, placeholder]) => (
                 <td key={id} className="px-3 py-3 border-t border-[#34673915]">
                   {bl(id, "w-14")}
-                  <p className="mt-1 text-xs text-[#34673999]">{placeholder}</p>
                 </td>
               ))}
             </tr>
@@ -131,8 +123,6 @@ export function ExamplePlat({
 // ============================================================================
 
 export const EXPECTED_PIN = {
-  d3: "8",
-  d4: "7",
   k1: "10",
   k2: "9",
   k3: "8",
@@ -157,29 +147,7 @@ export function ExamplePIN({
         mungkin?
       </p>
 
-      <div className="rounded-lg bg-white p-4 space-y-2">
-        <p className="font-medium text-[#346739]">Langkah Berpikir:</p>
-        <p className="leading-relaxed">
-          Digit ke-1: 10 pilihan (0–9)
-        </p>
-        <p className="leading-relaxed">
-          Digit ke-2: 9 pilihan (sudah dipakai 1)
-        </p>
-        <p className="leading-relaxed">
-          Digit ke-3: {bl("d3", "w-10")} pilihan (sudah dipakai 2)
-        </p>
-        <p className="leading-relaxed">
-          Digit ke-4: {bl("d4", "w-10")} pilihan (sudah dipakai 3)
-        </p>
-      </div>
-
-      <div
-        className="rounded-lg border border-[#663362]/30 bg-[#663362]/5 p-3 text-sm leading-relaxed text-[#663362]"
-      >
-        ⚠️ <span className="font-semibold">Perhatikan perbedaan!</span> Ketika ada pengulangan,
-        setiap tahap tetap memiliki pilihan penuh. Ketika tidak ada pengulangan, pilihan berkurang
-        di setiap tahap.
-      </div>
+      <PinCodeExplorer />
 
       <p className="text-sm italic text-[#34673999]">
         Sekarang visualisasikan dalam pengisian tempat!
@@ -243,7 +211,7 @@ export function ExampleFoto({
   return (
     <>
       <p className="text-justify leading-relaxed">
-        Ada 5 orang bersahabat terdiri dari 4 laki-laki dan 3 perempuan. Mereka berlima akan
+        Ada 7 orang bersahabat terdiri dari 4 laki-laki dan 3 perempuan. Mereka bertujuh akan
         foto berjajar dengan syarat perempuan harus berdampingan. Berapa banyak posisi berfoto
         yang bisa dibuat?
       </p>
@@ -254,6 +222,12 @@ export function ExampleFoto({
       <p className="leading-relaxed">
         Ada syarat bahwa perempuan harus duduk berdampingan. Maka 3 orang perempuan itu
         dianggap 1. Berarti ada berapa tempat jadinya? {bl("tempat_setelah", "w-10")}
+      </p>
+
+      <LineupWithConstraintExplorer />
+
+      <p className="text-sm italic text-[#34673999]">
+        Sekarang visualisasikan dalam pengisian tempat!
       </p>
 
       <div className="rounded-lg bg-white p-4 space-y-3">
@@ -402,6 +376,8 @@ export function ExampleMenu({
         <strong>boleh memilih atau tidak memilih</strong> dessert. Berapa banyak kemungkinan
         pesanan?
       </p>
+
+      <RestaurantMenuExplorer />
 
       <div className="rounded-lg bg-white p-4 space-y-2">
         <p className="font-medium text-[#346739]">Langkah Berpikir:</p>
