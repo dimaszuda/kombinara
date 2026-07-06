@@ -100,11 +100,6 @@ export function ExampleShell({
 
       <div className="mt-3 flex items-center gap-4">
         {/* ganti src ini dengan ilustrasi yang sudah di-recolor dari undraw.co */}
-        <img
-          src={illustrationSrc}
-          alt={illustrationAlt}
-          className="h-16 w-16 rounded-lg bg-white object-contain p-2"
-        />
         <p className="text-lg font-medium text-[#346739]">{title}</p>
       </div>
 

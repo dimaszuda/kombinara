@@ -6,21 +6,21 @@ import { useState, useCallback } from "react";
 const TARGET_ORDERS = 3;
 
 const MAKANAN = [
-  { id: "nasi-goreng", label: "Nasi Goreng", src: "PLACEHOLDER_SRC_MAKANAN_1" },
-  { id: "mie-ayam", label: "Mie Ayam", src: "PLACEHOLDER_SRC_MAKANAN_2" },
-  { id: "sate-ayam", label: "Sate Ayam", src: "PLACEHOLDER_SRC_MAKANAN_3" },
-  { id: "ayam-bakar", label: "Ayam Bakar", src: "PLACEHOLDER_SRC_MAKANAN_4" },
+  { id: "nasi-goreng", label: "Nasi Goreng", src: "/illustrations/Nasi Goreng.jpg" },
+  { id: "mie-ayam", label: "Mie Ayam", src: "/illustrations/Mi Ayam.jpg" },
+  { id: "sate-ayam", label: "Sate Ayam", src: "/illustrations/Sate Ayam.jpg" },
+  { id: "ayam-bakar", label: "Ayam Bakar", src: "/illustrations/Ayam Bakar.jpg" },
 ];
 
 const MINUMAN = [
-  { id: "es-teh", label: "Es Teh", src: "PLACEHOLDER_SRC_MINUMAN_1" },
-  { id: "es-jeruk", label: "Es Jeruk", src: "PLACEHOLDER_SRC_MINUMAN_2" },
-  { id: "jus-alpukat", label: "Jus Alpukat", src: "PLACEHOLDER_SRC_MINUMAN_3" },
+  { id: "es-teh", label: "Es Teh", src: "/illustrations/Es Teh.jpg" },
+  { id: "es-jeruk", label: "Es Jeruk", src: "/illustrations/Es Jeruk.jpg" },
+  { id: "jus-alpukat", label: "Jus Alpukat", src: "/illustrations/Jus Alpukat.jpg" },
 ];
 
 const DESSERT = [
-  { id: "puding", label: "Puding Cokelat", src: "PLACEHOLDER_SRC_DESSERT_1" },
-  { id: "es-krim", label: "Es Krim Vanilla", src: "PLACEHOLDER_SRC_DESSERT_2" },
+  { id: "puding", label: "Puding Cokelat", src: "/illustrations/Puding Coklat.jpg" },
+  { id: "es-krim", label: "Es Krim Vanilla", src: "/illustrations/Ice Cream Vanilla.jpg" },
 ];
 
 const SKIP_MINUMAN = { id: "__skip_minum__", label: "Tidak pakai minuman", isSkip: true };

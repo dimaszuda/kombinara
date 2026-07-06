@@ -4,16 +4,16 @@ import { useState, useCallback } from "react";
 
 // ── Data ──────────────────────────────────────────────────────────
 const BAJU = [
-  { id: "baju-1", label: "Baju 1", placeholderSrc: "PLACEHOLDER_SRC_BAJU_1" },
-  { id: "baju-2", label: "Baju 2", placeholderSrc: "PLACEHOLDER_SRC_BAJU_2" },
-  { id: "baju-3", label: "Baju 3", placeholderSrc: "PLACEHOLDER_SRC_BAJU_3" },
-  { id: "baju-4", label: "Baju 4", placeholderSrc: "PLACEHOLDER_SRC_BAJU_4" },
+  { id: "baju-1", label: "Baju 1", placeholderSrc: "/illustrations/bajuAsset 1.svg" },
+  { id: "baju-2", label: "Baju 2", placeholderSrc: "/illustrations/bajuAsset 3.svg" },
+  { id: "baju-3", label: "Baju 3", placeholderSrc: "/illustrations/bajuAsset 4.svg" },
+  { id: "baju-4", label: "Baju 4", placeholderSrc: "/illustrations/bajuAsset 7.svg" },
 ];
 
 const CELANA = [
-  { id: "celana-1", label: "Celana 1", placeholderSrc: "PLACEHOLDER_SRC_CELANA_1" },
-  { id: "celana-2", label: "Celana 2", placeholderSrc: "PLACEHOLDER_SRC_CELANA_2" },
-  { id: "celana-3", label: "Celana 3", placeholderSrc: "PLACEHOLDER_SRC_CELANA_3" },
+  { id: "celana-1", label: "Celana 1", placeholderSrc: "/illustrations/bajuAsset 2.svg" },
+  { id: "celana-2", label: "Celana 2", placeholderSrc: "/illustrations/bajuAsset 5.svg" },
+  { id: "celana-3", label: "Celana 3", placeholderSrc: "/illustrations/bajuAsset 6.svg" },
 ];
 
 // ── Konstanta ─────────────────────────────────────────────────────

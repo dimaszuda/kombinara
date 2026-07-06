@@ -7,24 +7,24 @@ const VEHICLE_GROUPS = [
     key: "sepeda",
     label: "3 Sepeda",
     vehicles: [
-      { id: "sepeda-1", label: "Sepeda 1", placeholderSrc: "PLACEHOLDER_SRC_SEPEDA_1" },
-      { id: "sepeda-2", label: "Sepeda 2", placeholderSrc: "PLACEHOLDER_SRC_SEPEDA_2" },
-      { id: "sepeda-3", label: "Sepeda 3", placeholderSrc: "PLACEHOLDER_SRC_SEPEDA_3" },
+      { id: "sepeda-1", label: "Sepeda 1", placeholderSrc: "/illustrations/sepedaAsset 1.svg" },
+      { id: "sepeda-2", label: "Sepeda 2", placeholderSrc: "/illustrations/sepedaAsset 2.svg" },
+      { id: "sepeda-3", label: "Sepeda 3", placeholderSrc: "/illustrations/sepedaAsset 3.svg" },
     ],
   },
   {
     key: "motor",
     label: "2 Motor",
     vehicles: [
-      { id: "motor-1", label: "Motor 1", placeholderSrc: "PLACEHOLDER_SRC_MOTOR_1" },
-      { id: "motor-2", label: "Motor 2", placeholderSrc: "PLACEHOLDER_SRC_MOTOR_2" },
+      { id: "motor-1", label: "Motor 1", placeholderSrc: "/illustrations/motorAsset 2.svg" },
+      { id: "motor-2", label: "Motor 2", placeholderSrc: "/illustrations/motorAsset 3.svg" },
     ],
   },
   {
     key: "mobil",
     label: "1 Mobil",
     vehicles: [
-      { id: "mobil-1", label: "Mobil", placeholderSrc: "PLACEHOLDER_SRC_MOBIL_1" },
+      { id: "mobil-1", label: "Mobil", placeholderSrc: "/illustrations/mobilAsset 1.svg" },
     ],
   },
 ];

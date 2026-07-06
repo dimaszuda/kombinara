@@ -43,12 +43,6 @@ const APERSEPSI_DATA: ApersepsiItem[] = [
   },
 ];
 
-function ScenarioIcon({ icon }: { icon: ApersepsiItem["icon"] }) {
-  if (icon === "vehicles") return <VehicleIcons />;
-  if (icon === "clothes") return <ClothesIcons />;
-  return <BadgeIcons />;
-}
-
 type AnswerState = Record<string, { perkiraan: string; caraHitung: string }>;
 
 // Section Pemantik
