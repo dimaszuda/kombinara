@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     // ── 2. Autentikasi ─────────────────────────────────────────
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -97,7 +97,9 @@ async function persistAttempt(
   const finalFields = {
     status: result.isPass ? "passed" : "failed",
     total_score: result.score,
+    correct_count: result.correctCount,
     passed: result.isPass,
+    feedback: "",
     draft_answers: answers,
     submitted_at: new Date().toISOString(),
   };

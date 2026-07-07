@@ -101,6 +101,21 @@ function EksplorasiKontekstual() {
       setTextColor(newColor);
       setSubmitted(true);
       setIsChecking(false);
+
+      // Simpan ke database (fire-and-forget)
+      fetch("/api/eksplorasi-kontekstual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "kaidah_pencacahan",
+          answer: {
+            topic: "kaidah_perkalian",
+            jawaban,
+            alasan,
+          },
+          feedback: newFeedback["situasi1"] ?? null,
+        }),
+      }).catch((err) => console.error("[eksplorasi-kontekstual] DB save error:", err));
     }
 
     return (

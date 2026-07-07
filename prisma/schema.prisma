@@ -58,6 +58,7 @@ model Student {
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   class Class @relation(fields: [classId], references: [id])
+  apersepsiResponses ApersepsiPemantikResponse[]
 
   @@map("students")
 }
@@ -297,4 +298,27 @@ model UserBadge {
 
   @@id([userId, badgeId])
   @@map("user_badges")
+}
+
+// ============================================================
+// PHASE 5 — Apersepsi + Pemantik + Refleksi Responses
+// ============================================================
+
+model ApersepsiPemantikResponse {
+  responseId        Int      @id @default(autoincrement()) @map("response_id")
+  studentId         Int      @map("student_id")
+  section           String
+  questionKey       String   @map("question_key")
+  responseData      Json     @map("response_data")
+  isCorrect         Boolean? @map("is_correct")
+  misconceptionType String?  @map("misconception_type")
+  feedback          String?  @map("feedback")
+  submittedAt       DateTime @default(now()) @map("submitted_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionKey], name: "uq_student_question")
+  @@index([studentId], name: "idx_apr_student")
+  @@index([section], name: "idx_apr_section")
+  @@map("apersepsi_pemantik_responses")
 }

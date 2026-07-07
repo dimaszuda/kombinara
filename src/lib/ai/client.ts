@@ -107,3 +107,45 @@ export const RefleksiPrompt = async (
     }
   );
 };
+
+// ---------------------------------------------------------------------------
+// Answer Classification (Apersepsi · Pemantik · Refleksi)
+// ---------------------------------------------------------------------------
+
+const AnswerClassificationSchema = z.object({
+  isCorrect: z.boolean(),
+  misconceptionType: z.string().nullable(),
+  feedback: z.string(),
+});
+
+export type AnswerClassificationResult = z.infer<typeof AnswerClassificationSchema>;
+
+export const AnswerClassificationPrompt = async (
+  soal: string,
+  jawaban: string
+): Promise<AnswerClassificationResult> => {
+  const response = await client.responses.parse({
+    model: "gpt-4o",
+    input: [
+      {
+        role: "system",
+        content: PROMPTS.AnswerClassification.system,
+      },
+      {
+        role: "user",
+        content: PROMPTS.AnswerClassification.user(soal, jawaban),
+      },
+    ],
+    text: {
+      format: zodTextFormat(AnswerClassificationSchema, "answer_classification"),
+    },
+  });
+
+  return (
+    response.output_parsed ?? {
+      isCorrect: false,
+      misconceptionType: null,
+      feedback: "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!",
+    }
+  );
+};

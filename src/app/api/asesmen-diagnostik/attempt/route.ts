@@ -43,7 +43,7 @@ async function getStudentId(
 // ─── GET — ambil / buat attempt ──────────────────────────────────────────────
 
 export async function GET() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const authResult = await getStudentId(supabase);
   if (authResult instanceof NextResponse) return authResult;
   const { studentId } = authResult;
@@ -78,7 +78,7 @@ export async function GET() {
 
   const { data: newAttempt, error: insertError } = await supabase
     .from("diagnostic_attempts")
-    .insert({ student_id: studentId, attempt_number: nextNumber })
+    .insert({ student_id: studentId, attempt_number: nextNumber, status: "in_progress", correct_count: 0, feedback: "" })
     .select("attempt_id")
     .single();
 
@@ -113,7 +113,7 @@ export async function GET() {
 // ─── PATCH — auto-save draft ──────────────────────────────────────────────────
 
 export async function PATCH(req: Request) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const authResult = await getStudentId(supabase);
   if (authResult instanceof NextResponse) return authResult;
   const { studentId } = authResult;

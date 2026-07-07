@@ -8,7 +8,7 @@ import type { UserProfile } from "@/types";
 // sehingga icon profil langsung muncul tanpa waterfall client-side
 // dan tanpa query Prisma di setiap page load.
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

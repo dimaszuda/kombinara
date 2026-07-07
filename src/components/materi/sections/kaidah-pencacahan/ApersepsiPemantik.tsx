@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useState } from "react";
-import { VehicleIcons, ClothesIcons, BadgeIcons, CheckIcon, LightbulbIcon } from "@/components/ui/IconButton";
+import { CheckIcon, LightbulbIcon } from "@/components/ui/IconButton";
 import VehicleChoicePicker from "./VehicleChoicePicker";
 import OutfitComboPicker from "./OutfitComboPicker";
 import CommitteePicker from "./CommitteePicker";
@@ -14,6 +14,7 @@ import CourierRouteExplorer from "./CourierRouteExplorer";
 
 type ApersepsiItem = {
   id: string;
+  questionKey: string;
   timeRange: string;
   question: string;
   icon: "vehicles" | "clothes" | "badges";
@@ -22,6 +23,7 @@ type ApersepsiItem = {
 const APERSEPSI_DATA: ApersepsiItem[] = [
   {
     id: "transportasi",
+    questionKey: "kendaraan",
     timeRange: "06.00",
     question:
       "Kamu punya 3 sepeda, 2 motor, dan 1 mobil. Ayah membolehkanmu pakai salah satu buat belajar kelompok. Kira-kira ada berapa kemungkinan kendaraan yang bisa kamu pilih?",
@@ -29,6 +31,7 @@ const APERSEPSI_DATA: ApersepsiItem[] = [
   },
   {
     id: "outfit",
+    questionKey: "outfit",
     timeRange: "12.00",
     question:
       "Kamu punya 4 baju dan 3 celana. Kira-kira ada berapa kombinasi outfit berbeda yang bisa kamu pakai buat pergi?",
@@ -36,6 +39,7 @@ const APERSEPSI_DATA: ApersepsiItem[] = [
   },
   {
     id: "pengurus",
+    questionKey: "pengurus",
     timeRange: "16.00",
     question:
       "Ada 3 kandidat pengurus karang taruna. Dari situ akan dipilih 1 ketua dan 1 sekretaris. Kira-kira ada berapa susunan pengurus yang mungkin terbentuk?",
@@ -43,70 +47,21 @@ const APERSEPSI_DATA: ApersepsiItem[] = [
   },
 ];
 
+const PEMANTIK_SOAL = {
+  password:
+    "Setiap pengguna wajib bikin password 4 karakter dari angka 0–9 dan huruf A–Z, boleh berulang. Kira-kira sistemmu bisa menampung berapa pelanggan kalau setiap password harus unik?",
+  team: "Dari 10 teman, kamu mau pilih 3 orang buat tim lomba. Aturan A: ada jabatan (ketua, wakil, notulen). Aturan B: tanpa jabatan. Apakah jumlah cara membentuk timnya sama?",
+  courier:
+    "Dari kota A ke B ada 5 jalan, dari B ke C ada 4 jalan. Kamu antar paket A → C lalu balik C → A, tapi nggak boleh lewat jalan yang sama. Apakah kamu perlu menghitung rute pergi dan pulang secara terpisah?",
+} as const;
+
 type AnswerState = Record<string, { perkiraan: string; caraHitung: string }>;
 
 // Section Pemantik
 type ToggleValue = "yes" | "no" | null;
 
-function TeamGroups() {
-  const rolesA = ["Ketua", "Wakil", "Notulen"];
 
-  return (
-    <div className="my-3 flex flex-wrap gap-4">
-      <div className="min-w-[180px] flex-1 rounded-lg bg-white p-3">
-        <p className="mb-2 text-xs font-medium text-[#663362]">Aturan A · jabatan beda</p>
-        <div className="flex gap-1.5">
-          {rolesA.map((role) => (
-            <div
-              key={role}
-              className="flex h-7 w-20 items-center justify-center rounded-full border-2 text-xs font-medium"
-              style={{ borderColor: "#663362", color: "#663362" }}
-            >
-              {role}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="min-w-[180px] flex-1 rounded-lg bg-white p-3">
-        <p className="mb-2 text-xs font-medium text-[#346739]">Aturan B · tanpa jabatan</p>
-        <div className="flex gap-1.5">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-7 w-7 rounded-full bg-[#346739]" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const ApersepsiFeedback: string[] = [
-  "Bagus, kamu telah menjawab pertanyaan ini. Tapi apakah jawaban kamu benar atau salah? Mari kita bahas di materi selanjutnya, ya!",
-  "Menarik cara kamu hitung jawaban akhirnya. Nanti pas kita sudah masuk materi, kita akan tahu apakah cara hitung kamu benar ataupun salah.",
-  "Catatan caramu udah tersimpan. Nanti kita cek lagi setelah masuk ke materi.",
-  "Perkiraan dan cara hitungmu sudah tersimpan. Lanjut ke tantangan berikutnya.",
-  "Tersimpan. Cara berpikirmu ini akan jadi pembanding yang menarik nanti.",
-  "Oke, sudah tercatat. Yuk lanjut, ada beberapa hal menarik lagi yang akan kita bahas",
-  "Caramu sudah disimpan. Simpan juga di kepala, nanti kita bahas lagi."
-]
-
-const PemantikFeedbackPool: string[] = [
-  "Pilihan dan alasanmu sudah tersimpan. Lanjut ke tantangan selanjutnya.",
-  "Apakah jawaban dan alasanmu benar? kita akan tahu setelah membahas lebih dalam materi ini nanti",
-  "Jawabanmu sudah kesimpan. Tiap tantangan punya situasinya sendiri, jangan buru-buru disamakan caranya.",
-  "Oke, lanjut ke tantangan berikutnya. Bandingkan sendiri, apakah caramu masih sama atau mulai berubah.",
-  "Tersimpan. Perhatikan baik-baik, situasi tiap tantangan sengaja dibuat tidak identik.",
-];
-
-
-const refleksiSebelumMulaiFeedback: string[] = [
-  "Refleksimu sudah tersimpan. Ayo kita lanjut lagi",
-  "Tercatat. Yuk lanjut ke materi, nanti kita lihat lagi apakah jawabanmu ini berubah.",
-  "Jawabanmu sudah kesimpan. Materi nanti akan menjawab beberapa hal yang kamu pikirkan.",
-  "Tersimpan. Pertanyaan yang kamu tulis ini bagus buat dibawa ke materi selanjutnya.",
-  "Oke, sudah tercatat. Kamu akan lihat cara yang lebih sistematis di materi berikutnya.",
-];
-
-export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: string[] }) {
+export default function ApersepsiSection() {
   // stub state, ganti ke logic simpan-ke-DB pas wiring backend
   const [answers, setAnswers] = useState<AnswerState>({});
   const [showResult, setShowResult] = useState(false);
@@ -129,26 +84,62 @@ export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: 
     const newFeedback: Record<string, string | null> = {};
     const newColor: Record<string, string | null> = {};
 
-    const allComplete = APERSEPSI_DATA.every((item) => {
-      const ans = answers[item.id];
-      return ans?.perkiraan && ans?.caraHitung;
-    });
-
+    // Client-side validation
+    let allComplete = true;
     for (const item of APERSEPSI_DATA) {
       const ans = answers[item.id];
       if (!ans?.perkiraan || !ans?.caraHitung) {
         newFeedback[item.id] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
         newColor[item.id] = "text-red-500";
-      } else if (allComplete) {
-        newFeedback[item.id] = pool[Math.floor(Math.random() * pool.length)];
-        newColor[item.id] = "text-[#2C2C2A]";
+        allComplete = false;
       }
     }
 
-    setFeedback(newFeedback);
-    setTextColor(newColor);
-    if (allComplete) setApersepsiSubmitted(true);
-    setIsChecking(false);
+    if (!allComplete) {
+      setFeedback(newFeedback);
+      setTextColor(newColor);
+      setIsChecking(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/ai/apersepsi-pemantik", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "apersepsi",
+          responses: APERSEPSI_DATA.map((item) => ({
+            question_key: item.questionKey,
+            soal: item.question,
+            response_data: {
+              estimated_answer: answers[item.id].perkiraan,
+              reasoning: answers[item.id].caraHitung,
+            },
+          })),
+        }),
+      });
+
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+
+      for (const item of APERSEPSI_DATA) {
+        const itemResult = data.feedback?.[item.questionKey];
+        newFeedback[item.id] = itemResult?.feedback ?? "Jawaban tersimpan.";
+        newColor[item.id] = "text-[#2C2C2A]";
+      }
+      setFeedback(newFeedback);
+      setTextColor(newColor);
+      setApersepsiSubmitted(true);
+    } catch {
+      for (const item of APERSEPSI_DATA) {
+        newFeedback[item.id] = "Maaf, ada kendala. Coba lagi ya!";
+        newColor[item.id] = "text-red-500";
+      }
+      setFeedback(newFeedback);
+      setTextColor(newColor);
+    } finally {
+      setIsChecking(false);
+    }
   }
 
   async function handlePemantikSubmit() {
@@ -159,50 +150,92 @@ export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: 
     const items = [
       {
         id: "password",
+        question_key: "password_kapasitas",
+        soal: PEMANTIK_SOAL.password,
         jawaban: passwordGuess,
         alasan: passwordReasoning,
+        response_data: { estimated_answer: passwordGuess, reasoning: passwordReasoning },
       },
       {
         id: "team",
-        jawaban:
-          teamChoice === "yes"
-            ? "Sama"
-            : teamChoice === "no"
-              ? "Beda"
-              : "",
+        question_key: "tim_sama_beda",
+        soal: PEMANTIK_SOAL.team,
+        jawaban: teamChoice === "yes" ? "Sama" : teamChoice === "no" ? "Beda" : "",
         alasan: teamReasoning,
+        response_data: {
+          choice: teamChoice === "yes" ? "sama" : teamChoice === "no" ? "beda" : "",
+          reasoning: teamReasoning,
+        },
       },
       {
         id: "courier",
-        jawaban:
-          courierChoice === "yes"
-            ? "Perlu"
-            : courierChoice === "no"
-              ? "Nggak perlu"
-              : "",
+        question_key: "rute_kurir",
+        soal: PEMANTIK_SOAL.courier,
+        jawaban: courierChoice === "yes" ? "Perlu" : courierChoice === "no" ? "Nggak perlu" : "",
         alasan: courierReasoning,
+        response_data: {
+          choice: courierChoice === "yes" ? "perlu" : courierChoice === "no" ? "nggak_perlu" : "",
+          reasoning: courierReasoning,
+          calculation: courierCalc,
+        },
       },
     ];
-
-    const allComplete = items.every((item) => item.jawaban && item.alasan);
 
     const newFeedback: Record<string, string | null> = {};
     const newColor: Record<string, string | null> = {};
 
+    // Client-side validation
+    let allComplete = true;
     for (const item of items) {
       if (!item.jawaban || !item.alasan) {
         newFeedback[item.id] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
         newColor[item.id] = "text-red-500";
-      } else if (allComplete) {
-        newFeedback[item.id] = PemantikFeedbackPool[Math.floor(Math.random() * PemantikFeedbackPool.length)];
-        newColor[item.id] = "text-[#2C2C2A]";
+        allComplete = false;
       }
     }
 
-    setPemantikFeedback(newFeedback);
-    setPemantikTextColor(newColor);
-    if (allComplete) setPemantikSubmitted(true);
-    setIsCheckingPemantik(false);
+    if (!allComplete) {
+      setPemantikFeedback(newFeedback);
+      setPemantikTextColor(newColor);
+      setIsCheckingPemantik(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/ai/apersepsi-pemantik", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "pemantik",
+          responses: items.map((item) => ({
+            question_key: item.question_key,
+            soal: item.soal,
+            response_data: item.response_data,
+          })),
+        }),
+      });
+
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+
+      for (const item of items) {
+        const itemResult = data.feedback?.[item.question_key];
+        newFeedback[item.id] = itemResult?.feedback ?? "Jawaban tersimpan.";
+        newColor[item.id] = "text-[#2C2C2A]";
+      }
+      setPemantikFeedback(newFeedback);
+      setPemantikTextColor(newColor);
+      setPemantikSubmitted(true);
+    } catch {
+      for (const item of items) {
+        newFeedback[item.id] = "Maaf, ada kendala. Coba lagi ya!";
+        newColor[item.id] = "text-red-500";
+      }
+      setPemantikFeedback(newFeedback);
+      setPemantikTextColor(newColor);
+    } finally {
+      setIsCheckingPemantik(false);
+    }
   }
 
   async function handleRefleksiSubmit() {
@@ -210,30 +243,69 @@ export default function ApersepsiSection({ pool = ApersepsiFeedback }: { pool?: 
     setRefleksiFeedback({});
     setRefleksiTextColor({});
 
-    const items = [
-      { id: "methodSufficient", jawaban: methodSufficient },
-      { id: "whatToLearn", jawaban: whatToLearn },
-    ];
-
-    const allComplete = items.every((item) => item.jawaban);
-
     const newFeedback: Record<string, string | null> = {};
     const newColor: Record<string, string | null> = {};
 
-    for (const item of items) {
-      if (!item.jawaban) {
-        newFeedback[item.id] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
-        newColor[item.id] = "text-red-500";
-      } else if (allComplete) {
-        newFeedback[item.id] = refleksiSebelumMulaiFeedback[Math.floor(Math.random() * refleksiSebelumMulaiFeedback.length)];
-        newColor[item.id] = "text-[#2C2C2A]";
-      }
+    // Client-side validation
+    let allComplete = true;
+    if (!methodSufficient) {
+      newFeedback["methodSufficient"] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
+      newColor["methodSufficient"] = "text-red-500";
+      allComplete = false;
+    }
+    if (!whatToLearn) {
+      newFeedback["whatToLearn"] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
+      newColor["whatToLearn"] = "text-red-500";
+      allComplete = false;
     }
 
-    setRefleksiFeedback(newFeedback);
-    setRefleksiTextColor(newColor);
-    if (allComplete) setRefleksiSubmitted(true);
-    setIsCheckingRefleksi(false);
+    if (!allComplete) {
+      setRefleksiFeedback(newFeedback);
+      setRefleksiTextColor(newColor);
+      setIsCheckingRefleksi(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/ai/apersepsi-pemantik", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "refleksi",
+          responses: [
+            {
+              question_key: "refleksi_sebelum_mulai",
+              soal: "Refleksi sebelum mulai: (1) Apakah cara menghitung yang kamu gunakan di Apersepsi tadi cukup untuk menjawab ketiga situasi Pemantik? (2) Apa yang menurutmu perlu kamu pelajari untuk bisa menjawabnya?",
+              response_data: {
+                cukup_atau_tidak: methodSufficient,
+                yang_perlu_dipelajari: whatToLearn,
+              },
+            },
+          ],
+        }),
+      });
+
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+
+      const itemResult = data.feedback?.["refleksi_sebelum_mulai"];
+      const feedbackText = itemResult?.feedback ?? "Jawaban tersimpan.";
+
+      // Show LLM feedback under both fields so it's visible regardless of scroll
+      newFeedback["methodSufficient"] = feedbackText;
+      newColor["methodSufficient"] = "text-[#2C2C2A]";
+
+      setRefleksiFeedback(newFeedback);
+      setRefleksiTextColor(newColor);
+      setRefleksiSubmitted(true);
+    } catch {
+      newFeedback["methodSufficient"] = "Maaf, ada kendala. Coba lagi ya!";
+      newColor["methodSufficient"] = "text-red-500";
+      setRefleksiFeedback(newFeedback);
+      setRefleksiTextColor(newColor);
+    } finally {
+      setIsCheckingRefleksi(false);
+    }
   }
 
   // Section Pemantik

@@ -139,4 +139,22 @@ Rubrik score:
 
     Berikan feedback yang membangun untuk setiap jawaban di atas. Ingat, tujuannya memantik rasa ingin tahu, bukan menghakimi.`,
     },
+    AnswerClassification: {
+      system: `Kamu adalah Guru Matematika SMA. Analisis jawaban siswa berikut sesuai dengan materi Kaidah Pencacahan (aturan penjumlahan dan perkalian, permutasi, kombinasi).
+      Tentukan:
+      - isCorrect: apakah perkiraan atau arah berpikir siswa benar (boolean)
+      - misconceptionType: jenis miskonsepsi jika ada (contoh: "salah operasi", "arah berpikir terbalik"), atau null jika tidak ada
+      - feedback: feedback singkat yang memantik rasa ingin tahu, bukan menghakimi. Maks 2 kalimat. Jangan ungkapkan jawaban eksplisit.
+      Format output (return JSON, ikuti ini strictly):
+      {
+        "isCorrect": true | false,
+        "misconceptionType": "string" | null,
+        "feedback": "string"
+      }
+      `,
+      user: (soal: string, jawaban: string) =>
+        `Soal: ${soal}
+        Jawaban siswa: ${jawaban}
+      `
+    }
 };

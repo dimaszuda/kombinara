@@ -37,6 +37,7 @@ function EksplorasiKontekstual() {
   const [reasoning1, setReasoning1] = useState("");
   const [choice2, setChoice2] = useState<ToggleValue>(null);
   const [reasoning2, setReasoning2] = useState("");
+  const [operasiMatematika, setOperasiMatematika] = useState("");
 
   const [isChecking, setIsChecking] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, string | null>>({});
@@ -123,6 +124,31 @@ function EksplorasiKontekstual() {
     setTextColor(newColor);
     setSubmitted(true);
     setIsChecking(false);
+
+    // Simpan ke database (fire-and-forget)
+    fetch("/api/eksplorasi-kontekstual", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        concept_id: "kaidah_pencacahan",
+        answer: {
+          topic: "kaidah_penjumlahan",
+          situasi1: {
+            jawaban: situations[0].jawaban,
+            alasan: situations[0].alasan,
+          },
+          situasi2: {
+            jawaban: situations[1].jawaban,
+            alasan: situations[1].alasan,
+          },
+          operasi_matematika: operasiMatematika,
+        },
+        feedback: JSON.stringify({
+          situasi1: newFeedback["situasi1"] ?? null,
+          situasi2: newFeedback["situasi2"] ?? null,
+        }),
+      }),
+    }).catch((err) => console.error("[eksplorasi-kontekstual] DB save error:", err));
   }
 
   return (
@@ -215,6 +241,8 @@ function EksplorasiKontekstual() {
         <input
           type="text"
           placeholder="Tulis jawabanmu..."
+          value={operasiMatematika}
+          onChange={(e) => setOperasiMatematika(e.target.value)}
           className="w-full rounded-lg border border-[#34673933] bg-white px-4 py-2.5 text-sm placeholder:text-[#34673966]"
         />
       </div>
