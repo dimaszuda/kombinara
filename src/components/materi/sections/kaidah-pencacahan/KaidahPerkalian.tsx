@@ -107,7 +107,7 @@ function EksplorasiKontekstual() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          concept_id: "kaidah_pencacahan",
+          concept_id: "kaidah_perkalian",
           answer: {
             topic: "kaidah_perkalian",
             jawaban,
@@ -318,9 +318,33 @@ function DeepLearning() {
   }
 
   function handleSimpanSimpulan() {
-    if (simpulanText.trim()) {
-      setSimpulanSubmitted(true);
-    }
+    if (!simpulanText.trim()) return;
+
+    const soal =
+      "Aktivitas diagram pohon keputusan kaidah perkalian: Di kantin tersedia 2 menu makanan (soto, sop) dan 3 minuman (es teh, es jeruk, es buah). Siswa membuat diagram pohon lalu menjawab apakah kaidah perkalian sama dengan aturan penjumlahan.";
+    const jawaban = simpulanText;
+
+    setSimpulanSubmitted(true);
+
+    // Background: call AI then save to DB
+    fetch("/api/ai/deep-learning", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ soal, jawaban }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.resolve(null)))
+      .then((data) =>
+        fetch("/api/aktivitas-deep-learning", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            concept_id: "kaidah_perkalian",
+            answer: { simpulan: jawaban },
+            feedback: data?.feedback ?? null,
+          }),
+        })
+      )
+      .catch((err) => console.error("[deep-learning] background error:", err));
   }
  
   return (
@@ -554,10 +578,7 @@ function DeepLearning() {
 
             {simpulanSubmitted && (
               <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
-                <p className="mb-1 text-xs font-medium text-[#663362]">Feedback Kombi</p>
-                <p className="text-sm leading-relaxed text-[#2C2C2A]">
-                  Jawabanmu sudah tersimpan. Yuk lanjut ke materi berikutnya untuk melihat apakah pola yang kamu temukan sudah tepat!
-                </p>
+                <p className="text-sm leading-relaxed text-[#2C2C2A]">Jawaban kamu sudah tersimpan! ✅</p>
               </div>
             )}
           </div>
@@ -672,6 +693,14 @@ function ContohSoal() {
   const [results5, setResults5] = useState<Results>(null);
   const [feedback5, setFeedback5] = useState<Feedback>("idle");
 
+  const QUESTION_META: { question_key: string; difficulty_level: "mudah" | "sedang" | "hots"; order_index: number }[] = [
+    { question_key: "perkalian_plat",      difficulty_level: "mudah",  order_index: 0 },
+    { question_key: "perkalian_pin",       difficulty_level: "sedang", order_index: 1 },
+    { question_key: "perkalian_foto",      difficulty_level: "sedang", order_index: 2 },
+    { question_key: "perkalian_menu",      difficulty_level: "hots",   order_index: 3 },
+    { question_key: "perkalian_bilangan",  difficulty_level: "hots",   order_index: 4 },
+  ];
+
   function statusFor(index: number): ExampleStatus {
     if (index < passedCount) return "completed";
     if (index === passedCount) return "active";
@@ -689,6 +718,20 @@ function ContohSoal() {
     setResults(results);
     setFeedback(allCorrect ? "correct" : "incorrect");
     if (allCorrect) setPassedCount((p) => Math.max(p, index + 1));
+
+    const meta = QUESTION_META[index];
+    fetch("/api/contoh-soal-bertahap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        concept_id: "kaidah_perkalian",
+        question_key: meta.question_key,
+        difficulty_level: meta.difficulty_level,
+        order_index: meta.order_index,
+        answer: values,
+        is_correct: allCorrect,
+      }),
+    }).catch((err) => console.error("[contoh-soal-bertahap] DB save error:", err));
   }
 
   const TOTAL = 5;
@@ -856,195 +899,6 @@ function getScoreTheme(score: number): ScoreTheme {
 const RADIUS = 48;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-function LatihanKepahaman() {
-  const totalSoal = SOAL_DATA.length;
-  const [answers, setAnswers] = useState<string[]>(Array(totalSoal).fill(""));
-  const [submitted, setSubmitted] = useState(false);
-  const [results, setResults] = useState<boolean[]>([]);
-  const correctCount = results.filter(Boolean).length;
-  const score = submitted ? Math.round((correctCount / totalSoal) * 100) : 0;
-
-  const theme = getScoreTheme(score);
-
-  // ── Animation state: dipisah dari `score` biar bisa di-reset ke 0
-  // setiap kali user submit ulang, bukan loncat dari nilai lama ──
-  const [animatedScore, setAnimatedScore] = useState(0);
-  const [ringProgress, setRingProgress] = useState(0);
-  const rafRef = useRef<number | null>(null);
-
-  function handleSubmit() {
-    const newResults = SOAL_DATA.map((soal, i) => answers[i].trim() === String(soal.answer));
-    setResults(newResults);
-    setSubmitted(true);
-  }
-
-  useEffect(() => {
-    if (!submitted) {
-      setAnimatedScore(0);
-      setRingProgress(0);
-      return;
-    }
-
-    // Reset dulu ke 0 sebelum animasi jalan, supaya submit ulang
-    // (misal user ubah jawaban lalu submit lagi) terasa sebagai
-    // animasi baru, bukan loncatan dari posisi lama
-    setRingProgress(0);
-    setAnimatedScore(0);
-
-    const raf1 = requestAnimationFrame(() => {
-      const duration = 800;
-      const start = performance.now();
-
-      function tick(now: number) {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        setAnimatedScore(Math.round(eased * score));
-        setRingProgress(eased * score);
-        if (progress < 1) {
-          rafRef.current = requestAnimationFrame(tick);
-        }
-      }
-      rafRef.current = requestAnimationFrame(tick);
-    });
-
-    return () => {
-      cancelAnimationFrame(raf1);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submitted, score]);
-
-  const dashOffset = CIRCUMFERENCE - (ringProgress / 100) * CIRCUMFERENCE;
-
-  return (
-    <article>
-      <SectionBadge>Latihan Kepahaman</SectionBadge>
-      <p className="mt-1 mb-4 text-sm text-[#34673999]">Kerjakan soal–soal berikut!</p>
-
-      <div className="space-y-4">
-        {SOAL_DATA.map((soal, i) => (
-          <SoalKepahaman
-            key={soal.question_number}
-            question_number={soal.question_number}
-            level={soal.level}
-            question={soal.question}
-            answer={soal.answer}
-            hideCheckButton
-            value={answers[i]}
-            onChange={(v) => {
-              setAnswers((prev) => prev.map((a, idx) => (idx === i ? v : a)));
-              if (submitted) setSubmitted(false);
-            }}
-            checked={submitted}
-          />
-        ))}
-      </div>
-
-      {/* ── Score Visualization (only after submit) ── */}
-      {submitted && (
-        <div
-          className="mt-6 rounded-2xl border-2 p-6 transition-colors duration-300"
-          style={{ borderColor: theme.color, backgroundColor: theme.bg }}
-        >
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            {/* Circular progress */}
-            <div className="relative shrink-0">
-              <svg viewBox="0 0 120 120" className="w-28 h-28 sm:w-32 sm:h-32 -rotate-90">
-                <circle cx="60" cy="60" r={RADIUS} fill="none" stroke="#E5E7EB" strokeWidth="8" />
-                <circle
-                  cx="60"
-                  cy="60"
-                  r={RADIUS}
-                  fill="none"
-                  stroke={theme.color}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={CIRCUMFERENCE}
-                  strokeDashoffset={dashOffset}
-                  style={{ transition: "stroke-dashoffset 0.1s linear" }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold" style={{ color: theme.color }}>
-                  {animatedScore}
-                </span>
-                <span className="text-[10px] text-[#6B7280]">dari 100</span>
-              </div>
-            </div>
-
-            {/* Text summary */}
-            <div className="flex-1 text-center sm:text-left">
-              <p className="text-lg font-bold" style={{ color: theme.color }}>
-                {theme.label}
-              </p>
-              <p className="text-sm text-[#2C2C2A] mt-1">
-                Kamu menjawab{" "}
-                <span className="font-bold" style={{ color: theme.color }}>
-                  {correctCount}
-                </span>{" "}
-                dari <span className="font-bold">{totalSoal}</span> soal dengan benar
-              </p>
-
-              {/* Horizontal bar */}
-              <div className="mt-3 h-3 w-full rounded-full bg-[#00000012] overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700 ease-out"
-                  style={{ width: `${score}%`, backgroundColor: theme.color }}
-                />
-              </div>
-
-              {/* Per-question breakdown */}
-              <div className="mt-3 flex flex-wrap justify-center sm:justify-start gap-1.5">
-                {results.map((ok, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-transform"
-                    style={{
-                      backgroundColor: ok ? "#346739" : "#b91c1c",
-                      color: "#fff",
-                      animation: `resultPop 0.3s ease ${i * 0.06}s backwards`,
-                    }}
-                    title={`Soal ${i + 1}: ${ok ? "Benar" : "Salah"}`}
-                  >
-                    <ResultIcon ok={ok} />
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Submit button ── */}
-      <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4 mt-6">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={submitted}
-          className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
-        >
-          <CheckIcon />
-          {submitted ? "Tersimpan" : "Simpan Jawaban"}
-        </button>
-      </div>
-      <div className="border-b-2 border-[#34673966] mt-4" />
-
-      <style jsx>{`
-        @keyframes resultPop {
-          from {
-            opacity: 0;
-            transform: scale(0.5);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-      `}</style>
-    </article>
-  );
-}
-
 // Icon check/x pakai SVG murni, bukan emoji atau lucide-react, biar
 // nggak nambah dependency kalau project ini belum pakai lucide
 function ResultIcon({ ok }: { ok: boolean }) {
@@ -1179,6 +1033,20 @@ function RefleksiMini() {
       const data: RefleksiFeedback = await res.json();
       setFeedback(data);
       setSubmitted(true);
+
+      // Save to DB — 1 row per question (fire-and-forget)
+      fetch("/api/refleksi-mini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "kaidah_perkalian",
+          rows: [
+            { question_key: "refleksi_1", answer: answers[0], feedback: data.q1.feedback },
+            { question_key: "refleksi_2", answer: answers[1], feedback: data.q2.feedback },
+            { question_key: "refleksi_3", answer: answers[2], feedback: data.q3.feedback },
+          ],
+        }),
+      }).catch((err) => console.error("[refleksi-mini] DB save error:", err));
     } catch {
       setError("Maaf, ada kendala saat memberikan feedback. Coba lagi ya!");
     } finally {
@@ -1275,7 +1143,6 @@ export default function KaidahPerkalian() {
       <ContohSoal/>
       <MengapaCorner/>
       <AktivitasSiswa/>
-      <LatihanKepahaman/>
       <PanduanCepat/>
       <RefleksiMini/>
     </section>

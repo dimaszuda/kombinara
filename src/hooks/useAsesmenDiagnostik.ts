@@ -4,6 +4,18 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type { GradingResult } from "@/lib/data/asesmen-diagnostik";
 
 const AUTO_SAVE_DEBOUNCE_MS = 500;
+const COOLDOWN_MINUTES = 10;
+
+export interface DiagnosticStatus {
+  status: "none" | "in_progress" | "passed" | "failed";
+  lastScore: number | null;
+  lastCorrectCount: number | null;
+  lastTotalQuestions: number | null;
+  lastQuestions: { number: number; correct: boolean }[] | null;
+  lastSubmittedAt: string | null;
+  cooldownEndsAt: string | null;
+  cooldownRemainingSeconds: number | null;
+}
 
 export interface UseAsesmenDiagnostikReturn {
   /** Jawaban siswa: key "nomor-subIndex" → value */
@@ -22,6 +34,12 @@ export interface UseAsesmenDiagnostikReturn {
   autoSaveStatus: "idle" | "saving" | "saved" | "error";
   /** true saat draft sedang dimuat dari server saat pertama kali buka */
   isLoadingDraft: boolean;
+  /** Status diagnostik keseluruhan (dari server) */
+  diagnosticStatus: DiagnosticStatus | null;
+  /** true jika sedang memuat status dari server */
+  isLoadingStatus: boolean;
+  /** Detik tersisa sebelum boleh retry (null = sudah boleh) */
+  cooldownRemaining: number | null;
 }
 
 export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
@@ -30,11 +48,15 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
   const [lastResult, setLastResult] = useState<GradingResult | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [isLoadingDraft, setIsLoadingDraft] = useState(true);
+  const [diagnosticStatus, setDiagnosticStatus] = useState<DiagnosticStatus | null>(null);
+  const [isLoadingStatus, setIsLoadingStatus] = useState(true);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number | null>(null);
 
   // Refs: akses nilai terbaru di dalam callbacks tanpa re-render / stale closure
   const attemptIdRef = useRef<number | null>(null);
   const answersRef = useRef<Record<string, string>>({});
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Auto-save: debounced, baca dari ref → tidak ada dependency ──────────
   const scheduleAutoSave = useCallback(() => {
@@ -61,6 +83,73 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
     }, AUTO_SAVE_DEBOUNCE_MS);
   }, []);
 
+  // ── Fetch diagnostic status dari server ──────────────────────────────────
+  const fetchStatus = useCallback(async () => {
+    setIsLoadingStatus(true);
+    try {
+      const res = await fetch("/api/asesmen-diagnostik/status");
+      if (res.ok) {
+        const status: DiagnosticStatus = await res.json();
+        setDiagnosticStatus(status);
+
+        // Jika sudah lulus, set lastResult dari data server
+        if (status.status === "passed" && status.lastScore !== null) {
+          setLastResult({
+            correctCount: status.lastCorrectCount ?? 0,
+            totalQuestions: status.lastTotalQuestions ?? 10,
+            isPass: true,
+            score: status.lastScore,
+            questions: (status.lastQuestions ?? []).map((q) => ({
+              number: q.number,
+              correct: q.correct,
+              details: [],
+            })),
+            feedback: null,
+          });
+        }
+
+        // Jika gagal dan ada cooldown, set timer
+        if (
+          status.status === "failed" &&
+          status.cooldownRemainingSeconds !== null &&
+          status.cooldownRemainingSeconds > 0
+        ) {
+          setCooldownRemaining(status.cooldownRemainingSeconds);
+        }
+        // Jika gagal dan cooldown sudah habis, set null
+        if (
+          status.status === "failed" &&
+          (status.cooldownRemainingSeconds === null ||
+            status.cooldownRemainingSeconds <= 0)
+        ) {
+          setCooldownRemaining(null);
+        }
+      }
+    } catch (err) {
+      console.warn("[useAsesmenDiagnostik] failed to fetch status:", err);
+    } finally {
+      setIsLoadingStatus(false);
+    }
+  }, []);
+
+  // ── Cooldown countdown timer ─────────────────────────────────────────────
+  useEffect(() => {
+    if (cooldownRemaining !== null && cooldownRemaining > 0) {
+      cooldownTimerRef.current = setInterval(() => {
+        setCooldownRemaining((prev) => {
+          if (prev === null || prev <= 1) {
+            if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+    };
+  }, [cooldownRemaining !== null]);
+
   // ── Init: GET attempt saat mount (buat baru / restore draft) ────────────
   const initAttempt = useCallback(async () => {
     setIsLoadingDraft(true);
@@ -85,11 +174,13 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
   }, []);
 
   useEffect(() => {
+    fetchStatus();
     initAttempt();
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
     };
-  }, [initAttempt]);
+  }, [fetchStatus, initAttempt]);
 
   // ── Set answer + jadwalkan auto-save ────────────────────────────────────
   const setAnswer = useCallback(
@@ -128,6 +219,34 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
         const result: GradingResult = await res.json();
         setLastResult(result);
         setAutoSaveStatus("idle");
+
+        // Update diagnostic status setelah submit
+        setDiagnosticStatus((prev) => ({
+          ...prev,
+          status: result.isPass ? "passed" : "failed",
+          lastScore: result.score,
+          lastCorrectCount: result.correctCount,
+          lastTotalQuestions: result.totalQuestions,
+          lastQuestions: result.questions.map((q) => ({
+            number: q.number,
+            correct: q.correct,
+          })),
+          lastSubmittedAt: new Date().toISOString(),
+          cooldownEndsAt: result.isPass
+            ? null
+            : new Date(
+                Date.now() + COOLDOWN_MINUTES * 60 * 1000
+              ).toISOString(),
+          cooldownRemainingSeconds: result.isPass
+            ? null
+            : COOLDOWN_MINUTES * 60,
+        }));
+
+        // Set cooldown timer jika gagal
+        if (!result.isPass) {
+          setCooldownRemaining(COOLDOWN_MINUTES * 60);
+        }
+
         return result;
       } finally {
         setIsSubmitting(false);
@@ -138,13 +257,20 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
 
   // ── Reset (Coba Lagi) ────────────────────────────────────────────────────
   const reset = useCallback(() => {
+    // Jangan izinkan retry jika masih dalam cooldown
+    if (cooldownRemaining !== null && cooldownRemaining > 0) return;
+
     setAnswers({});
     answersRef.current = {};
     setLastResult(null);
     setAutoSaveStatus("idle");
     attemptIdRef.current = null;
+    setDiagnosticStatus((prev) =>
+      prev ? { ...prev, status: "in_progress" } : null
+    );
+    setCooldownRemaining(null);
     initAttempt(); // buat attempt in_progress baru
-  }, [initAttempt]);
+  }, [initAttempt, cooldownRemaining]);
 
   return {
     answers,
@@ -155,5 +281,8 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
     reset,
     autoSaveStatus,
     isLoadingDraft,
+    diagnosticStatus,
+    isLoadingStatus,
+    cooldownRemaining,
   };
 }

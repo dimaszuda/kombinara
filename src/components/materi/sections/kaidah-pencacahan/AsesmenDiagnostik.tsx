@@ -135,9 +135,27 @@ interface AsesmenDiagnostikProps {
     onPass?: (passed: boolean) => void;
 }
 
+/** Format detik ke "X menit Y detik" */
+function formatCooldown(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m > 0) return `${m} menit ${s} detik`;
+    return `${s} detik`;
+}
+
 export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
-    const { answers, setAnswer, submitAnswers, isSubmitting, lastResult, reset } =
-        useAsesmenDiagnostik();
+    const {
+        answers,
+        setAnswer,
+        submitAnswers,
+        isSubmitting,
+        lastResult,
+        reset,
+        isLoadingDraft,
+        diagnosticStatus,
+        isLoadingStatus,
+        cooldownRemaining,
+    } = useAsesmenDiagnostik();
 
     const [showResult, setShowResult] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
@@ -176,10 +194,55 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
     );
 
     const handleRetry = useCallback(() => {
+        if (cooldownRemaining !== null && cooldownRemaining > 0) return;
         reset();
         setShowResult(false);
         onPass?.(false);
-    }, [reset, onPass]);
+    }, [reset, onPass, cooldownRemaining]);
+
+    // ── Loading state ───────────────────────────────────────────────
+    if (isLoadingStatus || isLoadingDraft) {
+        return (
+            <article
+                style={{
+                    backgroundColor: "white",
+                    borderRadius: "16px",
+                    padding: "32px",
+                    border: "1px solid #346739",
+                }}
+                className="flex flex-col items-center gap-4"
+            >
+                <div className="w-8 h-8 border-4 border-gray-200 border-t-[#346739] rounded-full animate-spin" />
+                <p style={{ fontSize: "14px", color: "#888" }}>
+                    Memuat asesmen diagnostik...
+                </p>
+            </article>
+        );
+    }
+
+    // ── SUDAH LULUS: tampilkan hanya ringkasan skor ─────────────────
+    const hasPassed =
+        diagnosticStatus?.status === "passed" ||
+        (lastResult?.isPass ?? false);
+
+    if (hasPassed && lastResult) {
+        return (
+            <article
+                style={{
+                    backgroundColor: "white",
+                    borderRadius: "16px",
+                    padding: "32px",
+                    border: "1px solid #346739",
+                }}
+                className="flex flex-col gap-6"
+            >
+                <h2 className="kp-subtitle" style={{ color: "#346739" }}>
+                    Asesmen Diagnostik
+                </h2>
+                <PassedSummary result={lastResult} />
+            </article>
+        );
+    }
 
     return (
         <form ref={formRef} onSubmit={handleSubmit}>
@@ -625,11 +688,67 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                         <ResultFeedback
                             result={lastResult!}
                             onRetry={handleRetry}
+                            cooldownRemaining={cooldownRemaining}
                         />
                     )}
                 </div>
             </article>
         </form>
+    );
+}
+
+/**
+ * Ringkasan untuk siswa yang sudah lulus — hanya skor, tanpa soal.
+ */
+function PassedSummary({ result }: { result: GradingResult }) {
+    const { correctCount, totalQuestions, score } = result;
+
+    return (
+        <div className="flex flex-col items-center gap-4 w-full">
+            {/* Score ring */}
+            <div
+                style={{
+                    width: "96px",
+                    height: "96px",
+                    borderRadius: "50%",
+                    border: "6px solid #346739",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    background: "#f0faf0",
+                }}
+            >
+                <span
+                    style={{
+                        fontSize: "24px",
+                        fontWeight: 700,
+                        color: "#346739",
+                        lineHeight: 1,
+                    }}
+                >
+                    {score}
+                </span>
+                <span style={{ fontSize: "11px", color: "#888" }}>dari 100</span>
+            </div>
+
+            <div className="text-center">
+                <p
+                    style={{
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        color: "#346739",
+                        margin: 0,
+                    }}
+                >
+                    Selamat! Kamu Lulus! 🎉
+                </p>
+                <p style={{ fontSize: "13px", color: "#888", margin: "4px 0 0" }}>
+                    {correctCount} dari {totalQuestions} nomor benar — Kamu siap
+                    melanjutkan ke materi berikutnya.
+                </p>
+            </div>
+        </div>
     );
 }
 
@@ -640,11 +759,16 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
 function ResultFeedback({
     result,
     onRetry,
+    cooldownRemaining,
 }: {
     result: GradingResult;
     onRetry: () => void;
+    cooldownRemaining: number | null;
 }) {
-    const { isPass, correctCount, totalQuestions, score, questions, feedback } = result;
+    const { isPass, correctCount, totalQuestions, score, questions, feedback } =
+        result;
+
+    const isInCooldown = cooldownRemaining !== null && cooldownRemaining > 0;
 
     return (
         <div className="flex flex-col items-center gap-4 w-full">
@@ -685,7 +809,9 @@ function ResultFeedback({
                         margin: 0,
                     }}
                 >
-                    {isPass ? "Selamat! Kamu Lulus! 🎉" : "Belum Lulus, Tetap Semangat! 💪"}
+                    {isPass
+                        ? "Selamat! Kamu Lulus! 🎉"
+                        : "Belum Lulus, Tetap Semangat! 💪"}
                 </p>
                 <p style={{ fontSize: "13px", color: "#888", margin: "4px 0 0" }}>
                     {correctCount} dari {totalQuestions} nomor benar
@@ -715,6 +841,45 @@ function ResultFeedback({
                 </div>
             )}
 
+            {/* Link belajar prasyarat (hanya jika belum lulus) */}
+            {!isPass && (
+                <div
+                    style={{
+                        width: "100%",
+                        maxWidth: "460px",
+                        padding: "14px 18px",
+                        borderRadius: "10px",
+                        background: "#eff6ff",
+                        border: "1px solid #93c5fd",
+                        fontSize: "13px",
+                        lineHeight: "1.6",
+                        color: "#1e40af",
+                        textAlign: "center",
+                    }}
+                >
+                    <span style={{ fontWeight: 600 }}>📚 Sebelum mencoba lagi: </span>
+                    pelajari dulu{" "}
+                    <a
+                        href="#"
+                        style={{
+                            color: "#2563eb",
+                            textDecoration: "underline",
+                            fontWeight: 600,
+                        }}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            // TODO: arahkan ke halaman materi prasyarat
+                            alert(
+                                "Halaman materi prasyarat akan segera tersedia. Silakan pelajari kembali konsep faktorial, himpunan, dan logika DAN/ATAU."
+                            );
+                        }}
+                    >
+                        materi prasyarat
+                    </a>{" "}
+                    agar lebih siap.
+                </div>
+            )}
+
             {/* Per-nomor breakdown */}
             <div className="w-full max-w-md flex flex-col gap-1.5 mt-2">
                 {questions.map((q) => (
@@ -739,43 +904,87 @@ function ResultFeedback({
                         >
                             Nomor {q.number}
                         </span>
-                        <span style={{ color: q.correct ? "#346739" : "#dc2626" }}>
+                        <span
+                            style={{ color: q.correct ? "#346739" : "#dc2626" }}
+                        >
                             {q.correct ? "✓ Benar" : "✗ Salah"}
                         </span>
                         {!q.correct && (
-                            <span style={{ fontSize: "11px", color: "#999", marginLeft: "auto" }}>
-                                {q.details.filter((d) => !d.correct).length} sub salah
+                            <span
+                                style={{
+                                    fontSize: "11px",
+                                    color: "#999",
+                                    marginLeft: "auto",
+                                }}
+                            >
+                                {q.details.filter((d) => !d.correct).length} sub
+                                salah
                             </span>
                         )}
                     </div>
                 ))}
             </div>
 
-            {/* Retry button (only if not passed) */}
+            {/* Retry / cooldown section (only if not passed) */}
             {!isPass && (
-                <button
-                    type="button"
-                    onClick={onRetry}
-                    style={{
-                        padding: "10px 24px",
-                        borderRadius: "24px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        background: "white",
-                        color: "#346739",
-                        border: "2px solid #346739",
-                        transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#f0faf0";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "white";
-                    }}
-                >
-                    Coba Lagi
-                </button>
+                <div className="flex flex-col items-center gap-2">
+                    {isInCooldown ? (
+                        <>
+                            <p
+                                style={{
+                                    fontSize: "13px",
+                                    color: "#888",
+                                    margin: 0,
+                                }}
+                            >
+                                ⏳ Silakan coba lagi dalam{" "}
+                                <strong style={{ color: "#dc2626" }}>
+                                    {formatCooldown(cooldownRemaining!)}
+                                </strong>
+                            </p>
+                            <button
+                                type="button"
+                                disabled
+                                style={{
+                                    padding: "10px 24px",
+                                    borderRadius: "24px",
+                                    fontSize: "14px",
+                                    fontWeight: 600,
+                                    cursor: "not-allowed",
+                                    background: "#e5e7eb",
+                                    color: "#9ca3af",
+                                    border: "2px solid #d1d5db",
+                                }}
+                            >
+                                Coba Lagi
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={onRetry}
+                            style={{
+                                padding: "10px 24px",
+                                borderRadius: "24px",
+                                fontSize: "14px",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                background: "white",
+                                color: "#346739",
+                                border: "2px solid #346739",
+                                transition: "all 0.2s",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f0faf0";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "white";
+                            }}
+                        >
+                            Coba Lagi
+                        </button>
+                    )}
+                </div>
             )}
         </div>
     );

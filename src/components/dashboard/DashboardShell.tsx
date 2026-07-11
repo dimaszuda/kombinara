@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { UserProfile } from "@/types";
+import { AssesmentLockProvider, useAssesmentLock } from "@/components/dashboard/assesment-lock-context";
 
 // Tooltip styles injected once as a global <style> tag via a small component
 function TooltipStyles() {
@@ -47,6 +48,15 @@ interface DashboardShellProps {
 }
 
 export default function DashboardShell({ profile, children }: DashboardShellProps) {
+  return (
+    <AssesmentLockProvider>
+      <DashboardShellInner profile={profile}>{children}</DashboardShellInner>
+    </AssesmentLockProvider>
+  );
+}
+
+function DashboardShellInner({ profile, children }: DashboardShellProps) {
+  const { isLocked } = useAssesmentLock();
   const [expanded, setExpanded] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -96,8 +106,9 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
             <button
               type="button"
               onClick={() => setMobileSidebarOpen(true)}
+              disabled={isLocked}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full md:hidden"
-              style={{ backgroundColor: "#346739", border: "none" }}
+              style={{ backgroundColor: "#346739", border: "none", opacity: isLocked ? 0.4 : 1, pointerEvents: isLocked ? "none" : "auto" }}
               aria-label="Buka menu navigasi"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -124,7 +135,7 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
           </div>
 
           {/* Profile — mobile */}
-          <span className="kb-tooltip-wrap">
+          <span className="kb-tooltip-wrap" style={{ pointerEvents: isLocked ? "none" : undefined, opacity: isLocked ? 0.4 : 1 }}>
             <Link
               href="/siswa/profile"
               className="flex items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-brand-50"
@@ -169,7 +180,7 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
         style={{ height: "100vh", overflow: "hidden", position: "relative", flexDirection: "row" }}
         className="hidden md:flex"
       >
-        <div style={{ position: "relative", flexShrink: 0, height: "100vh", width: "auto" }}>
+        <div style={{ position: "relative", flexShrink: 0, height: "100vh", width: "auto", pointerEvents: isLocked ? "none" : "auto", opacity: isLocked ? 0.4 : 1, transition: "opacity 0.2s" }}>
           {/* Kombinara icon — desktop */}
           <span
             className="kb-tooltip-wrap"
@@ -214,6 +225,9 @@ export default function DashboardShell({ profile, children }: DashboardShellProp
             right: 30,
             zIndex: 20,
             marginTop: "0px",
+            pointerEvents: isLocked ? "none" : undefined,
+            opacity: isLocked ? 0.4 : 1,
+            transition: "opacity 0.2s",
           }}
         >
           <Link

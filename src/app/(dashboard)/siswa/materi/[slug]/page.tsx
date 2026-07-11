@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import SelectionToolbar from "@/components/materi/SelectionToolbar";
@@ -15,15 +15,6 @@ interface MateriItem {
   icon: string;
   description: string;
 }
-
-const SECTIONS = [
-  { title: "Asesmen Diagnostik", Component: AsesmenDiagnostik },
-  { title: "Apersepsi & Pemantik", Component: ApersepsiSection },
-  // { title: "Penjelasan Konsep", Component: PenjelasanKonsep }
-  // { title: "Aktivitas Deep Learning", Component: AktivitasDeepLearning },
-  // { title: "Contoh Soal Bertahap", Component: ContohSoalBertahap },
-  // { title: "Refleksi Mini", Component: RefleksiMini },
-];
 
 const materiData: Record<string, MateriItem> = {
   "kaidah-pencacahan": {
@@ -46,6 +37,14 @@ const materiData: Record<string, MateriItem> = {
   },
 };
 
+/** Status respons dari /api/asesmen-diagnostik/status */
+interface DiagnosticStatusResponse {
+  status: "none" | "in_progress" | "passed" | "failed";
+  lastScore: number | null;
+  lastCorrectCount: number | null;
+  lastTotalQuestions: number | null;
+}
+
 export default function MateriDetailPage({
   params,
 }: {
@@ -53,7 +52,31 @@ export default function MateriDetailPage({
 }) {
   const materi = materiData[params.slug];
   const [passAssesmen, setPassAssesment] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // ── Cek status diagnostik saat mount ─────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    async function checkStatus() {
+      try {
+        const res = await fetch("/api/asesmen-diagnostik/status");
+        if (!res.ok) return;
+        const data: DiagnosticStatusResponse = await res.json();
+        if (!cancelled && data.status === "passed") {
+          setPassAssesment(true);
+        }
+      } catch {
+        // silent fail — biarkan default false
+      } finally {
+        if (!cancelled) setIsCheckingStatus(false);
+      }
+    }
+    checkStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!materi) {
     return (
@@ -124,63 +147,120 @@ export default function MateriDetailPage({
             }}
           />
         </div>
-        <AsesmenDiagnostik onPass={setPassAssesment} />
+        {isCheckingStatus ? (
+          <div style={{ textAlign: "center", padding: "24px", color: "#888", fontSize: "14px" }}>
+            Memeriksa status asesmen...
+          </div>
+        ) : (
+          <AsesmenDiagnostik onPass={setPassAssesment} />
+        )}
       </div>
 
-      {/* Asesmen Diagnostik section */}
-      <div key="Apersepsi dan Pemantik" style={{ marginBottom: "40px" }}>
-        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
-          Apersepsi dan Pemantik
-        </p>
-        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
-          <div
-            style={{
-              height: "100%",
-              width: "50%",
-              background: "#346739",
-              borderRadius: "4px",
-            }}
-          />
-        </div>
-        <ApersepsiSection/>
-      </div>
+      {/* Section terkunci: Apersepsi dan Pemantik */}
+      <LockableSection
+        unlocked={passAssesmen}
+        label="Apersepsi dan Pemantik"
+        progressWidth="50%"
+      >
+        <ApersepsiSection />
+      </LockableSection>
 
-      {/* MATERI 1 section */}
-      <div key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
-        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
-          MATERI 1 : KAIDAH PENJUMLAHAN
-        </p>
-        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
-          <div
-            style={{
-              height: "100%",
-              width: "75%",
-              background: "#346739",
-              borderRadius: "4px",
-            }}
-          />
-        </div>
-        <KaidahPenjumlahan/>
-      </div>
+      {/* Section terkunci: MATERI 1 */}
+      <LockableSection
+        unlocked={passAssesmen}
+        label="MATERI 1 : KAIDAH PENJUMLAHAN"
+        progressWidth="75%"
+      >
+        <KaidahPenjumlahan />
+      </LockableSection>
 
-      {/* MATERI 2 section */}
-      <div key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
-        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
-          MATERI 2 : KAIDAH PERKALIAN
-        </p>
-        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
-          <div
-            style={{
-              height: "100%",
-              width: "100%",
-              background: "#346739",
-              borderRadius: "4px",
-            }}
-          />
-        </div>
-        <KaidahPerkalian/>
-      </div>
+      {/* Section terkunci: MATERI 2 */}
+      <LockableSection
+        unlocked={passAssesmen}
+        label="MATERI 2 : KAIDAH PERKALIAN"
+        progressWidth="100%"
+      >
+        <KaidahPerkalian />
+      </LockableSection>
     </div>
     </ChatbotShell>
+  );
+}
+
+/**
+ * Wrapper section yang terkunci sampai siswa lulus asesmen diagnostik.
+ */
+function LockableSection({
+  unlocked,
+  label,
+  progressWidth,
+  children,
+}: {
+  unlocked: boolean;
+  label: string;
+  progressWidth: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ marginBottom: "40px" }}>
+      <p
+        style={{
+          fontSize: "12px",
+          color: "#888",
+          marginBottom: "6px",
+          fontFamily: "monospace",
+          letterSpacing: "0.5px",
+        }}
+      >
+        {label}
+      </p>
+      <div
+        style={{
+          height: "4px",
+          background: "#e0e0e0",
+          borderRadius: "4px",
+          overflow: "hidden",
+          marginBottom: "16px",
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: unlocked ? progressWidth : "0%",
+            background: unlocked ? "#346739" : "#e0e0e0",
+            borderRadius: "4px",
+            transition: "width 0.5s ease, background 0.5s ease",
+          }}
+        />
+      </div>
+      {unlocked ? (
+        children
+      ) : (
+        <div
+          style={{
+            backgroundColor: "#f9fafb",
+            borderRadius: "16px",
+            padding: "40px 32px",
+            border: "2px dashed #d1d5db",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: "40px", marginBottom: "12px" }}>🔒</div>
+          <p
+            style={{
+              fontSize: "16px",
+              fontWeight: 600,
+              color: "#6b7280",
+              margin: "0 0 8px",
+            }}
+          >
+            Selesaikan Asesmen Diagnostik Terlebih Dahulu
+          </p>
+          <p style={{ fontSize: "13px", color: "#9ca3af", margin: 0 }}>
+            Kamu harus lulus asesmen diagnostik di atas untuk membuka section ini.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }

@@ -130,7 +130,7 @@ function EksplorasiKontekstual() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        concept_id: "kaidah_pencacahan",
+        concept_id: "kaidah_penjumlahan",
         answer: {
           topic: "kaidah_penjumlahan",
           situasi1: {
@@ -302,11 +302,48 @@ function DeepLearning() {
     },
   ];
 
+  const [tableAnswers, setTableAnswers] = useState(
+    situations.map(() => ({ both: "", total: "" }))
+  );
   const [foundPattern, setFoundPattern] = useState<ToggleValue>(null);
+  const [operasiMatematika, setOperasiMatematika] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   function handleSubmit() {
+    const jawabanObj = {
+      tabel: situations.map((s, i) => ({
+        situasi: s.situation,
+        boleh_keduanya: tableAnswers[i].both || "(belum dijawab)",
+        total_pilihan: tableAnswers[i].total || "(belum dijawab)",
+      })),
+      ada_pola: foundPattern === "yes" ? "Ya" : foundPattern === "no" ? "Tidak" : "(belum dijawab)",
+      operasi_matematika: operasiMatematika || "(belum dijawab)",
+    };
+
+    const soal =
+      "Aktivitas menemukan pola kaidah penjumlahan: Siswa menganalisis 3 situasi pilihan saling lepas (transportasi, baju, jurusan) untuk menentukan boleh tidaknya memilih keduanya, total pilihan, apakah ada pola, dan operasi matematika yang digunakan.";
+
     setSubmitted(true);
+
+    // Background: call AI then save to DB
+    fetch("/api/ai/deep-learning", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj) }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.resolve(null)))
+      .then((data) =>
+        fetch("/api/aktivitas-deep-learning", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            concept_id: "kaidah_penjumlahan",
+            answer: jawabanObj,
+            feedback: data?.feedback ?? null,
+          }),
+        })
+      )
+      .catch((err) => console.error("[deep-learning] background error:", err));
   }
 
   return (
@@ -336,7 +373,12 @@ function DeepLearning() {
                 <td className="px-4 py-3 text-center text-[#2C2C2A]">{item.optionB}</td>
                 <td className="px-4 py-3 text-center">
                   <select
-                    name={`q7-both-${i}`}
+                    value={tableAnswers[i].both}
+                    onChange={(e) =>
+                      setTableAnswers((prev) =>
+                        prev.map((a, idx) => idx === i ? { ...a, both: e.target.value } : a)
+                      )
+                    }
                     className="rounded-md border border-[#34673933] px-2 py-1.5 text-xs text-[#2C2C2A]"
                   >
                     <option value="">Ya/Tidak</option>
@@ -347,7 +389,12 @@ function DeepLearning() {
                 <td className="px-4 py-3 text-center">
                   <input
                     type="text"
-                    name={`q7-total-${i}`}
+                    value={tableAnswers[i].total}
+                    onChange={(e) =>
+                      setTableAnswers((prev) =>
+                        prev.map((a, idx) => idx === i ? { ...a, total: e.target.value } : a)
+                      )
+                    }
                     placeholder="..."
                     className="w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs"
                   />
@@ -375,6 +422,8 @@ function DeepLearning() {
       <input
         type="text"
         placeholder="Tulis jawabanmu..."
+        value={operasiMatematika}
+        onChange={(e) => setOperasiMatematika(e.target.value)}
         className="mt-2 w-full rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966]"
       />
       <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
@@ -397,13 +446,10 @@ function DeepLearning() {
           )}
         </button>
 
-        {/* Feedback */}
+        {/* Saved confirmation */}
         {submitted && (
           <div className="w-full rounded-lg border border-[#66336233] bg-[#66336208] p-3">
-            <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
-            <p className="text-sm leading-relaxed text-[#2C2C2A]">
-              Jawabanmu sudah tersimpan. Yuk lanjut ke materi berikutnya untuk melihat apakah pola yang kamu temukan sudah tepat!
-            </p>
+            <p className="text-sm leading-relaxed text-[#2C2C2A]">Jawaban kamu sudah tersimpan! ✅</p>
           </div>
         )}
       </div>
@@ -509,11 +555,33 @@ function ContohSoal() {
     return "locked";
   }
 
+  function saveAttempt(
+    question_key: string,
+    difficulty_level: "mudah" | "sedang" | "hots",
+    order_index: number,
+    answer: Record<string, string>,
+    is_correct: boolean
+  ) {
+    fetch("/api/contoh-soal-bertahap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        concept_id: "kaidah_penjumlahan",
+        question_key,
+        difficulty_level,
+        order_index,
+        answer,
+        is_correct,
+      }),
+    }).catch((err) => console.error("[contoh-soal-bertahap] DB save error:", err));
+  }
+
   function checkDrinks() {
     const { results, allCorrect } = gradeBlanks(EXPECTED_DRINKS, valuesDrinks);
     setResultsDrinks(results);
     setFeedbackDrinks(allCorrect ? "correct" : "incorrect");
     if (allCorrect) setPassedCount((p) => Math.max(p, 1));
+    saveAttempt("penjumlahan_minuman", "mudah", 0, valuesDrinks, allCorrect);
   }
 
   function checkBooks() {
@@ -521,6 +589,7 @@ function ContohSoal() {
     setResultsBooks(results);
     setFeedbackBooks(allCorrect ? "correct" : "incorrect");
     if (allCorrect) setPassedCount((p) => Math.max(p, 2));
+    saveAttempt("penjumlahan_buku", "sedang", 1, valuesBooks, allCorrect);
   }
 
   function checkTransport() {
@@ -528,6 +597,7 @@ function ContohSoal() {
     setResultsTransport(results);
     setFeedbackTransport(allCorrect ? "correct" : "incorrect");
     if (allCorrect) setPassedCount((p) => Math.max(p, 3));
+    saveAttempt("penjumlahan_transport", "hots", 2, valuesTransport, allCorrect);
   }
 
   return (
@@ -667,6 +737,20 @@ function RefleksiMini() {
       const data: RefleksiFeedback = await res.json();
       setFeedback(data);
       setSubmitted(true);
+
+      // Save to DB — 1 row per question (fire-and-forget)
+      fetch("/api/refleksi-mini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "kaidah_penjumlahan",
+          rows: [
+            { question_key: "refleksi_1", answer: answerQ1, feedback: data.q1.feedback },
+            { question_key: "refleksi_2", answer: answerQ2, feedback: data.q2.feedback },
+            { question_key: "refleksi_3", answer: answerQ3, feedback: data.q3.feedback },
+          ],
+        }),
+      }).catch((err) => console.error("[refleksi-mini] DB save error:", err));
     } catch {
       setError("Maaf, ada kendala saat memberikan feedback. Coba lagi ya!");
     } finally {
