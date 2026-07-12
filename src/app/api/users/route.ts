@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
         role: "siswa",
       },
     });
+
     // 2. Find-or-create class
     const academicYear = getAcademicYear();
     let dbClass = await prisma.class.findFirst({
@@ -94,7 +95,18 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 3. Upsert student
+    // 3. Cek apakah nomorAbsen sudah dipakai user LAIN
+    const existingByNumber = await prisma.student.findUnique({
+      where: { studentNumber: nomorAbsen },
+    });
+    if (existingByNumber && existingByNumber.userId !== user.id) {
+      return NextResponse.json(
+        { error: `Nomor absen ${nomorAbsen} sudah digunakan oleh siswa lain. Silakan gunakan nomor absen yang berbeda.` },
+        { status: 409 }
+      );
+    }
+
+    // 4. Upsert student
     const dbStudent = await prisma.student.upsert({
       where: { userId: user.id },
       update: { studentNumber: nomorAbsen, name: nama, gender, classId: dbClass.id },
@@ -107,7 +119,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 4. Invalidate Redis cache agar next read ambil data terbaru
+    // 5. Invalidate Redis cache agar next read ambil data terbaru
     await invalidateProfileCache(user.id);
 
     return NextResponse.json({ user: dbUser, student: dbStudent });
