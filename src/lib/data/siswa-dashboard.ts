@@ -6,7 +6,7 @@ export const MATERI_CARDS = [
     activity: "/siswa/activity/kaidah-pencacahan",
     description:
       "Materi kaidah pencacahan membahas tentang cara menghitung banyaknya kemungkinan suatu kejadian tanpa harus menuliskan semua kemungkinan satu per satu.",
-    image: "/images/Kaidah pencacahan.png",
+    image: "/images/kaidah pencacahan.png",
     alt: "Kaidah Pencacahan",
   },
   {
