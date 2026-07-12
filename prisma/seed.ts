@@ -2,7 +2,7 @@
 // Jalankan: npx prisma db seed
 // Tambahkan ke package.json: "prisma": { "seed": "ts-node prisma/seed.ts" }
 
-import { PrismaClient, UserRole } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -16,54 +16,87 @@ async function main() {
     create: {
       id: "00000000-0000-0000-0000-000000000001",
       email: "guru@kombinara.dev",
-      nama: "Pak Budi",
-      role: UserRole.guru,
+      name: "Pak Budi",
+      role: "guru",
     },
   });
 
   // Kelas
-  const kelas = await prisma.kelas.upsert({
-    where: { kode: "KOMB-2024" },
+  const kelas = await prisma.class.upsert({
+    where: { id: 1 },
     update: {},
     create: {
-      nama: "Kelas XII IPA 1",
-      kode: "KOMB-2024",
-      guruId: guru.id,
+      id: 1,
+      className: "Kelas XII IPA 1",
+      group: "IPA 1",
+      academicYear: "2024/2025",
+      teacherId: guru.id,
     },
   });
 
   // Default settings untuk kelas
   await prisma.classSettings.upsert({
-    where: { kelasId: kelas.id },
+    where: { classId: kelas.id },
     update: {},
     create: {
-      kelasId: kelas.id,
+      classId: kelas.id,
       readingWeight: 0.25,
       frequencyWeight: 0.25,
-      depthWeight: 0.30,
-      quizWeight: 0.20,
+      depthWeight: 0.3,
+      quizWeight: 0.2,
       leaderboardMode: "activity_score",
     },
   });
 
   // Siswa sample
   const siswaSample = [
-    { id: "00000000-0000-0000-0000-000000000010", email: "siswa1@kombinara.dev", nama: "Andi Pratama" },
-    { id: "00000000-0000-0000-0000-000000000011", email: "siswa2@kombinara.dev", nama: "Bela Sari" },
-    { id: "00000000-0000-0000-0000-000000000012", email: "siswa3@kombinara.dev", nama: "Candra Wijaya" },
+    {
+      id: "00000000-0000-0000-0000-000000000010",
+      email: "siswa1@kombinara.dev",
+      name: "Andi Pratama",
+      studentNumber: "2024001",
+      gender: "L",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000011",
+      email: "siswa2@kombinara.dev",
+      name: "Bela Sari",
+      studentNumber: "2024002",
+      gender: "P",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000012",
+      email: "siswa3@kombinara.dev",
+      name: "Candra Wijaya",
+      studentNumber: "2024003",
+      gender: "L",
+    },
   ];
 
   for (const s of siswaSample) {
-    const siswa = await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: s.email },
       update: {},
-      create: { ...s, role: UserRole.siswa },
+      create: {
+        id: s.id,
+        email: s.email,
+        name: s.name,
+        role: "siswa",
+      },
     });
 
-    await prisma.kelasAnggota.upsert({
-      where: { kelasId_siswaId: { kelasId: kelas.id, siswaId: siswa.id } },
+    // Student adalah profil tambahan yang terhubung 1:1 ke User,
+    // dan classId langsung di sini (tidak ada tabel junction terpisah)
+    await prisma.student.upsert({
+      where: { userId: user.id },
       update: {},
-      create: { kelasId: kelas.id, siswaId: siswa.id },
+      create: {
+        userId: user.id,
+        studentNumber: s.studentNumber,
+        name: s.name,
+        gender: s.gender,
+        classId: kelas.id,
+      },
     });
   }
 
