@@ -118,7 +118,7 @@ export async function POST(req: Request) {
     }
 
     // Build the JSONB answers array
-    const answersJson = answers.map((a) => ({
+    const answersJson = answers.map((a: { question_number: number; cara_mengerjakan?: string; jawaban_akhir?: string }) => ({
       question_number: a.question_number,
       cara_mengerjakan: a.cara_mengerjakan ?? "",
       jawaban_akhir: a.jawaban_akhir ?? "",
