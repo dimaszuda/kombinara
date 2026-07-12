@@ -51,12 +51,12 @@ interface DiagnosticAnswer {
 // ─── GET ────────────────────────────────────────────────────────────────────
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
+  const supabaseServer = await createSupabaseServerClient();
 
   // Auth
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabaseServer.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -72,6 +72,8 @@ export async function GET() {
   }
 
   // ── Cek apakah pernah lulus ──────────────────────────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = supabaseServer as any;
   const { data: passedAttempt } = await supabase
     .from("diagnostic_attempts")
     .select("attempt_id, total_score, correct_count, submitted_at")
@@ -189,9 +191,11 @@ export async function GET() {
 // ─── Helper: ambil detail per-nomor dari diagnostic_answers ─────────────────
 
 async function getQuestionDetails(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  _supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   attemptId: number
 ): Promise<{ number: number; correct: boolean }[] | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = _supabase as any;
   try {
     const { data: answers } = await supabase
       .from("diagnostic_answers")

@@ -84,12 +84,14 @@ export async function POST(req: Request) {
 import type { GradingResult } from "@/lib/data/asesmen-diagnostik";
 
 async function persistAttempt(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  _supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   studentId: number,
   attemptId: number | null,
   answers: StudentAnswers,
   result: GradingResult
 ): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = _supabase as any;
   let finalAttemptId = attemptId;
 
   const finalFields = {

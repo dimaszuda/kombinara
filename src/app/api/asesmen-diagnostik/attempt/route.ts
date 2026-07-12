@@ -41,10 +41,12 @@ async function getStudentId(
 // ─── GET — ambil / buat attempt ──────────────────────────────────────────────
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
-  const authResult = await getStudentId(supabase);
+  const supabaseServer = await createSupabaseServerClient();
+  const authResult = await getStudentId(supabaseServer);
   if (authResult instanceof NextResponse) return authResult;
   const { studentId } = authResult;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = supabaseServer as any;
 
   // Cari attempt yang sedang berjalan
   const { data: existing } = await supabase
@@ -111,10 +113,12 @@ export async function GET() {
 // ─── PATCH — auto-save draft ──────────────────────────────────────────────────
 
 export async function PATCH(req: Request) {
-  const supabase = await createSupabaseServerClient();
-  const authResult = await getStudentId(supabase);
+  const supabaseServer = await createSupabaseServerClient();
+  const authResult = await getStudentId(supabaseServer);
   if (authResult instanceof NextResponse) return authResult;
   const { studentId } = authResult;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = supabaseServer as any;
 
   const body = await req.json().catch(() => null);
   if (
