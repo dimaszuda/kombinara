@@ -22,6 +22,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import type { Database } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const COOLDOWN_MINUTES = 10;
@@ -190,8 +191,7 @@ export async function GET() {
 // ─── Helper: ambil detail per-nomor dari diagnostic_answers ─────────────────
 
 async function getQuestionDetails(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: SupabaseClient<any>,
+  supabase: SupabaseClient<Database>,
   attemptId: number
 ): Promise<{ number: number; correct: boolean }[] | null> {
   try {

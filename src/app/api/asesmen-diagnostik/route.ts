@@ -82,11 +82,11 @@ export async function POST(req: Request) {
 // ══════════════════════════════════════════════════════════════
 
 import type { GradingResult } from "@/lib/data/asesmen-diagnostik";
+import type { Database } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 async function persistAttempt(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: SupabaseClient<any>,
+  supabase: SupabaseClient<Database>,
   studentId: number,
   attemptId: number | null,
   answers: StudentAnswers,
