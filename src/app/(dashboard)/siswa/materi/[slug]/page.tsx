@@ -19,7 +19,7 @@ interface MateriItem {
 const materiData: Record<string, MateriItem> = {
   "kaidah-pencacahan": {
     title: "Kaidah Pencacahan",
-    icon: "/images/Kaidah pencacahan.png",
+    icon: "/images/kaidah pencacahan.png",
     description:
       "Materi kaidah pencacahan membahas tentang cara menghitung banyaknya kemungkinan suatu kejadian tanpa harus menuliskan semua kemungkinan satu per satu.",
   },
