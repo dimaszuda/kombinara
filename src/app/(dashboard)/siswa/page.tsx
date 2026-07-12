@@ -26,12 +26,12 @@ function KataPengantar() {
     <article className="kp-wrap">
         <p className="kp-badge">📒 Modul Pembelajaran Matematika</p>
         <h2 className="kp-subtitle">Kaidah Pencacahan (Kombinatorika)</h2>
-        <p className="kp-tagline">"Menghitung Tanpa Bingung, Berpikir Tanpa Batas"</p>
+        <p className="kp-tagline">&ldquo;Menghitung Tanpa Bingung, Berpikir Tanpa Batas&rdquo;</p>
         <p className="kp-meta">Matematika &nbsp;·&nbsp; Kelas XII SMA &nbsp;·&nbsp; Kurikulum Merdeka</p>
 
 
         <blockquote className="kp-quote">
-          "Matematika bukan tentang menghafal rumus — melainkan tentang memahami pola, bernalar dengan logika, dan melihat keajaiban angka dalam kehidupan nyata."
+          &ldquo;Matematika bukan tentang menghafal rumus — melainkan tentang memahami pola, bernalar dengan logika, dan melihat keajaiban angka dalam kehidupan nyata.&rdquo;
         </blockquote>
 
         <hr className="kp-divider" />
@@ -42,7 +42,7 @@ function KataPengantar() {
         <p className="kp-body">
           Pernahkah kamu bertanya-tanya: <b>berapa banyak kemungkinan password yang bisa kamu buat?</b> Atau{' '}
           <b>berapa cara berbeda tim sepak bola bisa dibentuk dari sekumpulan pemain?</b> Bahkan pertanyaan
-          sederhana seperti <b>"berapa banyak pilihan outfit yang bisa kupakai minggu ini?"</b> ternyata bisa
+          sederhana seperti <b>&ldquo;berapa banyak pilihan outfit yang bisa kupakai minggu ini?&rdquo;</b> ternyata bisa
           dijawab dengan matematika!
         </p>
 

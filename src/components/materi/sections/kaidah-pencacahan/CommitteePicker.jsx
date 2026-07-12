@@ -55,7 +55,7 @@ export default function CommitteePicker() {
   const [selectedSekretaris, setSelectedSekretaris] = useState(null); // id sekretaris
   const [attemptCount, setAttemptCount] = useState(0);              // jumlah percobaan
   const [triedCombos, setTriedCombos] = useState([]);               // riwayat kombinasi unik
-  const [lastKetua, setLastKetua] = useState(null);                 // ketua percobaan sebelumnya
+  const [_lastKetua, setLastKetua] = useState(null);                 // ketua percobaan sebelumnya
   const [sameKetuaHint, setSameKetuaHint] = useState(false);        // dorongan variasi
   const [showInsight, setShowInsight] = useState(false);            // insight sudah muncul?
 

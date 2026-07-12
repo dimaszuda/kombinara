@@ -1,6 +1,6 @@
 // Middleware Next.js — route protection + role-based redirect
 // Dijalankan di Edge Runtime sebelum setiap request
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { logger } from "@/lib/logger";
@@ -32,10 +32,10 @@ export async function middleware(request: NextRequest) {
   try {
     const { data } = await supabase.auth.getUser();
     user = data.user ?? null;
-  } catch (err: any) {
+  } catch (err: unknown) {
     logger.warn("auth:middleware", "getUser() failed — falling back to getSession()", {
-      error: err?.message ?? String(err),
-      code: err?.cause?.code,
+      error: err instanceof Error ? err.message : String(err),
+      code: err instanceof Error ? (err as Error & { cause?: { code?: string } }).cause?.code : undefined,
     });
 
     // Fallback: baca session dari cookie (tidak perlu network call ke Supabase)
@@ -47,9 +47,9 @@ export async function middleware(request: NextRequest) {
           userId: user!.id,
         });
       }
-    } catch (sessionErr: any) {
+    } catch (sessionErr: unknown) {
       logger.error("auth:middleware", "getSession() fallback also failed", {
-        error: sessionErr?.message ?? String(sessionErr),
+        error: sessionErr instanceof Error ? sessionErr.message : String(sessionErr),
       });
       // Biarkan user tetap null — akan ditangani di bawah
     }

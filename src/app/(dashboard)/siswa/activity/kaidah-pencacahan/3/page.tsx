@@ -19,26 +19,6 @@ const ATURAN_OPTIONS = [
   { value: "perkalian", label: "Perkalian" },
 ];
 
-// ── Shared helpers ──
-
-function IllustPlaceholder({ label, className }: { label: string; className?: string }) {
-  return (
-    <div
-      className={`rounded-xl flex flex-col items-center justify-center gap-2 p-3 ${className ?? "w-40 h-32"}`}
-      style={{ background: C.greenLight, border: `1.5px dashed ${C.green}` }}
-    >
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.green} strokeWidth="1.5">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-        <circle cx="8.5" cy="8.5" r="1.5" />
-        <polyline points="21 15 16 10 5 21" />
-      </svg>
-      <span className="text-xs text-center leading-tight" style={{ color: C.green }}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
 function AturanSelect({
   value,
   onChange,

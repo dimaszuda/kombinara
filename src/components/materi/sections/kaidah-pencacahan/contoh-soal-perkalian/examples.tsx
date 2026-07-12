@@ -100,7 +100,7 @@ export function ExamplePlat({
                 ["a2", "10 pilihan"],
                 ["a3", "10 pilihan"],
                 ["a4", "10 pilihan"],
-              ].map(([id, placeholder]) => (
+              ].map(([id, _placeholder]) => (
                 <td key={id} className="px-3 py-3 border-t border-[#34673915]">
                   {bl(id, "w-14")}
                 </td>

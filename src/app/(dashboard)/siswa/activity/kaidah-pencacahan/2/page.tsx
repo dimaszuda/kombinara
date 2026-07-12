@@ -68,26 +68,6 @@ const SITUASI = [
   },
 ];
 
-// ── Shared helpers ──
-
-function IllustPlaceholder({ label }: { label: string }) {
-  return (
-    <div
-      className="flex-shrink-0 w-16 h-12 rounded-lg flex flex-col items-center justify-center gap-1"
-      style={{ background: C.greenLight, border: `1.5px dashed ${C.green}` }}
-    >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.green} strokeWidth="1.5">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-        <circle cx="8.5" cy="8.5" r="1.5" />
-        <polyline points="21 15 16 10 5 21" />
-      </svg>
-      <span className="text-[9px] text-center px-1 leading-tight hidden sm:block" style={{ color: C.green }}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
 type AturanValue = "" | "penjumlahan" | "perkalian";
 
 function AturanRadio({

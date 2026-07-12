@@ -45,6 +45,7 @@ export default function CompleteProfilPage() {
     };
 
     loadUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {

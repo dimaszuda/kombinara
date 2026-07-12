@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const TARGET_ORDERS = 3;
@@ -86,11 +87,13 @@ function MenuCard({ item, selected, onClick }) {
       ) : (
         <>
           {/* TODO: ganti src */}
-          <div className="aspect-square w-full overflow-hidden bg-[#DBFFD5]/30">
-            <img
+          <div className="aspect-square w-full overflow-hidden bg-[#DBFFD5]/30 relative">
+            <Image
               src={item.src}
               alt={item.label}
-              className="aspect-square w-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 200px"
             />
           </div>
           <div className="px-2 py-2 text-center">

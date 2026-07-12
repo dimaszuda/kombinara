@@ -133,6 +133,8 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
   }, []);
 
   // ── Cooldown countdown timer ─────────────────────────────────────────────
+  const isCoolingDown = cooldownRemaining !== null;
+
   useEffect(() => {
     if (cooldownRemaining !== null && cooldownRemaining > 0) {
       cooldownTimerRef.current = setInterval(() => {
@@ -148,7 +150,8 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
     return () => {
       if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
     };
-  }, [cooldownRemaining !== null]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCoolingDown]);
 
   // ── Init: GET attempt saat mount (buat baru / restore draft) ────────────
   const initAttempt = useCallback(async () => {

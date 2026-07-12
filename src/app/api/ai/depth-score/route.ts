@@ -3,7 +3,7 @@
 // Output: { score: 1-5, category: "clarification"|"conceptual"|"application"|"critical" }
 export const runtime = "edge";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   // TODO: Implement
   // 1. Parse { questionId, question, context }
   // 2. Kirim ke Claude Sonnet 4 dengan rubrik scoring eksplisit

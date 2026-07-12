@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 
 // ── Data ──────────────────────────────────────────────────────────
 const BAJU = [
@@ -36,7 +37,6 @@ export default function OutfitComboPicker() {
 
   // --- Derived ---
   const phase = !selectedBaju ? "baju" : !selectedCelana ? "celana" : "preview";
-  const progressFraction = Math.min(attemptCount, MIN_ATTEMPTS_BEFORE_INSIGHT);
 
   // --- Handlers ---
   const handleSelectBaju = useCallback((bajuId) => {
@@ -93,7 +93,7 @@ export default function OutfitComboPicker() {
   }, []);
 
   // --- Render helpers ---
-  function renderItemButton(item, isSelected, isDimmed, onClick, colorHex) {
+  function renderItemButton(item, isSelected, isDimmed, onClick, _colorHex) {
     return (
       <button
         key={item.id}
@@ -110,7 +110,7 @@ export default function OutfitComboPicker() {
         ].join(" ")}
       >
         {/* TODO: ganti src dengan path gambar asli */}
-        <img
+        <Image
           src={item.placeholderSrc}
           alt={item.label}
           width={64}
@@ -205,7 +205,7 @@ export default function OutfitComboPicker() {
           <div className="flex items-center justify-center gap-3">
             {/* TODO: ganti src dengan path gambar asli */}
             <div className="flex flex-col items-center gap-1">
-              <img
+              <Image
                 src={BAJU.find((b) => b.id === selectedBaju)?.placeholderSrc}
                 alt="baju terpilih"
                 width={64}
@@ -218,7 +218,7 @@ export default function OutfitComboPicker() {
             </div>
             <span className="text-lg font-bold text-[#346739]">+</span>
             <div className="flex flex-col items-center gap-1">
-              <img
+              <Image
                 src={CELANA.find((c) => c.id === selectedCelana)?.placeholderSrc}
                 alt="celana terpilih"
                 width={64}

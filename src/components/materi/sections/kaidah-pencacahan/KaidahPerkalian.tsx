@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ToggleButton } from "@/components/ui/IconButton";
 import { RichText } from "@/components/shared/RichText";
 import { IconLightbulb, IconHelpCircle, IconTable, IconGrid, IconBranch } from "@/components/ui/IconButton";
@@ -18,7 +18,6 @@ import {
 import {
   type Feedback,
   type Results,
-  statusOf,
   EXPECTED_PLAT,
   ExamplePlat,
   EXPECTED_PIN,
@@ -30,11 +29,6 @@ import {
   EXPECTED_BILANGAN,
   ExampleBilangan,
 } from "./contoh-soal-perkalian/examples";
-import {
-  LEVEL_META,
-  SOAL_DATA,
-  SoalKepahaman,
-} from "./contoh-soal-perkalian/latihan";
 import { CheckIcon } from "@/components/ui/IconButton";
 // ============================================================================
 // Shared types
@@ -45,10 +39,10 @@ type ToggleValue = "yes" | "no" | null;
 const SOAL_EKSPLORASI_PERKALIAN = `Seragam sekolah tersedia dalam 3 pilihan warna kemeja (putih, biru, abu abu) dan 2 pilihan warna celana/rok (hitam, navy). Berapa banyak kombinasi seragam yang berbeda bisa dikenakan? Apakah hasilnya 3x2?`;
 
 function EksplorasiKontekstual() {
-    const [choice1, setChoice1] = useState<ToggleValue>(null);
+    const [_choice1, _setChoice1] = useState<ToggleValue>(null);
     const [reasoning1, setReasoning1] = useState("");
     const [choice2, setChoice2] = useState<ToggleValue>(null);
-    const [reasoning2, setReasoning2] = useState("");
+    const [_reasoning2, _setReasoning2] = useState("");
 
     const [isChecking, setIsChecking] = useState(false);
     const [feedback, setFeedback] = useState<Record<string, string | null>>({});
@@ -354,7 +348,7 @@ function DeepLearning() {
       <SectionLabel>🔍 Visualisasi: Aturan Pengisian Tempat</SectionLabel>
 
       <p className="text-slate-700 leading-relaxed mb-3">
-        Sebelum masuk ke prinsip umumnya, mari kita "lihat" kaidah perkalian secara konkret.
+        Sebelum masuk ke prinsip umumnya, mari kita &ldquo;lihat&rdquo; kaidah perkalian secara konkret.
         Bayangkan setiap tahap keputusan sebagai sebuah kotak tempat yang harus diisi satu per satu.
       </p>
 
@@ -476,7 +470,7 @@ function DeepLearning() {
       <KotakPengisian values={kotak} labels={["Kotak ke-1", "Kotak ke-2", "Kotak ke-3"]} />
 
       <p className="text-slate-700 leading-relaxed">
-        Inilah cara paling mudah "melihat" kaidah perkalian secara visual. Kamu cukup menggambar
+        Inilah cara paling mudah &ldquo;melihat&rdquo; kaidah perkalian secara visual. Kamu cukup menggambar
         kotak sejumlah tahap, lalu isi banyaknya pilihan di tiap kotak, kemudian kalikan semuanya.
       </p>
 
@@ -858,7 +852,7 @@ function MengapaCorner() {
       <blockquote className="kp-quote text-justify">
         💡 <b>Mengapa kita mengalikan? </b> 
         Bayangkan membuat keputusan secara bertahap. 
-        Di setiap tahap, kamu "membuka" seluruh pilihan yang ada. Untuk setiap satu pilihan yang sudah dibuat di tahap sebelumnya, ada sejumlah pilihan baru yang terbuka. Ini seperti pohon yang terus bercabang dan total daun (pilihan akhir) adalah hasil perkalian semua jumlah cabang di setiap tingkat. 
+        Di setiap tahap, kamu &ldquo;membuka&rdquo; seluruh pilihan yang ada. Untuk setiap satu pilihan yang sudah dibuat di tahap sebelumnya, ada sejumlah pilihan baru yang terbuka. Ini seperti pohon yang terus bercabang dan total daun (pilihan akhir) adalah hasil perkalian semua jumlah cabang di setiap tingkat. 
       </blockquote>
       <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
@@ -878,46 +872,6 @@ function AktivitasSiswa() {
     </article>
   )
 }
-
-type ScoreTheme = {
-  label: string;
-  color: string;
-  bg: string;
-  badgeColor: string;
-};
-
-function getScoreTheme(score: number): ScoreTheme {
-  if (score >= 80) {
-    return { label: "Luar Biasa!", color: "#346739", bg: "#DBFFD5", badgeColor: "#346739" };
-  }
-  if (score >= 60) {
-    return { label: "Cukup Baik!", color: "#92600A", bg: "#FFF3CD", badgeColor: "#92600A" };
-  }
-  return { label: "Tetap Semangat!", color: "#b91c1c", bg: "#FEE2E2", badgeColor: "#b91c1c" };
-}
-
-const RADIUS = 48;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
-// Icon check/x pakai SVG murni, bukan emoji atau lucide-react, biar
-// nggak nambah dependency kalau project ini belum pakai lucide
-function ResultIcon({ ok }: { ok: boolean }) {
-  if (ok) {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
-  
-
 
 const PANDUAN_ROWS = [
   { kunci: "Pilihan dilakukan secara berurutan/bertahap", gunakan: "Perkalian" },

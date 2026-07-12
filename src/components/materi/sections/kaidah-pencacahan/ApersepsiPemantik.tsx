@@ -64,7 +64,6 @@ type ToggleValue = "yes" | "no" | null;
 export default function ApersepsiSection() {
   // stub state, ganti ke logic simpan-ke-DB pas wiring backend
   const [answers, setAnswers] = useState<AnswerState>({});
-  const [showResult, setShowResult] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, string | null>>({});
   const [textColor, setTextColor] = useState<Record<string, string | null>>({});

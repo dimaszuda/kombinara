@@ -4,7 +4,7 @@
 // Response shape: { ocr_result, is_correct, score, feedback, correction }
 export const runtime = "edge";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   // TODO: Implement
   // 1. Parse { imageBase64, soal, rubrik, quizId, soalId }
   // 2. Forward ke Claude Sonnet 4 dengan vision + strict JSON prompt

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 const VEHICLE_GROUPS = [
   {
@@ -61,7 +62,7 @@ export default function VehicleChoicePicker() {
                     ].join(" ")}
                   >
                     {/* TODO: ganti src dengan path gambar kendaraan, misal /images/vehicles/sepeda-1.png */}
-                    <img
+                    <Image
                       src={vehicle.placeholderSrc}
                       alt={vehicle.label}
                       width={64}

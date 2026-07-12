@@ -134,8 +134,9 @@ export default function AsesmenKaidahPencacahanPage() {
       }
 
       setPhase("submitted");
-    } catch (err: any) {
-      setSubmitError(err.message ?? "Gagal menyimpan jawaban. Silakan coba lagi.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal menyimpan jawaban. Silakan coba lagi.";
+      setSubmitError(message);
       hasSubmittedRef.current = false;
     } finally {
       setIsSubmitting(false);

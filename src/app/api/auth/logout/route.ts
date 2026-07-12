@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { logger } from "@/lib/logger";
@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
           get(name: string) {
             return request.cookies.get(name)?.value;
           },
-          set(name: string, value: string, options: any) {
+          set(name: string, value: string, options: CookieOptions) {
             response.cookies.set({ name, value, ...options });
           },
-          remove(name: string, options: any) {
+          remove(name: string, options: CookieOptions) {
             response.cookies.set({ name, value: "", ...options });
           },
         },

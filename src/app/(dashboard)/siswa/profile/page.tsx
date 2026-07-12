@@ -19,7 +19,7 @@ export default function ProfilePage() {
   const supabase = createSupabaseBrowserClient();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [_userId, setUserId] = useState<string | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<ProfileData | null>(null);
@@ -63,6 +63,7 @@ export default function ProfilePage() {
     };
 
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleEditClick = () => {
