@@ -230,7 +230,7 @@ export default function AktivitasKP2() {
                     <div className="flex-1 space-y-3">
                       <div className="flex gap-3 items-start">
                         <p className="text-sm text-slate-700 flex-1">{s.teks}</p>
-                        <IllustPlaceholder label={s.illust} />
+                        {/* <IllustPlaceholder label={s.illust} /> */}
                       </div>
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="text-xs font-semibold text-slate-500">Aturan:</span>

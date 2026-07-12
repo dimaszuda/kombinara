@@ -214,7 +214,7 @@ export default function AktivitasKP3() {
                 style={{ background: C.bg, border: `1px solid ${C.greenLight}` }}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <IllustPlaceholder label="Sistem A: kode tunggal (warna / romawi / huruf)" className="w-full h-24" />
+                  {/* <IllustPlaceholder label="Sistem A: kode tunggal (warna / romawi / huruf)" className="w-full h-24" /> */}
                 </div>
                 <p className="text-sm font-bold" style={{ color: C.green }}>
                   Sistem A — Kode Tunggal
@@ -259,7 +259,7 @@ export default function AktivitasKP3() {
                 className="rounded-xl p-4 space-y-3"
                 style={{ background: C.bg, border: `1px solid ${C.greenLight}` }}
               >
-                <IllustPlaceholder label="Sistem B: kode kombinasi warna + romawi + huruf" className="w-full h-24" />
+                {/* <IllustPlaceholder label="Sistem B: kode kombinasi warna + romawi + huruf" className="w-full h-24" /> */}
                 <p className="text-sm font-bold" style={{ color: C.green }}>
                   Sistem B — Kode Kombinasi
                 </p>
@@ -318,7 +318,7 @@ export default function AktivitasKP3() {
             </div>
             <div className="space-y-4">
               <div className="flex gap-4">
-                <IllustPlaceholder label="Sketsa rancangan sistem kode kelompok kalian" className="w-40 h-32 flex-shrink-0" />
+                {/* <IllustPlaceholder label="Sketsa rancangan sistem kode kelompok kalian" className="w-40 h-32 flex-shrink-0" /> */}
                 <div className="flex-1 flex flex-col gap-1">
                   <label htmlFor="rancangan-deskripsi" className="text-xs font-semibold text-slate-500">
                     Rancangan Sistem Kode Kelompok Kami:

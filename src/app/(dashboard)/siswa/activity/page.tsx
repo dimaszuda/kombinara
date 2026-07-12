@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MATERI_CARDS } from "@/lib/data/siswa-dashboard";
 
 const ACTIVITY_CARDS = [
-  {
+ {
     ...MATERI_CARDS[0],
     tujuan:
       "Setelah menyelesaikan aktivitas ini, siswa mampu membedakan situasi yang memerlukan aturan penjumlahan dan aturan perkalian berdasarkan analisis konteks, bukan sekadar mengenali kata kunci.",
@@ -13,10 +13,15 @@ const ACTIVITY_CARDS = [
   {
     ...MATERI_CARDS[1],
     tujuan:
-      "Setelah menyelesaikan aktivitas ini, siswa mampu menentukan banyaknya susunan berbeda dari sejumlah objek dengan memperhatikan urutan penyusunnya.",
+      "Setelah menyelesaikan aktivitas ini, siswa mampu menghitung nilai faktorial suatu bilangan dan menerapkannya sebagai dasar perhitungan dalam permutasi dan kombinasi.",
   },
   {
     ...MATERI_CARDS[2],
+    tujuan:
+      "Setelah menyelesaikan aktivitas ini, siswa mampu menentukan banyaknya susunan berbeda dari sejumlah objek dengan memperhatikan urutan penyusunnya.",
+  },
+  {
+    ...MATERI_CARDS[3],
     tujuan:
       "Setelah menyelesaikan aktivitas ini, siswa mampu menentukan banyaknya cara memilih beberapa objek dari suatu himpunan tanpa memperhatikan urutan penyusunnya.",
   },

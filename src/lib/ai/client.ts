@@ -149,3 +149,53 @@ export const AnswerClassificationPrompt = async (
     }
   );
 };
+
+// ---------------------------------------------------------------------------
+// Chat — Panel chatbot (dengan / tanpa konteks seleksi teks)
+// Sliding window: history 5 percakapan terakhir untuk menjaga konteks.
+// ---------------------------------------------------------------------------
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export const ChatPrompt = async (
+  question: string,
+  selectedText?: string,
+  contextBefore?: string,
+  contextAfter?: string,
+  history?: ChatMessage[]
+): Promise<string> => {
+  const hasContext = selectedText && (contextBefore || contextAfter);
+
+  const userMessage = hasContext
+    ? PROMPTS.chat.user(selectedText!, contextBefore ?? "", contextAfter ?? "", question)
+    : `Pertanyaan siswa: ${question}`;
+
+  // Bangun messages array: system prompt + history + current question
+  const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    { role: "system", content: PROMPTS.chat.system },
+  ];
+
+  // Sliding window: masukkan history percakapan sebelumnya (maks 5 pasang)
+  if (history && history.length > 0) {
+    for (const msg of history) {
+      messages.push({ role: msg.role, content: msg.content });
+    }
+  }
+
+  // Pertanyaan terbaru
+  messages.push({ role: "user", content: userMessage });
+
+  const response = await client.chat.completions.create({
+    model: "gpt-4o",
+    messages,
+    temperature: 0.7,
+  });
+
+  return (
+    response.choices[0]?.message?.content ??
+    "Maaf, Kombi lagi ada kendala nih. Coba tanyakan lagi ya!"
+  );
+};

@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { extractSelectionContext, type SelectionContext } from "@/lib/ai/context";
+import { useChatContext } from "./ChatContext";
 
 interface ToolbarPos {
   x: number;
@@ -8,12 +10,31 @@ interface ToolbarPos {
 }
 
 interface SelectionToolbarProps {
-  contentRef: React.RefObject<HTMLDivElement>;
+  contentRef: React.RefObject<HTMLDivElement | null>;
+  onAskAI?: (context: SelectionContext) => void;
 }
 
-export default function SelectionToolbar({ contentRef }: SelectionToolbarProps) {
+export default function SelectionToolbar({ contentRef, onAskAI }: SelectionToolbarProps) {
   const [pos, setPos] = useState<ToolbarPos | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const chatCtx = useChatContext();
+
+  const handleAskAI = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || !contentRef.current) return;
+
+    const ctx = extractSelectionContext(selection, contentRef.current);
+    if (ctx) {
+      // Prioritaskan context dari ChatbotShell, fallback ke prop
+      if (chatCtx) {
+        chatCtx.askAIWithContext(ctx);
+      } else if (onAskAI) {
+        onAskAI(ctx);
+      }
+    }
+    selection.removeAllRanges();
+    setPos(null);
+  }, [contentRef, onAskAI, chatCtx]);
 
   const handleMouseUp = useCallback(() => {
     // Defer slightly so the browser finalises the selection range
@@ -112,9 +133,7 @@ export default function SelectionToolbar({ contentRef }: SelectionToolbarProps) 
       <ToolbarButton
         icon="✨"
         label="Tanya AI"
-        onClick={() => {
-          console.log("berhasil dijalankan");
-        }}
+        onClick={handleAskAI}
       />
     </div>
   );

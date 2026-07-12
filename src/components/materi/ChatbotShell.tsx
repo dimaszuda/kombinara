@@ -1,9 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Chatbot from "@/components/materi/Chatbot";
 import TableContent from "./TableContent";
+import { ChatContext } from "./ChatContext";
+import type { SelectionContext } from "@/lib/ai/context";
 
 type PanelKind = "chatbot" | "tablecontent" | null;
 
@@ -19,15 +21,34 @@ export default function ChatbotShell({
   completedSections = new Set(),
 }: ChatbotShellProps) {
   const [activePanel, setActivePanel] = useState<PanelKind>(null);
+  const [selectionContext, setSelectionContext] = useState<SelectionContext | null>(null);
+
+  const askAIWithContext = useCallback((ctx: SelectionContext) => {
+    setSelectionContext(ctx);
+    setActivePanel("chatbot");
+  }, []);
+
+  const handleChatbotClose = useCallback(() => {
+    setActivePanel(null);
+    // Clear selection context after closing
+    setSelectionContext(null);
+  }, []);
+
+  const handleChatbotOpen = useCallback(() => {
+    setSelectionContext(null); // No context when opened via icon
+    setActivePanel("chatbot");
+  }, []);
 
   return (
-    <>
+    <ChatContext.Provider value={{ askAIWithContext }}>
       {children}
       <Chatbot
         isOpen={activePanel === "chatbot"}
-        onOpen={() => setActivePanel("chatbot")}
-        onClose={() => setActivePanel(null)}
+        onOpen={handleChatbotOpen}
+        onClose={handleChatbotClose}
         otherPanelOpen={activePanel !== null && activePanel !== "chatbot"}
+        selectionContext={selectionContext}
+        onClearContext={() => setSelectionContext(null)}
       />
       <TableContent
         isOpen={activePanel === "tablecontent"}
@@ -37,6 +58,6 @@ export default function ChatbotShell({
         activeSection={activeSection}
         completedSections={completedSections}
       />
-    </>
+    </ChatContext.Provider>
   );
 }

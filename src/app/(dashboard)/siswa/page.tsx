@@ -11,11 +11,14 @@ import {
   PETUNJUK_GURU,
   CARA_BELAJAR_MANDIRI,
   TUJUAN_PEMBELAJARAN,
-  PEMAHAMAN_MAKNA,
-  PEMAHAMAN_RELASI,
-  PEMAHAMAN_KONDISI,
-  FLEKSIBILITAS_REPRESENTASI,
-  GENERALISASI,
+  KAIDAH_PENJUMLAHAN_PERKALIAN,
+  FAKTORIAL,
+  PERMUTASI,
+  KOMBINASI,
+  MEMBEDAKAN_PERMUTASI_DAN_KOMBINASI,
+  PEMECAHAN_MASALAH_BERLAPIS,
+  KOMUNIKASI,
+  INDIKATOR_PEMAHAMAN_KONSEP
 } from "@/lib/data/siswa-dashboard";
 
 function KataPengantar() {
@@ -199,41 +202,70 @@ function TujuanPembelajaran() {
         ))}
       </ol>
       <h3 className="kp-greeting">Indikator Keberhasilan</h3>
-      <h3 className="kp-greeting text-bold">1. Pemahaman Makna Konsep</h3>
-      <p className="kp-body">Siswa memahami apa yang diwakili oleh suatu konsep dan mengapa konsep itu ada, bukan sekadar mengetahui rumusnya.</p>
+      <h3 className="kp-greeting text-bold">1. Kaidah Penjumlahan dan Perkalian</h3>
       <ol className="kp-list">
-        {PEMAHAMAN_MAKNA.map((item, i) => (
+        {KAIDAH_PENJUMLAHAN_PERKALIAN.map((item, i) => (
           <li key={`1.${i}`}><RichText>{item}</RichText></li>
         ))}
       </ol>
-      <h3 className="kp-greeting text-bold">2. Pemahaman Relasi Antar Konsep</h3>
-      <p className="kp-body">Siswa mengenali keterkaitan antar konsep dalam kombinatorika dan memahami alur logis yang menghubungkannya.</p>
+      <h3 className="kp-greeting text-bold">2. Faktorial</h3>
       <ol className="kp-list">
-        {PEMAHAMAN_RELASI.map((item, i) => (
+        {FAKTORIAL.map((item, i) => (
           <li key={`2.${i}`}><RichText>{item}</RichText></li>
         ))}
       </ol>
-      <h3 className="kp-greeting text-bold">3. Pemahaman Kondisi Penggunaan</h3>
-      <p className="kp-body">Siswa mengetahui kapan suatu konsep tepat digunakan dan dapat memberikan justifikasi atas pilihannya.</p>
+      <h3 className="kp-greeting text-bold">3. Permutasi</h3>
       <ol className="kp-list">
-        {PEMAHAMAN_KONDISI.map((item, i) => (
+        {PERMUTASI.map((item, i) => (
           <li key={`3.${i}`}><RichText>{item}</RichText></li>
         ))}
       </ol>
-      <h3 className="kp-greeting text-bold">4. Fleksibilitas Representasi</h3>
-      <p className="kp-body">Siswa dapat menyajikan konsep kombinatorika dalam berbagai bentuk representasi dan berpindah di antara representasi tersebut secara fleksibel.</p>
+      <h3 className="kp-greeting text-bold">4. Kombinasi</h3>
       <ol className="kp-list">
-        {FLEKSIBILITAS_REPRESENTASI.map((item, i) => (
+        {KOMBINASI.map((item, i) => (
           <li key={`4.${i}`}><RichText>{item}</RichText></li>
         ))}
       </ol>
-      <h3 className="kp-greeting text-bold">5. Generalisasi</h3>
-      <p className="kp-body">Siswa mampu membangun pemahaman umum dari pola yang ditemukan dalam kasus-kasus konkret.</p>
+      <h3 className="kp-greeting text-bold">5. Membedakan Permutasi dan Kombinasi</h3>
       <ol className="kp-list">
-        {GENERALISASI.map((item, i) => (
+        {MEMBEDAKAN_PERMUTASI_DAN_KOMBINASI.map((item, i) => (
           <li key={`5.${i}`}><RichText>{item}</RichText></li>
         ))}
       </ol>
+      <h3 className="kp-greeting text-bold">6. Pemecahan Masalah Berlapis</h3>
+      <ol className="kp-list">
+        {PEMECAHAN_MASALAH_BERLAPIS.map((item, i) => (
+          <li key={`5.${i}`}><RichText>{item}</RichText></li>
+        ))}
+      </ol>
+      <h3 className="kp-greeting text-bold">7. Komunikasi</h3>
+      <ol className="kp-list">
+        {KOMUNIKASI.map((item, i) => (
+          <li key={`5.${i}`}><RichText>{item}</RichText></li>
+        ))}
+      </ol>
+
+      {/* Tabel Indikator Pemahaman Konsep */}
+      <h3 className="kp-greeting" style={{marginTop: '2rem'}}>Kode Indikator Pemahaman Konsep</h3>
+      <table className="kp-table">
+        <thead>
+          <tr>
+            <th>Kode</th>
+            <th>Indikator Pemahaman Konsep</th>
+            <th>Tujuan Pembelajaran</th>
+          </tr>
+        </thead>
+        <tbody>
+          {INDIKATOR_PEMAHAMAN_KONSEP.map((item) => (
+            <tr key={item.kode}>
+              <td><strong>{item.kode}</strong></td>
+              <td>{item.indikator}</td>
+              <td>{item.tp}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
       <hr className="kp-divider" />
     </article>
   )

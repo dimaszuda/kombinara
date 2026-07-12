@@ -23,6 +23,12 @@ const materiData: Record<string, MateriItem> = {
     description:
       "Materi kaidah pencacahan membahas tentang cara menghitung banyaknya kemungkinan suatu kejadian tanpa harus menuliskan semua kemungkinan satu per satu.",
   },
+  "faktorial": {
+    title: "Faktorial",
+    icon: "/images/faktorial.png",
+    description:
+      "Konsep perkalian bilangan berurutan menurun hingga 1, dasar penting untuk memahami permutasi dan kombinasi.",
+  },
   "permutasi": {
     title: "Permutasi",
     icon: "/images/permutasi.png",
@@ -91,10 +97,11 @@ export default function MateriDetailPage({
     );
   }
 
-  return (
-    <ChatbotShell>
+  // ── Konten halaman (tanpa AI features) ─────────────────────────────
+  const pageContent = (
     <div ref={contentRef} style={{ padding: "32px 24px 80px", margin: "0 auto" }}>
-      <SelectionToolbar contentRef={contentRef} />
+      {/* SelectionToolbar hanya aktif kalau sudah lulus asesmen */}
+      {passAssesmen && <SelectionToolbar contentRef={contentRef} />}
       {/* Back to Dashboard */}
       <Link href="/siswa">
         <button
@@ -183,7 +190,13 @@ export default function MateriDetailPage({
         <KaidahPerkalian />
       </LockableSection>
     </div>
-    </ChatbotShell>
+  );
+
+  // ── Bungkus dengan ChatbotShell hanya kalau sudah lulus asesmen ──────
+  return passAssesmen ? (
+    <ChatbotShell>{pageContent}</ChatbotShell>
+  ) : (
+    pageContent
   );
 }
 

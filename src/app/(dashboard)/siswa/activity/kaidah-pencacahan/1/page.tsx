@@ -287,7 +287,7 @@ export default function AktivitasKP1() {
           <div>
             <SituasiLabel nomor={1} />
             <div className="flex gap-4">
-              <IllustPlaceholder label="Koperasi: pensil & pulpen" />
+              {/* <IllustPlaceholder label="Koperasi: pensil & pulpen" /> */}
               <div className="flex-1 space-y-3">
                 <p className="text-sm text-slate-700">
                   Di koperasi sekolah tersedia <strong>4 jenis pensil</strong> dan{" "}
@@ -320,7 +320,7 @@ export default function AktivitasKP1() {
           <div>
             <SituasiLabel nomor={2} />
             <div className="flex gap-4">
-              <IllustPlaceholder label="Seragam: kemeja & celana" />
+              {/* <IllustPlaceholder label="Seragam: kemeja & celana" /> */}
               <div className="flex-1 space-y-3">
                 <p className="text-sm text-slate-700">
                   Koperasi yang sama menjual <strong>seragam lengkap</strong>. Siswa harus membeli
@@ -354,7 +354,7 @@ export default function AktivitasKP1() {
           <div>
             <SituasiLabel nomor={3} />
             <div className="flex gap-4">
-              <IllustPlaceholder label="Ekskul olahraga & seni" />
+              {/* <IllustPlaceholder label="Ekskul olahraga & seni" /> */}
               <div className="flex-1 space-y-3">
                 <p className="text-sm text-slate-700">
                   Ekskul sekolah membuka pendaftaran: ada <strong>5 ekskul olahraga</strong> dan{" "}
@@ -382,7 +382,7 @@ export default function AktivitasKP1() {
           <div>
             <SituasiLabel nomor={4} />
             <div className="flex gap-4 mb-4">
-              <IllustPlaceholder label="Bioskop: film & pilihan jadwal" />
+              {/* <IllustPlaceholder label="Bioskop: film & pilihan jadwal" /> */}
               <div className="flex-1">
                 <p className="text-sm text-slate-700">
                   <strong>Rina</strong> ingin memesan tiket bioskop. Tersedia dua bioskop di
@@ -469,7 +469,7 @@ export default function AktivitasKP1() {
           <div>
             <SituasiLabel nomor={5} />
             <div className="flex gap-4 mb-4">
-              <IllustPlaceholder label="Soal ujian: dua bagian" />
+              {/* <IllustPlaceholder label="Soal ujian: dua bagian" /> */}
               <div className="flex-1">
                 <p className="text-sm text-slate-700">
                   Sebuah soal ujian terdiri dari 2 bagian:
