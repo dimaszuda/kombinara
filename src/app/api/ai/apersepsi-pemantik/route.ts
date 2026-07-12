@@ -23,6 +23,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { AnswerClassificationPrompt } from "@/lib/ai/client";
@@ -120,13 +121,13 @@ export async function POST(req: Request) {
             studentId: student.id,
             section: body.section,
             questionKey: item.question_key,
-            responseData: item.response_data,
+            responseData: item.response_data as Prisma.InputJsonValue,
             isCorrect: llmResult.isCorrect,
             misconceptionType: llmResult.misconceptionType,
             feedback: llmResult.feedback,
           },
           update: {
-            responseData: item.response_data,
+            responseData: item.response_data as Prisma.InputJsonValue,
             isCorrect: llmResult.isCorrect,
             misconceptionType: llmResult.misconceptionType,
             feedback: llmResult.feedback,
