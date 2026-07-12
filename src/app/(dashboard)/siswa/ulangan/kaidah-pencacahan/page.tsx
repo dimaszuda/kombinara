@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   LEVEL_META,
@@ -8,6 +8,8 @@ import {
   SoalKepahaman,
 } from "@/components/materi/sections/kaidah-pencacahan/contoh-soal-perkalian/latihan";
 import { useAssesmentLock } from "@/components/dashboard/assesment-lock-context";
+import { useDraftSaver } from "@/hooks/useDraftSaver";
+import type { AnswerPair as DraftAnswerPair } from "@/hooks/useDraftSaver";
 
 // ── Config ─────────────────────────────────────────────────────────────────────────────────
 const DURASI_DETIK = 120 * 60; // 120 menit
@@ -55,8 +57,22 @@ export default function AsesmenKaidahPencacahanPage() {
     SOAL_DATA.map(() => ({ cara_hitung: "", jawaban_akhir: "" }))
   );
   const [timeLeft, setTimeLeft] = useState(DURASI_DETIK);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hasSubmittedRef = useRef(false);
+  const handleSubmitRef = useRef<() => void>(() => {});
   const { setLocked } = useAssesmentLock();
+
+  // ── Draft auto-save hook ──────────────────────────────────────────────────────
+  const { isRestoring, saveAllDrafts } = useDraftSaver({
+    answers,
+    moduleSlug: "kaidah-pencacahan",
+    questionCount: SOAL_DATA.length,
+    onRestore: useCallback((restored: DraftAnswerPair[]) => {
+      setAnswers(restored);
+    }, []),
+  });
 
   useEffect(() => {
     setLocked(phase === "active");
@@ -69,7 +85,8 @@ export default function AsesmenKaidahPencacahanPage() {
       setTimeLeft((t) => {
         if (t <= 1) {
           clearInterval(timerRef.current!);
-          setPhase("submitted");
+          // Trigger submit via ref (auto-submit on timer expiry)
+          setTimeout(() => handleSubmitRef.current(), 0);
           return 0;
         }
         return t - 1;
@@ -82,10 +99,53 @@ export default function AsesmenKaidahPencacahanPage() {
 
   function handleStart() { setPhase("active"); }
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    // Prevent double-submit
+    if (hasSubmittedRef.current || isSubmitting) return;
+    hasSubmittedRef.current = true;
+    setIsSubmitting(true);
+    setSubmitError(null);
+
     if (timerRef.current) clearInterval(timerRef.current);
-    setPhase("submitted");
+
+    try {
+      // Save drafts one last time before submitting
+      await saveAllDrafts();
+
+      // Build the answers payload
+      const answersPayload = answers.map((a, i) => ({
+        question_number: i + 1,
+        cara_mengerjakan: a.cara_hitung,
+        jawaban_akhir: a.jawaban_akhir,
+      }));
+
+      const res = await fetch("/api/asesmen-formatif/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          module_slug: "kaidah-pencacahan",
+          answers: answersPayload,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(err.error ?? "Gagal menyimpan jawaban");
+      }
+
+      setPhase("submitted");
+    } catch (err: any) {
+      setSubmitError(err.message ?? "Gagal menyimpan jawaban. Silakan coba lagi.");
+      hasSubmittedRef.current = false;
+    } finally {
+      setIsSubmitting(false);
+    }
   }
+
+  // Keep ref in sync so timer auto-submit can call the latest handleSubmit
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  });
 
   function updateAnswer(idx: number, field: keyof AnswerPair, value: string) {
     setAnswers((prev) =>
@@ -93,10 +153,26 @@ export default function AsesmenKaidahPencacahanPage() {
     );
   }
 
-  if (phase === "intro") return <IntroScreen onStart={handleStart} />;
+  if (phase === "intro") {
+    if (isRestoring) {
+      return (
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+          <p style={{ fontSize: 15, color: "#6b8f6d" }}>Memulihkan jawaban yang tersimpan...</p>
+        </div>
+      );
+    }
+    return <IntroScreen onStart={handleStart} />;
+  }
   if (phase === "submitted") return <SubmittedScreen answers={answers} />;
   return (
-    <ActiveScreen answers={answers} timeLeft={timeLeft} onUpdateAnswer={updateAnswer} onSubmit={handleSubmit} />
+    <ActiveScreen
+      answers={answers}
+      timeLeft={timeLeft}
+      onUpdateAnswer={updateAnswer}
+      onSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
+      submitError={submitError}
+    />
   );
 }
 
@@ -181,9 +257,11 @@ interface ActiveScreenProps {
   timeLeft: number;
   onUpdateAnswer: (idx: number, field: keyof AnswerPair, value: string) => void;
   onSubmit: () => void;
+  isSubmitting: boolean;
+  submitError: string | null;
 }
 
-function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit }: ActiveScreenProps) {
+function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmitting, submitError }: ActiveScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const color = timerColor(timeLeft);
   const pct = (timeLeft / DURASI_DETIK) * 100;
@@ -301,9 +379,14 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit }: ActiveScr
             <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 16px" }}>
               Kamu telah menjawab <strong style={{ color: "#1a3d1c" }}>{answeredCount}</strong> dari <strong>{SOAL_DATA.length}</strong> soal. Setelah di-submit, jawaban tidak dapat diubah.
             </p>
+            {submitError && (
+              <p style={{ fontSize: 12, color: "#b91c1c", margin: "0 0 12px", backgroundColor: "#fff2f0", padding: "8px 12px", borderRadius: 8 }}>{submitError}</p>
+            )}
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-              <button onClick={() => setShowConfirm(false)} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #d1d5db", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#6b7280", cursor: "pointer" }}>Batal</button>
-              <button onClick={onSubmit} style={{ padding: "10px 24px", borderRadius: 8, border: "none", backgroundColor: "#b91c1c", fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer" }}>Ya, Submit Sekarang</button>
+              <button onClick={() => setShowConfirm(false)} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #d1d5db", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#6b7280", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.6 : 1 }}>Batal</button>
+              <button onClick={onSubmit} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "none", backgroundColor: "#b91c1c", fontSize: 14, fontWeight: 700, color: "#fff", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
+                {isSubmitting ? "Mengirim..." : "Ya, Submit Sekarang"}
+              </button>
             </div>
           </div>
         )}
@@ -329,6 +412,21 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
         <p style={{ fontSize: 15, color: "#5a7d5c", margin: 0, lineHeight: 1.7 }}>
           {allAnswered ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan asesmen ini!" : `Kamu menjawab ${answeredCount} dari ${SOAL_DATA.length} soal. Jawaban telah dikirimkan.`}
         </p>
+
+        {/* Status: jawaban tersimpan & sedang dikoreksi */}
+        <div style={{ marginTop: 20, backgroundColor: "#f0faf0", borderRadius: 10, border: "1px solid #c3e6c3", padding: "14px 18px", textAlign: "left" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#346739" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>Jawaban sudah tersimpan</p>
+              <p style={{ fontSize: 12, color: "#5a7d5c", margin: 0, lineHeight: 1.6 }}>
+                Jawabanmu sedang dilakukan proses koreksi. Kembali lagi ke menu asesmen setelah beberapa jam untuk mendapatkan nilai hasil asesmen.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <p style={{ fontSize: 11, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 16px" }}>

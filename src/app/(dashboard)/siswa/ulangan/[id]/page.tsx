@@ -74,7 +74,7 @@ export default function UlanganSessionPage({
               lineHeight: "1.3",
             }}
           >
-            Materi lagi disiapkan
+            Asesmen lagi disiapkan
           </h1>
           <p
             style={{
@@ -84,7 +84,7 @@ export default function UlanganSessionPage({
               lineHeight: "1.6",
             }}
           >
-            Sabar ya, bentar lagi bisa dipelajari di sini.
+            Sabar ya, bentar lagi asesmen bisa dikerjakan di sini.
           </p>
         </div>
 

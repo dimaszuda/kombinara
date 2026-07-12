@@ -23,7 +23,7 @@ const NAV_ITEMS = [
     icon: "/icons/activity.png"
   },
   {
-    label: "Assesmen Akhir",
+    label: "Assesmen Formatif",
     href: "/siswa/ulangan",
     icon: "/icons/test.png",
   },

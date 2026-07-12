@@ -59,6 +59,8 @@ model Student {
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   class Class @relation(fields: [classId], references: [id])
   apersepsiResponses ApersepsiPemantikResponse[]
+  drafts             AsesmenFormatifDraft[]
+  submissions        AsesmenFormatifSubmission[]
 
   @@map("students")
 }
@@ -321,4 +323,53 @@ model ApersepsiPemantikResponse {
   @@index([studentId], name: "idx_apr_student")
   @@index([section], name: "idx_apr_section")
   @@map("apersepsi_pemantik_responses")
+}
+
+// ============================================================
+// PHASE 6 — Asesmen Formatif (Draft + Submission)
+// ============================================================
+
+model Module {
+  id   Int    @id @default(autoincrement()) @map("module_id")
+  slug String @unique
+  nama String
+
+  drafts      AsesmenFormatifDraft[]
+  submissions AsesmenFormatifSubmission[]
+
+  @@map("modules")
+}
+
+model AsesmenFormatifDraft {
+  id              Int      @id @default(autoincrement()) @map("draft_id")
+  studentId       Int      @map("student_id")
+  moduleId        Int      @map("module_id")
+  questionNumber  Int      @map("question_number")
+  caraMengerjakan String?  @map("cara_mengerjakan")
+  jawabanAkhir    String?  @map("jawaban_akhir")
+  lastSavedAt     DateTime @default(now()) @map("last_saved_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  module  Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, moduleId, questionNumber])
+  @@index([studentId, moduleId])
+  @@map("asesmen_formatif_drafts")
+}
+
+model AsesmenFormatifSubmission {
+  id           Int      @id @default(autoincrement()) @map("submission_id")
+  studentId    Int      @map("student_id")
+  moduleId     Int      @map("module_id")
+  conceptId    String?  @map("concept_id")
+  answers      Json     @map("answers")
+  submittedAt  DateTime @default(now()) @map("submitted_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  module  Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, moduleId])
+  @@index([studentId])
+  @@index([moduleId])
+  @@map("asesmen_formatif_submissions")
 }
