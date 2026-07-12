@@ -82,11 +82,9 @@ export async function POST(req: Request) {
 // ══════════════════════════════════════════════════════════════
 
 import type { GradingResult } from "@/lib/data/asesmen-diagnostik";
-import type { Database } from "@/types/database";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 async function persistAttempt(
-  supabase: SupabaseClient<Database>,
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   studentId: number,
   attemptId: number | null,
   answers: StudentAnswers,

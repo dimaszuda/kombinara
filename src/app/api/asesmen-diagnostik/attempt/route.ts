@@ -12,13 +12,11 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
-import type { Database } from "@/types/database";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ─── Shared auth helper ────────────────────────────────────────────────────
 
 async function getStudentId(
-  supabase: SupabaseClient<Database>
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>
 ): Promise<{ studentId: number } | NextResponse> {
   const {
     data: { user },
