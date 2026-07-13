@@ -99,7 +99,7 @@ export default function MateriDetailPage({
 
   // ── Konten halaman (tanpa AI features) ─────────────────────────────
   const pageContent = (
-    <div ref={contentRef} style={{ padding: "32px 24px 80px", margin: "0 auto" }}>
+    <div ref={contentRef} style={{ padding: "32px 12px 80px", margin: "0 auto" }}>
       {/* SelectionToolbar hanya aktif kalau sudah lulus asesmen */}
       {passAssesmen && <SelectionToolbar contentRef={contentRef} />}
       {/* Back to Dashboard */}
