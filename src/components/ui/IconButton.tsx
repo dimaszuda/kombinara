@@ -93,16 +93,19 @@ export function ToggleButton({
   label,
   active,
   onClick,
+  disabled,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="rounded-full border-[1.5px] px-4 py-1.5 text-sm font-medium transition-colors"
+      disabled={disabled}
+      className="rounded-full border-[1.5px] px-4 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       style={{
         borderColor: "#663362",
         backgroundColor: active ? "#663362" : "#ffffff",

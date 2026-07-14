@@ -3,7 +3,7 @@
  *
  * POST /api/ai/deep-learning
  * Body: { soal: string, jawaban: string }
- * Response: { feedback: string }
+ * Response: { feedback: string, isCorrect: boolean }
  *
  * Uses AnswerClassification prompt to analyse student answers and return
  * constructive feedback without revealing the correct answer explicitly.
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     const result = await AnswerClassificationPrompt(soal, jawaban);
 
-    return new Response(JSON.stringify({ feedback: result.feedback }), {
+    return new Response(JSON.stringify({ feedback: result.feedback, isCorrect: result.isCorrect }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

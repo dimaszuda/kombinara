@@ -4,7 +4,7 @@
  * POST /api/refleksi-mini
  * Body: {
  *   concept_id: string,
- *   rows: Array<{ question_key: string; answer: string; feedback: string | null }>
+ *   rows: Array<{ question_key: string; answer: string; feedback: string | null; is_correct?: boolean | null }>
  * }
  * Inserts one row per question (1 soal = 1 row).
  * Response: { success: true }
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     const { concept_id, rows } = body as {
       concept_id: string;
-      rows: { question_key: string; answer: string; feedback: string | null }[];
+      rows: { question_key: string; answer: string; feedback: string | null; is_correct?: boolean | null }[];
     };
 
     for (const row of rows) {
@@ -68,13 +68,14 @@ export async function POST(req: Request) {
     await Promise.all(
       rows.map((row) =>
         prisma.$executeRaw`
-          INSERT INTO refleksi_mini (student_id, concept_id, question_key, answer, feedback)
+          INSERT INTO refleksi_mini (student_id, concept_id, question_key, answer, feedback, is_correct)
           VALUES (
             ${student.id},
             ${concept_id},
             ${row.question_key},
             ${row.answer},
-            ${row.feedback ?? null}
+            ${row.feedback ?? null},
+            ${row.is_correct ?? null}
           )
         `
       )

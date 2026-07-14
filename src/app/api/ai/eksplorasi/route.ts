@@ -3,7 +3,7 @@
  *
  * POST /api/ai/eksplorasi
  * Body: { soal: string, jawaban: string, alasan: string }
- * Response: { feedback: string }
+ * Response: { feedback: string, isCorrect: boolean }
  *
  * Edge Runtime — low latency AI feedback.
  */
@@ -31,9 +31,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const feedback = await EskplorasiPrompt(soal, jawaban, alasan);
+    const result = await EskplorasiPrompt(soal, jawaban, alasan);
 
-    return new Response(JSON.stringify({ feedback }), {
+    return new Response(JSON.stringify({ feedback: result.feedback, isCorrect: result.isCorrect }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

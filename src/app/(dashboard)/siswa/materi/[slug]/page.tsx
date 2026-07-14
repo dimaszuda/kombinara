@@ -6,9 +6,9 @@ import Link from "next/link";
 import SelectionToolbar from "@/components/materi/SelectionToolbar";
 import ChatbotShell from "@/components/materi/ChatbotShell";
 import AsesmenDiagnostik from "@/components/materi/sections/kaidah-pencacahan/AsesmenDiagnostik";
-import ApersepsiSection from "@/components/materi/sections/kaidah-pencacahan/ApersepsiPemantik";
-import KaidahPenjumlahan from "@/components/materi/sections/kaidah-pencacahan/KaidahPenjumlahan";
-import KaidahPerkalian from "@/components/materi/sections/kaidah-pencacahan/KaidahPerkalian";
+import ApersepsiSection, { type ApersepsiSavedData } from "@/components/materi/sections/kaidah-pencacahan/ApersepsiPemantik";
+import KaidahPenjumlahan, { type KaidahPenjumlahanSavedData } from "@/components/materi/sections/kaidah-pencacahan/KaidahPenjumlahan";
+import KaidahPerkalian, { type KaidahPerkalianSavedData } from "@/components/materi/sections/kaidah-pencacahan/KaidahPerkalian";
 
 interface MateriItem {
   title: string;
@@ -51,6 +51,23 @@ interface DiagnosticStatusResponse {
   lastTotalQuestions: number | null;
 }
 
+/** Status respons dari /api/apersepsi-pemantik/status */
+interface ApersepsiStatusResponse {
+  completedSteps: Record<number, boolean>;
+  savedData?: Record<string, { responseData: unknown; feedback: string | null; isCorrect: boolean | null }>;
+}
+
+/** Status respons dari /api/kaidah-penjumlahan/status & /api/kaidah-perkalian/status */
+interface SectionStatusResponse {
+  completedSections: Record<number, boolean>;
+  savedData?: {
+    eksplorasi?: { answer: unknown; feedback: string | null; isCorrect: boolean | null } | null;
+    deepLearning?: { answer: unknown; feedback: string | null; isCorrect: boolean | null } | null;
+    contohSoal?: Record<string, { answer: unknown; isCorrect: boolean }>;
+    refleksi?: Record<string, { answer: string; feedback: string | null; isCorrect: boolean | null }>;
+  };
+}
+
 export default function MateriDetailPage({
   params,
 }: {
@@ -58,27 +75,101 @@ export default function MateriDetailPage({
 }) {
   const materi = materiData[params.slug];
   const [passAssesmen, setPassAssesment] = useState(false);
+  const [passApersepsi, setPassApersepsi] = useState(false);
+  const [passKaidahPenjumlahan, setPassKaidahPenjumlahan] = useState(false);
+  const [passKaidahPerkalian, setPassKaidahPerkalian] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  // Granular completion data dari backend
+  const [apersepsiCompletedSteps, setApersepsiCompletedSteps] =
+    useState<Record<number, boolean>>({});
+  const [apersepsiSavedData, setApersepsiSavedData] =
+    useState<ApersepsiSavedData | undefined>(undefined);
+  const [penjumlahanCompletedSections, setPenjumlahanCompletedSections] =
+    useState<Record<number, boolean>>({});
+  const [penjumlahanSavedData, setPenjumlahanSavedData] =
+    useState<KaidahPenjumlahanSavedData | undefined>(undefined);
+  const [perkalianCompletedSections, setPerkalianCompletedSections] =
+    useState<Record<number, boolean>>({});
+  const [perkalianSavedData, setPerkalianSavedData] =
+    useState<KaidahPerkalianSavedData | undefined>(undefined);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // ── Cek status diagnostik saat mount ─────────────────────────────
+  // ── Cek semua status saat mount ──────────────────────────────────
   useEffect(() => {
     let cancelled = false;
-    async function checkStatus() {
+    async function checkAllStatus() {
       try {
-        const res = await fetch("/api/asesmen-diagnostik/status");
-        if (!res.ok) return;
-        const data: DiagnosticStatusResponse = await res.json();
-        if (!cancelled && data.status === "passed") {
-          setPassAssesment(true);
+        // Fetch semua status secara paralel
+        const [diagRes, apersepsiRes, penjumlahanRes, perkalianRes] =
+          await Promise.allSettled([
+            fetch("/api/asesmen-diagnostik/status"),
+            fetch("/api/apersepsi-pemantik/status"),
+            fetch("/api/kaidah-penjumlahan/status"),
+            fetch("/api/kaidah-perkalian/status"),
+          ]);
+
+        if (cancelled) return;
+
+        // ── Diagnostik ──────────────────────────────────────────
+        if (
+          diagRes.status === "fulfilled" &&
+          diagRes.value.ok
+        ) {
+          const data: DiagnosticStatusResponse = await diagRes.value.json();
+          if (data.status === "passed") {
+            setPassAssesment(true);
+          }
         }
-      } catch {
-        // silent fail — biarkan default false
+
+        // ── Apersepsi & Pemantik ────────────────────────────────
+        if (
+          apersepsiRes.status === "fulfilled" &&
+          apersepsiRes.value.ok
+        ) {
+          const data: ApersepsiStatusResponse = await apersepsiRes.value.json();
+          setApersepsiCompletedSteps(data.completedSteps ?? {});
+          setApersepsiSavedData(data.savedData as ApersepsiSavedData | undefined);
+          // Jika semua 8 step selesai, anggap section ini complete
+          const allDone = Object.keys(data.completedSteps ?? {}).length >= 8;
+          if (allDone) setPassApersepsi(true);
+        }
+
+        // ── Kaidah Penjumlahan ──────────────────────────────────
+        if (
+          penjumlahanRes.status === "fulfilled" &&
+          penjumlahanRes.value.ok
+        ) {
+          const data: SectionStatusResponse = await penjumlahanRes.value.json();
+          console.log("[materi-page] kaidah-penjumlahan status:", JSON.stringify(data.completedSections));
+          setPenjumlahanCompletedSections(data.completedSections ?? {});
+          setPenjumlahanSavedData(data.savedData as KaidahPenjumlahanSavedData | undefined);
+          // Jika section terakhir (5 = Refleksi Mini) complete
+          if (data.completedSections?.[5]) setPassKaidahPenjumlahan(true);
+        } else {
+          console.warn("[materi-page] kaidah-penjumlahan status fetch failed:", penjumlahanRes);
+        }
+
+        // ── Kaidah Perkalian ────────────────────────────────────
+        if (
+          perkalianRes.status === "fulfilled" &&
+          perkalianRes.value.ok
+        ) {
+          const data: SectionStatusResponse = await perkalianRes.value.json();
+          console.log("[materi-page] kaidah-perkalian status:", JSON.stringify(data.completedSections));
+          setPerkalianCompletedSections(data.completedSections ?? {});
+          setPerkalianSavedData(data.savedData as KaidahPerkalianSavedData | undefined);
+          // Jika section terakhir (7 = Refleksi Mini) complete
+          if (data.completedSections?.[7]) setPassKaidahPerkalian(true);
+        } else {
+          console.warn("[materi-page] kaidah-perkalian status fetch failed:", perkalianRes);
+        }
+      } catch (err) {
+        console.error("[materi-page] checkAllStatus error:", err);
       } finally {
         if (!cancelled) setIsCheckingStatus(false);
       }
     }
-    checkStatus();
+    checkAllStatus();
     return () => {
       cancelled = true;
     };
@@ -169,25 +260,37 @@ export default function MateriDetailPage({
         label="Apersepsi dan Pemantik"
         progressWidth="50%"
       >
-        <ApersepsiSection />
+        <ApersepsiSection
+          initialCompletedSteps={apersepsiCompletedSteps}
+          savedData={apersepsiSavedData}
+          onComplete={() => setPassApersepsi(true)}
+        />
       </LockableSection>
 
       {/* Section terkunci: MATERI 1 */}
       <LockableSection
-        unlocked={passAssesmen}
+        unlocked={passApersepsi}
         label="MATERI 1 : KAIDAH PENJUMLAHAN"
         progressWidth="75%"
       >
-        <KaidahPenjumlahan />
+        <KaidahPenjumlahan
+          initialCompletedSections={penjumlahanCompletedSections}
+          savedData={penjumlahanSavedData}
+          onComplete={() => setPassKaidahPenjumlahan(true)}
+        />
       </LockableSection>
 
       {/* Section terkunci: MATERI 2 */}
       <LockableSection
-        unlocked={passAssesmen}
+        unlocked={passKaidahPenjumlahan}
         label="MATERI 2 : KAIDAH PERKALIAN"
         progressWidth="100%"
       >
-        <KaidahPerkalian />
+        <KaidahPerkalian
+          initialCompletedSections={perkalianCompletedSections}
+          savedData={perkalianSavedData}
+          onComplete={() => setPassKaidahPerkalian(true)}
+        />
       </LockableSection>
     </div>
   );

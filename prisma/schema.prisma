@@ -58,9 +58,13 @@ model Student {
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   class Class @relation(fields: [classId], references: [id])
-  apersepsiResponses ApersepsiPemantikResponse[]
-  drafts             AsesmenFormatifDraft[]
-  submissions        AsesmenFormatifSubmission[]
+  apersepsiResponses      ApersepsiPemantikResponse[]
+  drafts                  AsesmenFormatifDraft[]
+  submissions             AsesmenFormatifSubmission[]
+  eksplorasiKontekstual   EksplorasiKontekstual[]
+  aktivitasDeepLearning   AktivitasDeepLearning[]
+  refleksiMini            RefleksiMini[]
+  aktivitasSiswaEntries   AktivitasSiswaEntry[]
 
   @@map("students")
 }
@@ -319,7 +323,6 @@ model ApersepsiPemantikResponse {
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, questionKey], name: "uq_student_question")
   @@index([studentId], name: "idx_apr_student")
   @@index([section], name: "idx_apr_section")
   @@map("apersepsi_pemantik_responses")
@@ -372,4 +375,85 @@ model AsesmenFormatifSubmission {
   @@index([studentId])
   @@index([moduleId])
   @@map("asesmen_formatif_submissions")
+}
+
+// ============================================================
+// PHASE 7 — Eksplorasi Kontekstual, Deep Learning, Refleksi Mini
+// ============================================================
+
+model EksplorasiKontekstual {
+  id          Int      @id @default(autoincrement()) @map("eksplorasi_id")
+  studentId   Int      @map("student_id")
+  conceptId   String   @map("concept_id")
+  questionKey String   @map("question_key")
+  answer      Json     @map("answer")
+  feedback    String?  @map("feedback")
+  isCorrect   Boolean? @map("is_correct")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([conceptId])
+  @@index([studentId, conceptId, questionKey])
+  @@map("eksplorasi_kontekstual")
+}
+
+model AktivitasDeepLearning {
+  id        Int      @id @default(autoincrement()) @map("deep_learning_id")
+  studentId Int      @map("student_id")
+  conceptId String   @map("concept_id")
+  answer    Json     @map("answer")
+  feedback  String?  @map("feedback")
+  isCorrect Boolean? @map("is_correct")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([conceptId])
+  @@map("aktivitas_deep_learning")
+}
+
+model RefleksiMini {
+  id          Int      @id @default(autoincrement()) @map("refleksi_id")
+  studentId   Int      @map("student_id")
+  conceptId   String   @map("concept_id")
+  questionKey String   @map("question_key")
+  answer      String   @map("answer")
+  feedback    String?  @map("feedback")
+  isCorrect   Boolean? @map("is_correct")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([conceptId])
+  @@index([studentId, conceptId, questionKey])
+  @@map("refleksi_mini")
+}
+
+// ============================================================
+// PHASE 8 — Aktivitas Siswa Entries (Sequential Unlocked)
+// ============================================================
+
+model AktivitasSiswaEntry {
+  entryId     Int      @id @default(autoincrement()) @map("entry_id")
+  studentId   Int      @map("student_id")
+  conceptId   String   @map("concept_id")
+  activityKey String   @map("activity_key")
+  entryType   String   @map("entry_type")
+  questionKey String   @map("question_key")
+  answer      String   @map("answer")
+  isCorrect   Boolean  @map("is_correct")
+  feedback    String?  @map("feedback")
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, conceptId, activityKey, questionKey, submittedAt])
+  @@index([studentId])
+  @@index([studentId, conceptId])
+  @@index([studentId, conceptId, activityKey])
+  @@map("aktivitas_siswa_entries")
 }

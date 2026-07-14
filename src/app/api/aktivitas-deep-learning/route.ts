@@ -2,7 +2,7 @@
  * Deep Learning Activity — Save to DB
  *
  * POST /api/aktivitas-deep-learning
- * Body: { concept_id: string, answer: object, feedback?: string }
+ * Body: { concept_id: string, answer: object, feedback?: string, is_correct?: boolean }
  * Response: { success: true }
  */
 import { NextResponse } from "next/server";
@@ -40,15 +40,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { concept_id, answer, feedback } = body;
+    const { concept_id, answer, feedback, is_correct } = body;
 
     await prisma.$executeRaw`
-      INSERT INTO aktivitas_deep_learning (student_id, concept_id, answer, feedback)
+      INSERT INTO aktivitas_deep_learning (student_id, concept_id, answer, feedback, is_correct)
       VALUES (
         ${student.id},
         ${concept_id},
         ${JSON.stringify(answer)}::jsonb,
-        ${feedback ?? null}
+        ${feedback ?? null},
+        ${is_correct ?? null}
       )
     `;
 

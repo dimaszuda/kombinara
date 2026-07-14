@@ -18,7 +18,7 @@
  * 1. Auth via Supabase session
  * 2. Get student_id from students table
  * 3. For each question: call LLM AnswerClassification in parallel
- * 4. Upsert each result to apersepsi_pemantik_responses
+ * 4. Insert each result to apersepsi_pemantik_responses (new row per attempt)
  * 5. Return per-question feedback to client
  */
 
@@ -49,6 +49,16 @@ const VALID_QUESTION_KEYS = new Set([
   "tim_sama_beda",
   "rute_kurir",
   "refleksi_sebelum_mulai",
+  "refleksi_sebelum_mulai_1",
+  "refleksi_sebelum_mulai_2",
+  // Refleksi Mini — Kaidah Penjumlahan
+  "refleksi_penjumlahan_1",
+  "refleksi_penjumlahan_2",
+  "refleksi_penjumlahan_3",
+  // Refleksi Mini — Kaidah Perkalian
+  "refleksi_perkalian_1",
+  "refleksi_perkalian_2",
+  "refleksi_perkalian_3",
 ]);
 
 export async function POST(req: Request) {
@@ -104,20 +114,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // ── 4. LLM classify + DB upsert for each question in parallel
+    // ── 4. LLM classify + DB insert for each question in parallel
     const results = await Promise.all(
       body.responses.map(async (item) => {
         const jawabanStr = JSON.stringify(item.response_data);
         const llmResult = await AnswerClassificationPrompt(item.soal, jawabanStr);
 
-        await prisma.apersepsiPemantikResponse.upsert({
-          where: {
-            uq_student_question: {
-              studentId: student.id,
-              questionKey: item.question_key,
-            },
-          },
-          create: {
+        await prisma.apersepsiPemantikResponse.create({
+          data: {
             studentId: student.id,
             section: body.section,
             questionKey: item.question_key,
@@ -125,13 +129,6 @@ export async function POST(req: Request) {
             isCorrect: llmResult.isCorrect,
             misconceptionType: llmResult.misconceptionType,
             feedback: llmResult.feedback,
-          },
-          update: {
-            responseData: item.response_data as Prisma.InputJsonValue,
-            isCorrect: llmResult.isCorrect,
-            misconceptionType: llmResult.misconceptionType,
-            feedback: llmResult.feedback,
-            submittedAt: new Date(),
           },
         });
 

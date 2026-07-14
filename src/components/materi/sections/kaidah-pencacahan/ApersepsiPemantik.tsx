@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { CheckIcon, LightbulbIcon } from "@/components/ui/IconButton";
 import VehicleChoicePicker from "./VehicleChoicePicker";
 import OutfitComboPicker from "./OutfitComboPicker";
@@ -12,6 +12,15 @@ import CourierRouteExplorer from "./CourierRouteExplorer";
 
 // ── Types ──────────────────────────────────────────────────────────
 type ToggleValue = "yes" | "no" | null;
+
+// ── Saved data type dari backend ───────────────────────────────────
+export interface ApersepsiSavedData {
+  [questionKey: string]: {
+    responseData: Record<string, unknown>;
+    feedback: string | null;
+    isCorrect: boolean | null;
+  };
+}
 
 type StepType =
   | "apersepsi-vehicles"
@@ -94,12 +103,21 @@ const STEPS: StepConfig[] = [
   },
   {
     index: 6,
-    questionKey: "refleksi_sebelum_mulai",
+    questionKey: "refleksi_sebelum_mulai_1",
     section: "refleksi",
     type: "refleksi",
     soal:
-      "Refleksi sebelum mulai: (1) Apakah cara menghitung yang kamu gunakan di Apersepsi tadi cukup untuk menjawab ketiga situasi Pemantik? (2) Apa yang menurutmu perlu kamu pelajari untuk bisa menjawabnya?",
-    label: "Refleksi",
+      "Apakah cara menghitung yang kamu gunakan di Apersepsi tadi cukup untuk menjawab ketiga situasi Pemantik? Mengapa?",
+    label: "Refleksi 1",
+  },
+  {
+    index: 7,
+    questionKey: "refleksi_sebelum_mulai_2",
+    section: "refleksi",
+    type: "refleksi",
+    soal:
+      "Apa yang menurutmu perlu kamu pelajari untuk bisa menjawabnya?",
+    label: "Refleksi 2",
   },
 ];
 
@@ -224,31 +242,120 @@ function ProgressIndicator({
 }
 
 // ── Main Component ─────────────────────────────────────────────────
-export default function ApersepsiSection() {
+export default function ApersepsiSection({
+  onComplete,
+  initialCompletedSteps = {},
+  savedData,
+}: {
+  onComplete?: () => void;
+  /** Step indices (0–7) yang sudah benar dari backend */
+  initialCompletedSteps?: Record<number, boolean>;
+  /** Data jawaban & feedback yang sudah tersimpan di DB */
+  savedData?: ApersepsiSavedData;
+}) {
+  const onCompleteCalled = useRef(false);
+
+  // ── Build initial state dari data backend ──────────────────────
+  function buildInitialState(): {
+    currentStep: number;
+    feedbackMap: Record<number, StepFeedback>;
+  } {
+    const fb: Record<number, StepFeedback> = {};
+
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      if (initialCompletedSteps[i]) {
+        // Use actual saved feedback, or fallback
+        const key = STEPS[i].questionKey;
+        const sd = savedData?.[key];
+        fb[i] = {
+          text: sd?.feedback ?? "Jawaban benar! 🎉",
+          isCorrect: true,
+        };
+      }
+    }
+
+    // currentStep = step pertama yang BELUM complete
+    // Jika semua complete, tetap di step terakhir (all-complete view)
+    let firstUncompleted = TOTAL_STEPS - 1;
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      if (!initialCompletedSteps[i]) {
+        firstUncompleted = i;
+        break;
+      }
+    }
+
+    return {
+      currentStep: firstUncompleted,
+      feedbackMap: fb,
+    };
+  }
+
+  const initState = buildInitialState();
+
   // ── Sequential step tracking ────────────────────────────────────
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(initState.currentStep);
   const [checkingStep, setCheckingStep] = useState<number | null>(null);
-  const [feedbackMap, setFeedbackMap] = useState<Record<number, StepFeedback>>({});
+  const [feedbackMap, setFeedbackMap] = useState<Record<number, StepFeedback>>(
+    initState.feedbackMap
+  );
 
   // ── Apersepsi answer states (per item by questionKey) ───────────
   const [answers, setAnswers] = useState<
     Record<string, { perkiraan: string; caraHitung: string }>
-  >({});
+  >(() => {
+    const init: Record<string, { perkiraan: string; caraHitung: string }> = {};
+    const apersepsiKeys = ["kendaraan", "outfit", "pengurus"];
+    for (const key of apersepsiKeys) {
+      const sd = savedData?.[key];
+      if (sd?.responseData) {
+        init[key] = {
+          perkiraan: (sd.responseData as Record<string, string>).estimated_answer ?? "",
+          caraHitung: (sd.responseData as Record<string, string>).reasoning ?? "",
+        };
+      }
+    }
+    return init;
+  });
 
   // ── Pemantik answer states ──────────────────────────────────────
-  const [passwordGuess, setPasswordGuess] = useState("");
-  const [passwordReasoning, setPasswordReasoning] = useState("");
+  const [passwordGuess, setPasswordGuess] = useState(
+    () => (savedData?.["password_kapasitas"]?.responseData as Record<string, string>)?.estimated_answer ?? ""
+  );
+  const [passwordReasoning, setPasswordReasoning] = useState(
+    () => (savedData?.["password_kapasitas"]?.responseData as Record<string, string>)?.reasoning ?? ""
+  );
 
-  const [teamChoice, setTeamChoice] = useState<ToggleValue>(null);
-  const [teamReasoning, setTeamReasoning] = useState("");
+  const [teamChoice, setTeamChoice] = useState<ToggleValue>(() => {
+    const choice = (savedData?.["tim_sama_beda"]?.responseData as Record<string, string>)?.choice;
+    return choice === "sama" ? "yes" : choice === "beda" ? "no" : null;
+  });
+  const [teamReasoning, setTeamReasoning] = useState(
+    () => (savedData?.["tim_sama_beda"]?.responseData as Record<string, string>)?.reasoning ?? ""
+  );
 
-  const [courierChoice, setCourierChoice] = useState<ToggleValue>(null);
-  const [courierReasoning, setCourierReasoning] = useState("");
-  const [courierCalc, setCourierCalc] = useState("");
+  const [courierChoice, setCourierChoice] = useState<ToggleValue>(() => {
+    const choice = (savedData?.["rute_kurir"]?.responseData as Record<string, string>)?.choice;
+    return choice === "perlu" ? "yes" : choice === "nggak_perlu" ? "no" : null;
+  });
+  const [courierReasoning, setCourierReasoning] = useState(
+    () => (savedData?.["rute_kurir"]?.responseData as Record<string, string>)?.reasoning ?? ""
+  );
+  const [courierCalc, setCourierCalc] = useState(
+    () => (savedData?.["rute_kurir"]?.responseData as Record<string, string>)?.calculation ?? ""
+  );
 
   // ── Refleksi answer states ──────────────────────────────────────
-  const [methodSufficient, setMethodSufficient] = useState("");
-  const [whatToLearn, setWhatToLearn] = useState("");
+  const [refleksiAnswers, setRefleksiAnswers] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    const refleksiKeys = ["refleksi_sebelum_mulai_1", "refleksi_sebelum_mulai_2"];
+    for (const key of refleksiKeys) {
+      const sd = savedData?.[key];
+      if (sd?.responseData) {
+        init[key] = (sd.responseData as Record<string, string>).jawaban ?? "";
+      }
+    }
+    return init;
+  });
 
   // ── Helpers ─────────────────────────────────────────────────────
   const currentStepConfig = STEPS[currentStep];
@@ -351,14 +458,12 @@ export default function ApersepsiSection() {
         }
 
         case "refleksi": {
-          if (!methodSufficient || !whatToLearn) {
+          const ans = refleksiAnswers[step.questionKey];
+          if (!ans?.trim()) {
             isValid = false;
-            validationMsg = "Jawab kedua pertanyaan refleksi dulu ya!";
+            validationMsg = "Tulis jawabanmu dulu ya!";
           }
-          responseData = {
-            cukup_atau_tidak: methodSufficient,
-            yang_perlu_dipelajari: whatToLearn,
-          };
+          responseData = { jawaban: ans ?? "" };
           soal = step.soal;
           section = "refleksi";
           questionKey = step.questionKey;
@@ -430,8 +535,7 @@ export default function ApersepsiSection() {
     courierChoice,
     courierReasoning,
     courierCalc,
-    methodSufficient,
-    whatToLearn,
+    refleksiAnswers,
   ]);
 
   // ── Determine current section for header display ────────────────
@@ -443,6 +547,85 @@ export default function ApersepsiSection() {
   const allComplete =
     currentStep >= TOTAL_STEPS - 1 &&
     feedbackMap[TOTAL_STEPS - 1]?.isCorrect === true;
+
+  // Notify parent when all steps are done (only once)
+  useEffect(() => {
+    if (allComplete && onComplete && !onCompleteCalled.current) {
+      onCompleteCalled.current = true;
+      onComplete();
+    }
+  }, [allComplete, onComplete]);
+
+  // ── Sync state from savedData (timing fix) ──────────────────────
+  // If savedData arrives after first mount, restore answers & feedback
+  const didRestoreFromSaved = useRef(false);
+  useEffect(() => {
+    if (didRestoreFromSaved.current) return;
+    if (!savedData || Object.keys(savedData).length === 0) return;
+
+    // Restore apersepsi answers
+    const apersepsiKeys = ["kendaraan", "outfit", "pengurus"];
+    const newAnswers: Record<string, { perkiraan: string; caraHitung: string }> = {};
+    let hasApersepsiData = false;
+    for (const key of apersepsiKeys) {
+      const sd = savedData[key];
+      if (sd?.responseData) {
+        newAnswers[key] = {
+          perkiraan: (sd.responseData as Record<string, string>).estimated_answer ?? "",
+          caraHitung: (sd.responseData as Record<string, string>).reasoning ?? "",
+        };
+        hasApersepsiData = true;
+      }
+    }
+    if (hasApersepsiData) setAnswers(newAnswers);
+
+    // Restore pemantik answers
+    const pwd = savedData["password_kapasitas"]?.responseData as Record<string, string> | undefined;
+    if (pwd) {
+      setPasswordGuess(pwd.estimated_answer ?? "");
+      setPasswordReasoning(pwd.reasoning ?? "");
+    }
+
+    const team = savedData["tim_sama_beda"]?.responseData as Record<string, string> | undefined;
+    if (team) {
+      const choice = team.choice;
+      setTeamChoice(choice === "sama" ? "yes" : choice === "beda" ? "no" : null);
+      setTeamReasoning(team.reasoning ?? "");
+    }
+
+    const courier = savedData["rute_kurir"]?.responseData as Record<string, string> | undefined;
+    if (courier) {
+      const choice = courier.choice;
+      setCourierChoice(choice === "perlu" ? "yes" : choice === "nggak_perlu" ? "no" : null);
+      setCourierReasoning(courier.reasoning ?? "");
+      setCourierCalc(courier.calculation ?? "");
+    }
+
+    // Restore refleksi answers
+    const refleksiKeys = ["refleksi_sebelum_mulai_1", "refleksi_sebelum_mulai_2"];
+    const newRefleksi: Record<string, string> = {};
+    let hasRefleksiData = false;
+    for (const key of refleksiKeys) {
+      const sd = savedData[key];
+      if (sd?.responseData) {
+        newRefleksi[key] = (sd.responseData as Record<string, string>).jawaban ?? "";
+        hasRefleksiData = true;
+      }
+    }
+    if (hasRefleksiData) setRefleksiAnswers(newRefleksi);
+
+    // Restore feedbackMap with actual feedback text
+    const newFb: Record<number, StepFeedback> = {};
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      const sd = savedData[STEPS[i].questionKey];
+      if (sd?.isCorrect === true) {
+        newFb[i] = { text: sd.feedback ?? "Jawaban benar! 🎉", isCorrect: true };
+      }
+    }
+    if (Object.keys(newFb).length > 0) setFeedbackMap((prev) => ({ ...prev, ...newFb }));
+
+    didRestoreFromSaved.current = true;
+  }, [savedData]);
 
   // ══════════════════════════════════════════════════════════════════
   // Render helpers per step type (accept stepIndex + readOnly)
@@ -660,38 +843,28 @@ export default function ApersepsiSection() {
   }
 
   function renderRefleksiStep(stepIndex: number, readOnly: boolean) {
+    const cfg = STEPS[stepIndex];
     const fb = feedbackMap[stepIndex] ?? null;
     const isActive = stepIndex === currentStep;
+    const ans = refleksiAnswers[cfg.questionKey] ?? "";
 
     return (
       <div className="flex flex-col gap-4">
         <div>
           <p className="mb-2 text-sm font-medium leading-relaxed text-[#2C2C2A]">
-            Apakah cara menghitung yang kamu gunakan di Apersepsi tadi cukup untuk menjawab
-            ketiga situasi di atas? Mengapa?
+            {cfg.soal}
           </p>
           <textarea
             rows={3}
             placeholder="tulis jawabanmu di sini"
-            value={methodSufficient}
+            value={ans}
             disabled={readOnly}
-            onChange={(e) => setMethodSufficient(e.target.value)}
-            className={`w-full resize-y rounded-md border border-[#34673933] px-3 py-2 text-sm ${
-              readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : ""
-            }`}
-          />
-        </div>
-
-        <div>
-          <p className="mb-2 text-sm font-medium leading-relaxed text-[#2C2C2A]">
-            Apa yang menurutmu perlu kamu pelajari untuk bisa menjawabnya?
-          </p>
-          <textarea
-            rows={3}
-            placeholder="tulis jawabanmu di sini"
-            value={whatToLearn}
-            disabled={readOnly}
-            onChange={(e) => setWhatToLearn(e.target.value)}
+            onChange={(e) =>
+              setRefleksiAnswers((prev) => ({
+                ...prev,
+                [cfg.questionKey]: e.target.value,
+              }))
+            }
             className={`w-full resize-y rounded-md border border-[#34673933] px-3 py-2 text-sm ${
               readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : ""
             }`}

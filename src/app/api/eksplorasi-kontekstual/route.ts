@@ -1,9 +1,11 @@
 /**
- * Eksplorasi Kontekstual — Save to DB
+ * Eksplorasi Kontekstual — Save to DB (per-question row)
  *
  * POST /api/eksplorasi-kontekstual
- * Body: { concept_id, answer, feedback? }
+ * Body: { concept_id, question_key, answer, feedback?, is_correct? }
  * Response: { success: true }
+ *
+ * Each question/sub-step is saved as its own row, identified by question_key.
  */
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -31,19 +33,26 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => null);
 
-    if (!body || typeof body.concept_id !== "string" || typeof body.answer !== "object") {
+    if (
+      !body ||
+      typeof body.concept_id !== "string" ||
+      typeof body.question_key !== "string" ||
+      typeof body.answer !== "object"
+    ) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { concept_id, answer, feedback } = body;
+    const { concept_id, question_key, answer, feedback, is_correct } = body;
 
     await prisma.$executeRaw`
-      INSERT INTO eksplorasi_kontekstual (student_id, concept_id, answer, feedback)
+      INSERT INTO eksplorasi_kontekstual (student_id, concept_id, question_key, answer, feedback, is_correct)
       VALUES (
         ${student.id},
         ${concept_id}::concept_type,
+        ${question_key},
         ${JSON.stringify(answer)}::jsonb,
-        ${feedback ?? null}
+        ${feedback ?? null},
+        ${is_correct ?? null}
       )
     `;
 

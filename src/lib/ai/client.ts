@@ -34,14 +34,21 @@ export const AsesmenDiagnostikPrompt = async (
   return response.output_parsed ?? { isCorrect: false };
 };
 
+const EskplorasiSchema = z.object({
+  isCorrect: z.boolean(),
+  feedback: z.string(),
+});
+
+export type EskplorasiResult = z.infer<typeof EskplorasiSchema>;
+
 export const EskplorasiPrompt = async (
   soal: string,
   jawaban: string,
   alasan: string
-): Promise<string> => {
-  const response = await client.chat.completions.create({
+): Promise<EskplorasiResult> => {
+  const response = await client.responses.parse({
     model: "gpt-4o",
-    messages: [
+    input: [
       {
         role: "system",
         content: PROMPTS.EskplorasiPrompt.system,
@@ -51,12 +58,16 @@ export const EskplorasiPrompt = async (
         content: PROMPTS.EskplorasiPrompt.user(soal, jawaban, alasan),
       },
     ],
-    temperature: 0.7,
+    text: {
+      format: zodTextFormat(EskplorasiSchema, "eskplorasi_kontekstual"),
+    },
   });
 
   return (
-    response.choices[0]?.message?.content ??
-    "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!"
+    response.output_parsed ?? {
+      isCorrect: false,
+      feedback: "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!",
+    }
   );
 };
 

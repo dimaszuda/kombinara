@@ -21,10 +21,26 @@ export const C = {
 // InputBlank — inline answer checker
 // ============================================================================
 
-export function InputBlank({ answer, width = 56 }: { answer: string | number; width?: number }) {
+export function InputBlank({
+  answer,
+  width = 56,
+  onChange,
+  disabled,
+}: {
+  answer: string | number;
+  width?: number;
+  onChange?: (value: string, isCorrect: boolean) => void;
+  disabled?: boolean;
+}) {
   const [value, setValue] = React.useState("");
   const [checked, setChecked] = React.useState(false);
   const isCorrect = value.trim() === String(answer);
+
+  function handleCheck() {
+    if (disabled) return;
+    setChecked(true);
+    onChange?.(value.trim(), isCorrect);
+  }
 
   return (
     <span className="inline-flex items-center gap-1.5 align-middle mx-1">
@@ -32,21 +48,24 @@ export function InputBlank({ answer, width = 56 }: { answer: string | number; wi
         type="text"
         value={value}
         onChange={(e) => {
+          if (disabled) return;
           setValue(e.target.value);
           setChecked(false);
         }}
         placeholder="..."
+        disabled={disabled}
         style={{
           width,
           borderColor: checked ? (isCorrect ? C.green : C.wrong) : "#94a3b8",
           color: C.green,
         }}
-        className="border-2 rounded-md px-2 py-0.5 text-center font-semibold text-sm focus:outline-none"
+        className="border-2 rounded-md px-2 py-0.5 text-center font-semibold text-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       />
       <button
-        onClick={() => setChecked(true)}
+        onClick={handleCheck}
+        disabled={disabled}
         style={{ backgroundColor: C.green }}
-        className="rounded-md p-1 hover:opacity-90 transition"
+        className="rounded-md p-1 hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Cek jawaban"
       >
         <IconCheck />
@@ -69,9 +88,26 @@ export function InputBlank({ answer, width = 56 }: { answer: string | number; wi
 // ChoiceToggle — option buttons
 // ============================================================================
 
-export function ChoiceToggle({ options, correct }: { options: string[]; correct: string }) {
+export function ChoiceToggle({
+  options,
+  correct,
+  onChange,
+  disabled,
+}: {
+  options: string[];
+  correct: string;
+  onChange?: (selected: string, isCorrect: boolean) => void;
+  disabled?: boolean;
+}) {
   const [selected, setSelected] = React.useState<string | null>(null);
   const isCorrect = selected === correct;
+
+  function handleSelect(opt: string) {
+    if (disabled) return;
+    setSelected(opt);
+    onChange?.(opt, opt === correct);
+  }
+
   return (
     <span className="inline-flex flex-wrap items-center gap-2 mx-1 align-middle">
       {options.map((opt: string) => {
@@ -80,13 +116,14 @@ export function ChoiceToggle({ options, correct }: { options: string[]; correct:
         return (
           <button
             key={opt}
-            onClick={() => setSelected(opt)}
+            onClick={() => handleSelect(opt)}
+            disabled={disabled}
             style={{
               backgroundColor: isSelected ? (optCorrect ? C.green : C.wrong) : C.greenLight,
               color: isSelected ? C.white : C.green,
               borderColor: isSelected ? (optCorrect ? C.green : C.wrong) : C.green,
             }}
-            className="rounded-full border-2 px-3 py-1 text-sm font-medium transition"
+            className="rounded-full border-2 px-3 py-1 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {opt}
           </button>

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS refleksi_mini (
   question_key VARCHAR   NOT NULL,
   answer       TEXT      NOT NULL,
   feedback     TEXT,
+  is_correct   BOOLEAN,
   created_at   TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -19,4 +20,6 @@ CREATE INDEX IF NOT EXISTS idx_refleksi_mini_q        ON refleksi_mini (student_
 
 COMMENT ON TABLE refleksi_mini IS
   'Student reflective answers for the Refleksi Mini section. '
-  'One row per question per submission. feedback is populated synchronously by the LLM.';
+  'One row per question per submission. feedback and is_correct are populated synchronously by the LLM.';
+COMMENT ON COLUMN refleksi_mini.is_correct IS
+  'Whether the student answer is correct according to LLM classification. NULL if not yet classified.';
