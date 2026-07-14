@@ -6,20 +6,96 @@ import { createPortal } from "react-dom";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface TocSection {
-  id: number;
+  /** Unique key untuk tracking completion (cocokkan dengan statusKey dari API) */
+  key: string;
   label: string;
   sub: string;
   icon: string;
+  /** DOM id target untuk scroll-to. undefined = tidak bisa di-scroll (header only) */
+  targetId?: string;
+  /** Sub-sections (indented) */
+  children?: TocSection[];
 }
 
+// ─── TOC Data untuk Kaidah Pencacahan ─────────────────────────────────────────
 const TOC_SECTIONS: TocSection[] = [
-  { id: 1, label: "Asesmen Diagnostik",     sub: "Ukur pemahaman awal siswa",        icon: "ti-clipboard-check" },
-  { id: 2, label: "Apersepsi dan Pemantik", sub: "Bangun koneksi & rasa ingin tahu", icon: "ti-flame"           },
-  { id: 3, label: "Penjelasan Konsep",      sub: "Pahami materi inti",                icon: "ti-book"            },
-  { id: 4, label: "Aktivitas Deep Learning",sub: "Eksplorasi mendalam & kolaborasi", icon: "ti-brain"           },
-  { id: 5, label: "Contoh Soal Bertahap",   sub: "Latihan dari mudah ke kompleks",   icon: "ti-stairs-up"       },
-  { id: 6, label: "Refleksi Mini",          sub: "Renungkan & rangkum belajar",      icon: "ti-sparkles"        },
+  {
+    key: "asesmen",
+    label: "Asesmen Diagnostik",
+    sub: "Ukur pemahaman awal sebelum mulai belajar",
+    icon: "ti-clipboard-check",
+    targetId: "asesmen-diagnostik",
+  },
+  {
+    key: "apersepsi",
+    label: "Apersepsi dan Pemantik",
+    sub: "Bangun koneksi & rasa ingin tahu",
+    icon: "ti-flame",
+    targetId: "apersepsi-pemantik",
+    children: [
+      { key: "apersepsi-sub", label: "Apersepsi", sub: "Eksplorasi situasi kontekstual", icon: "ti-bulb", targetId: "apersepsi-pemantik" },
+      { key: "pemantik-sub", label: "Pemantik", sub: "Pertanyaan pemicu rasa ingin tahu", icon: "ti-rocket", targetId: "apersepsi-pemantik" },
+      { key: "refleksi-sub", label: "Refleksi Sebelum Mulai", sub: "Renungkan sebelum masuk materi", icon: "ti-edit-circle", targetId: "apersepsi-pemantik" },
+    ],
+  },
+  {
+    key: "penjumlahan",
+    label: "Kaidah Penjumlahan",
+    sub: "Aturan pencacahan untuk pilihan saling lepas",
+    icon: "ti-plus",
+    targetId: "kaidah-penjumlahan",
+    children: [
+      { key: "penjumlahan-1", label: "Eksplorasi Kontekstual", sub: "Temukan pola dari situasi nyata", icon: "ti-search", targetId: "kaidah-penjumlahan" },
+      { key: "penjumlahan-2", label: "Aktivitas Deep Learning", sub: "Eksplorasi mendalam & kolaborasi", icon: "ti-brain", targetId: "kaidah-penjumlahan" },
+      { key: "penjumlahan-3", label: "Penjelasan Konsep", sub: "Pahami materi inti", icon: "ti-book", targetId: "kaidah-penjumlahan" },
+      { key: "penjumlahan-4", label: "Contoh Soal Bertahap", sub: "Latihan dari mudah ke kompleks", icon: "ti-stairs-up", targetId: "kaidah-penjumlahan" },
+      { key: "penjumlahan-5", label: "Mengapa Corner", sub: "Jawaban atas pertanyaan \"mengapa?\"", icon: "ti-question-mark", targetId: "kaidah-penjumlahan" },
+      { key: "penjumlahan-6", label: "Refleksi Mini", sub: "Renungkan & rangkum belajar", icon: "ti-sparkles", targetId: "kaidah-penjumlahan" },
+    ],
+  },
+  {
+    key: "perkalian",
+    label: "Kaidah Perkalian",
+    sub: "Aturan pencacahan untuk tahapan berurutan",
+    icon: "ti-x",
+    targetId: "kaidah-perkalian",
+    children: [
+      { key: "perkalian-1", label: "Eksplorasi Kontekstual", sub: "Temukan pola dari situasi nyata", icon: "ti-search", targetId: "kaidah-perkalian" },
+      { key: "perkalian-2", label: "Aktivitas Deep Learning", sub: "Eksplorasi mendalam & kolaborasi", icon: "ti-brain", targetId: "kaidah-perkalian" },
+      { key: "perkalian-3", label: "Penjelasan Konsep", sub: "Pahami materi inti", icon: "ti-book", targetId: "kaidah-perkalian" },
+      { key: "perkalian-4", label: "Contoh Soal Bertahap", sub: "Latihan dari mudah ke kompleks", icon: "ti-stairs-up", targetId: "kaidah-perkalian" },
+      { key: "perkalian-5", label: "Mengapa Corner", sub: "Jawaban atas pertanyaan \"mengapa?\"", icon: "ti-question-mark", targetId: "kaidah-perkalian" },
+      { key: "perkalian-6", label: "Aktivitas Siswa", sub: "Kerjakan sesuai materi yang diselesaikan", icon: "ti-pencil", targetId: "kaidah-perkalian" },
+      { key: "perkalian-7", label: "Panduan Cepat", sub: "Ringkasan langkah-langkah penting", icon: "ti-bolt", targetId: "kaidah-perkalian" },
+      { key: "perkalian-8", label: "Refleksi Mini", sub: "Renungkan & rangkum belajar", icon: "ti-sparkles", targetId: "kaidah-perkalian" },
+    ],
+  },
 ];
+
+/** Hitung total item (termasuk sub-item) untuk progress bar */
+function countAllItems(sections: TocSection[]): number {
+  let count = 0;
+  for (const s of sections) {
+    count++;
+    if (s.children) count += s.children.length;
+  }
+  return count;
+}
+const TOTAL_ITEMS = countAllItems(TOC_SECTIONS);
+
+/** Hitung berapa item yang completed */
+function countCompleted(sections: TocSection[], completedKeys: Set<string>): number {
+  let count = 0;
+  for (const s of sections) {
+    if (completedKeys.has(s.key)) count++;
+    if (s.children) {
+      for (const c of s.children) {
+        if (completedKeys.has(c.key)) count++;
+      }
+    }
+  }
+  return count;
+}
 
 // ─── Portal Tooltip ───────────────────────────────────────────────────────────
 function PortalTooltip({
@@ -74,14 +150,19 @@ function PortalTooltip({
 // ─── TOC Item ─────────────────────────────────────────────────────────────────
 function TocItem({
   section,
+  displayNumber,
   isActive,
   isCompleted,
   isLocked,
+  isSubItem = false,
 }: {
   section: TocSection;
+  /** Nomor tampilan, e.g. "1", "2.3" */
+  displayNumber: string;
   isActive: boolean;
   isCompleted: boolean;
   isLocked: boolean;
+  isSubItem?: boolean;
 }) {
   const numBg = isActive
     ? "white"
@@ -101,9 +182,10 @@ function TocItem({
         display: "flex",
         alignItems: "center",
         gap: 12,
-        padding: "9px 12px 9px 10px",
+        width: "100%",
+        padding: isSubItem ? "8px 12px 8px 42px" : "10px 12px 10px 10px",
         borderRadius: 12,
-        cursor: isLocked ? "not-allowed" : "default",
+        cursor: "default",
         position: "relative",
         zIndex: 1,
         background: isActive ? "rgba(255,255,255,0.24)" : "transparent",
@@ -118,8 +200,8 @@ function TocItem({
           borderRadius: "50%",
           background: numBg,
           color: numColor,
-          fontSize: 12,
-          fontWeight: 500,
+          fontSize: isSubItem ? 10 : 12,
+          fontWeight: 600,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -128,20 +210,16 @@ function TocItem({
           transition: "background 0.18s ease, color 0.18s ease",
         }}
       >
-        {isCompleted && !isActive ? (
-          <i className="ti ti-check" style={{ fontSize: 13 }} aria-hidden="true" />
-        ) : (
-          section.id
-        )}
+        {displayNumber}
       </div>
 
       {/* Text */}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
             color: `rgba(255,255,255,${labelOpacity})`,
-            fontSize: 13.5,
-            fontWeight: 500,
+            fontSize: isSubItem ? 12.5 : 13.5,
+            fontWeight: isSubItem ? 400 : 600,
             lineHeight: 1.3,
           }}
         >
@@ -150,7 +228,7 @@ function TocItem({
         <div
           style={{
             color: `rgba(255,255,255,${subOpacity})`,
-            fontSize: 11.5,
+            fontSize: isSubItem ? 10.5 : 11.5,
             marginTop: 1,
           }}
         >
@@ -182,14 +260,29 @@ function TocItem({
 
 // ─── TOC List ─────────────────────────────────────────────────────────────────
 function TocList({
-  activeSection,
-  completedSections,
+  activeKey,
+  completedKeys,
 }: {
-  activeSection: number;
-  completedSections: Set<number>;
+  activeKey: string | null;
+  completedKeys: Set<string>;
 }) {
-  const completedCount = completedSections.size;
-  const pct = Math.round((completedCount / TOC_SECTIONS.length) * 100);
+  const completedCount = countCompleted(TOC_SECTIONS, completedKeys);
+  const pct = TOTAL_ITEMS > 0 ? Math.round((completedCount / TOTAL_ITEMS) * 100) : 0;
+
+  // Flatten sections dengan display number: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, ...
+  const flatItems: Array<{ section: TocSection; isSubItem: boolean; displayNumber: string }> = [];
+  let mainNum = 0;
+  for (const s of TOC_SECTIONS) {
+    mainNum++;
+    flatItems.push({ section: s, isSubItem: false, displayNumber: String(mainNum) });
+    if (s.children) {
+      let subNum = 0;
+      for (const c of s.children) {
+        subNum++;
+        flatItems.push({ section: c, isSubItem: true, displayNumber: `${mainNum}.${subNum}` });
+      }
+    }
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
@@ -202,7 +295,7 @@ function TocList({
           position: "relative",
         }}
       >
-        {/* Vertical connector line */}
+        {/* Vertical connector line — only behind main items */}
         <div
           style={{
             position: "absolute",
@@ -216,23 +309,44 @@ function TocList({
           aria-hidden="true"
         />
 
-        {TOC_SECTIONS.map((section) => {
-          const isCompleted = completedSections.has(section.id);
-          const isActive    = section.id === activeSection;
-          const isLocked    =
-            !isCompleted &&
-            !isActive &&
-            section.id > 1 &&
-            !completedSections.has(section.id - 1) &&
-            section.id !== activeSection;
+        {flatItems.map(({ section, isSubItem, displayNumber }) => {
+          const isCompleted = completedKeys.has(section.key);
+          const isActive    = section.key === activeKey;
+
+          // Locked logic: parent is locked if previous parent is not completed
+          // Sub-item is locked if its parent is not completed
+          let isLocked = false;
+          if (isSubItem) {
+            // Find parent
+            const parent = TOC_SECTIONS.find((p) =>
+              p.children?.some((c) => c.key === section.key)
+            );
+            if (parent && !completedKeys.has(parent.key) && parent.key !== activeKey) {
+              isLocked = true;
+            }
+          } else {
+            // Main section: locked if previous main section is not completed
+            const idx = TOC_SECTIONS.findIndex((s) => s.key === section.key);
+            if (idx > 0) {
+              const prevKey = TOC_SECTIONS[idx - 1].key;
+              if (!completedKeys.has(prevKey) && prevKey !== activeKey) {
+                isLocked = true;
+              }
+            }
+          }
+
+          // Override: if it's completed or active, it's never locked
+          if (isCompleted || isActive) isLocked = false;
 
           return (
             <TocItem
-              key={section.id}
+              key={section.key}
               section={section}
+              displayNumber={displayNumber}
               isActive={isActive}
               isCompleted={isCompleted}
               isLocked={isLocked}
+              isSubItem={isSubItem}
             />
           );
         })}
@@ -259,7 +373,7 @@ function TocList({
             Progress belajar
           </span>
           <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 11.5, fontWeight: 500 }}>
-            {completedCount} / {TOC_SECTIONS.length}
+            {completedCount} / {TOTAL_ITEMS}
           </span>
         </div>
         <div
@@ -292,8 +406,10 @@ interface TableContentProps {
   onOpen: () => void;
   onClose: () => void;
   otherPanelOpen: boolean;
-  activeSection: number;
-  completedSections: Set<number>;
+  /** Key dari section yang sedang aktif (sedang dikerjakan) */
+  activeKey?: string | null;
+  /** Set of section keys yang sudah completed */
+  completedKeys?: Set<string>;
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -302,8 +418,8 @@ export default function TableContent({
   onOpen,
   onClose,
   otherPanelOpen,
-  activeSection,
-  completedSections,
+  activeKey = null,
+  completedKeys = new Set(),
 }: TableContentProps) {
   const [hovered, setHovered] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -534,7 +650,7 @@ export default function TableContent({
         </div>
 
         <div style={{ height: 12, flexShrink: 0 }} />
-        <TocList activeSection={activeSection} completedSections={completedSections} />
+        <TocList activeKey={activeKey} completedKeys={completedKeys} />
         <div style={{ height: 20, flexShrink: 0 }} />
       </div>
 
@@ -559,7 +675,7 @@ export default function TableContent({
       >
         {headerContent}
         <div style={{ height: 12, flexShrink: 0 }} />
-        <TocList activeSection={activeSection} completedSections={completedSections} />
+        <TocList activeKey={activeKey} completedKeys={completedKeys} />
         <div style={{ height: 16, flexShrink: 0 }} />
       </div>
     </>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import DownloadModulButton from "./DownloadModulButton";
 
 const NAV_ITEMS = [
   {
@@ -27,11 +28,6 @@ const NAV_ITEMS = [
     href: "/siswa/ulangan",
     icon: "/icons/test.png",
   },
-  {
-    label: "Download Modul",
-    href: "/siswa/aktivitas",
-    icon: "/icons/download.png"
-  }
 ];
 
 interface SidebarProps {
@@ -297,6 +293,9 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
         ))}
       </div>
 
+      {/* Download Modul button */}
+      <DownloadModulButton expanded={expanded} />
+
       {/* Logout — push ke paling bawah */}
       <div style={{ marginTop: "auto" }}>
         <LogoutButton expanded={expanded} />
@@ -339,6 +338,11 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
             </Link>
           );
         })}
+
+        {/* Download Modul button untuk mobile */}
+        <div style={{ padding: "0 8px", marginBottom: 12 }}>
+          <DownloadModulButton expanded={true} />
+        </div>
       </div>
 
       <div style={{ marginTop: "auto", padding: "0 8px 8px" }}>

@@ -39,6 +39,8 @@ export default function SignupPage() {
 
     if (!namaLengkap.trim()) { setError("Nama lengkap wajib diisi"); return; }
     if (!nomorAbsen.trim()) { setError("Nomor absen wajib diisi"); return; }
+    const nomorAbsenNum = parseInt(nomorAbsen.trim(), 10);
+    if (isNaN(nomorAbsenNum) || nomorAbsenNum <= 0) { setError("Nomor absen harus berupa angka lebih dari 0"); return; }
     if (!kelas.trim()) { setError("Kelas wajib diisi"); return; }
     if (!groupKelas.trim()) { setError("Grup kelas wajib diisi"); return; }
     if (!gender) { setError("Jenis kelamin wajib dipilih"); return; }

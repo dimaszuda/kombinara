@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import SelectionToolbar from "@/components/materi/SelectionToolbar";
@@ -175,6 +175,58 @@ export default function MateriDetailPage({
     };
   }, []);
 
+  // ── Compute completedKeys & activeKey untuk TableContent ──────────
+  const { completedKeys, activeKey } = useMemo(() => {
+    const keys = new Set<string>();
+
+    // Asesmen Diagnostik
+    if (passAssesmen) keys.add("asesmen");
+
+    // Apersepsi & Pemantik
+    const steps = apersepsiCompletedSteps;
+    const apersepsiSubDone = [0, 1, 2].every((i) => steps[i]);
+    const pemantikSubDone = [3, 4, 5].every((i) => steps[i]);
+    const refleksiSubDone = [6, 7].every((i) => steps[i]);
+    if (apersepsiSubDone) keys.add("apersepsi-sub");
+    if (pemantikSubDone) keys.add("pemantik-sub");
+    if (refleksiSubDone) keys.add("refleksi-sub");
+    if (passApersepsi) keys.add("apersepsi");
+
+    // Kaidah Penjumlahan
+    const pj = penjumlahanCompletedSections;
+    if (pj[0]) keys.add("penjumlahan-1");
+    if (pj[1]) { keys.add("penjumlahan-2"); keys.add("penjumlahan-3"); }
+    if (pj[3]) { keys.add("penjumlahan-4"); keys.add("penjumlahan-5"); }
+    if (pj[5]) keys.add("penjumlahan-6");
+    if (passKaidahPenjumlahan) keys.add("penjumlahan");
+
+    // Kaidah Perkalian
+    const pk = perkalianCompletedSections;
+    if (pk[0]) keys.add("perkalian-1");
+    if (pk[1]) { keys.add("perkalian-2"); keys.add("perkalian-3"); }
+    if (pk[3]) { keys.add("perkalian-4"); keys.add("perkalian-5"); }
+    if (pk[7]) { keys.add("perkalian-6"); keys.add("perkalian-7"); keys.add("perkalian-8"); }
+    if (passKaidahPerkalian) keys.add("perkalian");
+
+    // Tentukan activeKey: section pertama yang unlocked tapi belum complete
+    let active: string | null = null;
+    if (!passAssesmen) {
+      active = "asesmen";
+    } else if (!passApersepsi) {
+      active = "apersepsi";
+    } else if (!passKaidahPenjumlahan) {
+      active = "penjumlahan";
+    } else if (!passKaidahPerkalian) {
+      active = "perkalian";
+    }
+    // else: semua complete, active = null
+
+    return { completedKeys: keys, activeKey: active };
+  }, [
+    passAssesmen, passApersepsi, passKaidahPenjumlahan, passKaidahPerkalian,
+    apersepsiCompletedSteps, penjumlahanCompletedSections, perkalianCompletedSections,
+  ]);
+
   if (!materi) {
     return (
       <div style={{ padding: "24px" }}>
@@ -231,7 +283,7 @@ export default function MateriDetailPage({
       </div>
       
       {/* Asesmen Diagnostik section */}
-      <div key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
+      <div id="asesmen-diagnostik" key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
         <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
           Asesmen Diagnostik
         </p>
@@ -256,6 +308,7 @@ export default function MateriDetailPage({
 
       {/* Section terkunci: Apersepsi dan Pemantik */}
       <LockableSection
+        id="apersepsi-pemantik"
         unlocked={passAssesmen}
         label="Apersepsi dan Pemantik"
         progressWidth="50%"
@@ -269,6 +322,7 @@ export default function MateriDetailPage({
 
       {/* Section terkunci: MATERI 1 */}
       <LockableSection
+        id="kaidah-penjumlahan"
         unlocked={passApersepsi}
         label="MATERI 1 : KAIDAH PENJUMLAHAN"
         progressWidth="75%"
@@ -282,6 +336,7 @@ export default function MateriDetailPage({
 
       {/* Section terkunci: MATERI 2 */}
       <LockableSection
+        id="kaidah-perkalian"
         unlocked={passKaidahPenjumlahan}
         label="MATERI 2 : KAIDAH PERKALIAN"
         progressWidth="100%"
@@ -297,7 +352,7 @@ export default function MateriDetailPage({
 
   // ── Bungkus dengan ChatbotShell hanya kalau sudah lulus asesmen ──────
   return passAssesmen ? (
-    <ChatbotShell>{pageContent}</ChatbotShell>
+    <ChatbotShell activeKey={activeKey} completedKeys={completedKeys}>{pageContent}</ChatbotShell>
   ) : (
     pageContent
   );
@@ -307,18 +362,20 @@ export default function MateriDetailPage({
  * Wrapper section yang terkunci sampai siswa lulus asesmen diagnostik.
  */
 function LockableSection({
+  id,
   unlocked,
   label,
   progressWidth,
   children,
 }: {
+  id?: string;
   unlocked: boolean;
   label: string;
   progressWidth: string;
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: "40px" }}>
+    <div id={id} style={{ marginBottom: "40px" }}>
       <p
         style={{
           fontSize: "12px",

@@ -11,14 +11,16 @@ type PanelKind = "chatbot" | "tablecontent" | null;
 
 interface ChatbotShellProps {
   children: ReactNode;
-  activeSection?: number;
-  completedSections?: Set<number>;
+  /** Key dari section yang sedang aktif */
+  activeKey?: string | null;
+  /** Set of section keys yang sudah completed */
+  completedKeys?: Set<string>;
 }
 
 export default function ChatbotShell({
   children,
-  activeSection = 1,
-  completedSections = new Set(),
+  activeKey = null,
+  completedKeys = new Set(),
 }: ChatbotShellProps) {
   const [activePanel, setActivePanel] = useState<PanelKind>(null);
   const [selectionContext, setSelectionContext] = useState<SelectionContext | null>(null);
@@ -55,8 +57,8 @@ export default function ChatbotShell({
         onOpen={() => setActivePanel("tablecontent")}
         onClose={() => setActivePanel(null)}
         otherPanelOpen={activePanel !== null && activePanel !== "tablecontent"}
-        activeSection={activeSection}
-        completedSections={completedSections}
+        activeKey={activeKey}
+        completedKeys={completedKeys}
       />
     </ChatContext.Provider>
   );

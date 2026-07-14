@@ -68,6 +68,12 @@ export default function CompleteProfilPage() {
     e.preventDefault();
     if (!namaLengkap.trim()) return;
 
+    const nomorAbsenNum = parseInt(nomorAbsen.trim(), 10);
+    if (!nomorAbsen.trim() || isNaN(nomorAbsenNum) || nomorAbsenNum <= 0) {
+      setError("Nomor absen harus berupa angka lebih dari 0");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
