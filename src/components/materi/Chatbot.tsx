@@ -123,13 +123,21 @@ function MessageBubble({ msg }: { msg: Message }) {
   );
 }
 
+// ─── Quick prompt button config ───────────────────────────────────────────────
+const QUICK_PROMPTS = [
+  { label: "Rangkum poin penting materi ini" },
+  { label: "Kasih contoh soal" },
+];
+
 // ─── Shared chat panel content (used by both mobile & desktop) ────────────────
 function ChatMessages({
   messages,
   isLoading,
+  onQuickPrompt,
 }: {
   messages: Message[];
   isLoading: boolean;
+  onQuickPrompt?: (text: string) => void;
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -149,17 +157,119 @@ function ChatMessages({
       }}
     >
       {messages.length === 0 && (
-        <p
+        <div
           style={{
-            color: "rgba(255,255,255,0.75)",
-            fontSize: 13,
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "32px 28px",
             textAlign: "center",
-            marginTop: 24,
-            lineHeight: 1.6,
+            gap: 16,
           }}
         >
-          Tanyakan apapun tentang materi ini!
-        </p>
+          {/* Icon circle */}
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z" />
+              <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" />
+            </svg>
+          </div>
+
+          <div>
+            <p
+              style={{
+                margin: "0 0 4px",
+                fontSize: 15,
+                fontWeight: 500,
+                color: "#ffffff",
+              }}
+            >
+              Tanyakan apapun tentang materi ini
+            </p>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 13,
+                color: "rgba(255,255,255,0.75)",
+                lineHeight: 1.5,
+              }}
+            >
+              Aku bisa bantu jelaskan konsep, kasih contoh, atau rangkum poin penting.
+            </p>
+          </div>
+
+          {/* Quick prompts */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              width: "100%",
+              marginTop: 8,
+            }}
+          >
+            {QUICK_PROMPTS.map(({ label }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => onQuickPrompt?.(label)}
+                style={{
+                  background: "rgba(255,255,255,0.14)",
+                  border: "0.5px solid rgba(255,255,255,0.3)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  color: "#ffffff",
+                  fontSize: 13,
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ flexShrink: 0 }}
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <path d="M12 17h.01" />
+                </svg>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {messages.map((msg) => (
@@ -229,15 +339,16 @@ function ChatInput({
   };
 
   return (
-    <div style={{ padding: "10px 12px 16px", flexShrink: 0 }}>
+    <div style={{ padding: "12px 14px 16px", flexShrink: 0 }}>
       <div
         style={{
           display: "flex",
           alignItems: "flex-end",
           gap: 8,
-          background: "#F3FFF1",
-          borderRadius: 16,
-          padding: "8px 6px 8px 14px",
+          background: "rgba(255,255,255,0.16)",
+          border: "0.5px solid rgba(255,255,255,0.3)",
+          borderRadius: 24,
+          padding: "6px 6px 6px 16px",
         }}
       >
         <textarea
@@ -253,8 +364,8 @@ function ChatInput({
             border: "none",
             background: "transparent",
             outline: "none",
-            fontSize: 13,
-            color: "#1a1a1a",
+            fontSize: 14,
+            color: "#ffffff",
             resize: "none",
             overflowY: "hidden",
             lineHeight: 1.5,
@@ -262,7 +373,7 @@ function ChatInput({
             overflowX: "hidden",
             wordBreak: "break-word",
             fontFamily: "inherit",
-            padding: 0,
+            padding: "6px 0",
             opacity: isLoading ? 0.5 : 1,
           }}
         />
@@ -274,7 +385,7 @@ function ChatInput({
             width: 32,
             height: 32,
             borderRadius: "50%",
-            background: isLoading || !value.trim() ? "#b8d4b0" : "#79AE6F",
+            background: isLoading || !value.trim() ? "rgba(255,255,255,0.5)" : "#ffffff",
             border: "none",
             cursor: isLoading || !value.trim() ? "default" : "pointer",
             display: "flex",
@@ -294,7 +405,7 @@ function ChatInput({
           >
             <path
               d="M7 12V2M7 2L3 6M7 2L11 6"
-              stroke="white"
+              stroke="#79AE6F"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -351,7 +462,13 @@ function ContextBar({
 }
 
 // ─── Panel header ─────────────────────────────────────────────────────────────
-function PanelHeader({ onClose }: { onClose: () => void }) {
+function PanelHeader({
+  onClose,
+  onNewChat,
+}: {
+  onClose: () => void;
+  onNewChat?: () => void;
+}) {
   return (
     <>
       <div
@@ -359,50 +476,118 @@ function PanelHeader({ onClose }: { onClose: () => void }) {
           display: "flex",
           alignItems: "center",
           gap: 10,
-          padding: "18px 16px 14px",
+          padding: "16px 18px",
           flexShrink: 0,
         }}
       >
-        <button
-          type="button"
-          onClick={onClose}
+        {/* Avatar */}
+        <div
           style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.18)",
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
             flexShrink: 0,
           }}
-          aria-label="Tutup chatbot"
         >
           <Image
             src="/icons/AI icon.png"
             alt="AI"
-            width={32}
-            height={32}
+            width={20}
+            height={20}
             style={{ objectFit: "contain" }}
           />
-        </button>
-        <span
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 15,
+              fontWeight: 500,
+              color: "#ffffff",
+            }}
+          >
+            Tanyakan Kombi
+          </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              color: "rgba(255,255,255,0.75)",
+            }}
+          >
+            Kombi siap bantu kamu
+          </p>
+        </div>
+
+        {/* New Chat button — icon only */}
+        {onNewChat && (
+          <button
+            type="button"
+            onClick={onNewChat}
+            aria-label="Percakapan baru"
+            style={{
+              background: "none",
+              border: "none",
+              padding: 4,
+              lineHeight: 1,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="rgba(255,255,255,0.8)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Tutup panel"
           style={{
-            color: "white",
-            fontWeight: 700,
-            fontSize: 16,
-            letterSpacing: "0.01em",
+            background: "none",
+            border: "none",
+            padding: 4,
+            lineHeight: 1,
+            cursor: "pointer",
+            flexShrink: 0,
           }}
         >
-          Tanyakan AI
-        </span>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="rgba(255,255,255,0.8)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
 
       {/* Divider */}
       <div
         style={{
           height: 1,
-          background: "rgba(255,255,255,0.3)",
-          marginBottom: 8,
+          background: "rgba(255,255,255,0.25)",
           flexShrink: 0,
         }}
       />
@@ -429,9 +614,15 @@ export default function Chatbot({
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
 
+  // Conversation ID — UUID untuk mengelompokkan sesi percakapan di DB
+  // Digenerate ulang setiap kali panel dibuka (percakapan baru).
+  const conversationIdRef = useRef(crypto.randomUUID());
+
   // ── Ketika selectionContext tersedia (dibuka dari highlight) ─────────────
   useEffect(() => {
     if (isOpen && selectionContext) {
+      // Percakapan baru — generate conversation ID baru
+      conversationIdRef.current = crypto.randomUUID();
       // Tampilkan pesan AI awal yang mengajak siswa bertanya
       setMessages([
         {
@@ -444,21 +635,24 @@ export default function Chatbot({
     }
   }, [isOpen, selectionContext]);
 
-  // ── Reset messages ketika panel dibuka tanpa context ────────────────────
-  useEffect(() => {
-    if (isOpen && !selectionContext) {
-      // Reset ke state bersih saat buka dari icon
-      setMessages([]);
-      setInput("");
-    }
-  }, [isOpen, selectionContext]);
+  // ── Reset percakapan (New Chat) ────────────────────────────────────────
+  const handleNewChat = useCallback(() => {
+    conversationIdRef.current = crypto.randomUUID();
+    setMessages([]);
+    setInput("");
+    // Clear selection context if any
+    if (onClearContext) onClearContext();
+  }, [onClearContext]);
 
   // ── Kirim pesan ke API ──────────────────────────────────────────────────
   const sendToAI = useCallback(
     async (question: string) => {
       setIsLoading(true);
       try {
-        const body: Record<string, unknown> = { question };
+        const body: Record<string, unknown> = {
+          question,
+          conversation_id: conversationIdRef.current,
+        };
 
         if (selectionContext) {
           body.selectedText = selectionContext.selectedText;
@@ -526,9 +720,24 @@ export default function Chatbot({
     sendToAI(text);
   }, [input, isLoading, sendToAI]);
 
+  const handleQuickPrompt = useCallback(
+    (text: string) => {
+      if (isLoading) return;
+
+      const userMsg: Message = {
+        id: `${Date.now()}-user`,
+        type: "user",
+        text,
+      };
+      setMessages((prev) => [...prev, userMsg]);
+      sendToAI(text);
+    },
+    [isLoading, sendToAI]
+  );
+
   // ── Shared sub-components ────────────────────────────────────────────────────
   const messagesSection = (
-    <ChatMessages messages={messages} isLoading={isLoading} />
+    <ChatMessages messages={messages} isLoading={isLoading} onQuickPrompt={handleQuickPrompt} />
   );
 
   const inputSection = (
@@ -544,7 +753,12 @@ export default function Chatbot({
     <ContextBar ctx={selectionContext} onClear={onClearContext} />
   ) : null;
 
-  const desktopHeader = <PanelHeader onClose={() => { setHovered(false); onClose(); }} />;
+  const desktopHeader = (
+    <PanelHeader
+      onClose={() => { setHovered(false); onClose(); }}
+      onNewChat={handleNewChat}
+    />
+  );
 
   return (
     <>
@@ -684,48 +898,109 @@ export default function Chatbot({
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
             gap: 10,
-            padding: "18px 16px 14px",
+            padding: "16px 18px",
             flexShrink: 0,
           }}
         >
-          <span
+          {/* Avatar */}
+          <div
             style={{
-              color: "white",
-              fontWeight: 700,
-              fontSize: 16,
-              letterSpacing: "0.01em",
-            }}
-          >
-            Tanyakan AI
-          </span>
-
-          <button
-            type="button"
-            onClick={() => { setHovered(false); onClose(); }}
-            style={{
-              background: "rgba(0,0,0,0.12)",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
-              width: 38,
-              height: 38,
-              borderRadius: 10,
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
             }}
-            aria-label="Tutup chatbot"
           >
             <Image
-              src="/icons/close panel.png"
-              alt=""
-              width={22}
-              height={22}
-              style={{ objectFit: "contain", width: 16, height: 16 }}
+              src="/icons/AI icon.png"
+              alt="AI"
+              width={20}
+              height={20}
+              style={{ objectFit: "contain" }}
             />
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 15,
+                fontWeight: 500,
+                color: "#ffffff",
+              }}
+            >
+              Tanyakan AI
+            </p>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 12,
+                color: "rgba(255,255,255,0.75)",
+              }}
+            >
+              Siap membantu materi kamu
+            </p>
+          </div>
+
+          {/* New Chat button — icon only */}
+          <button
+            type="button"
+            onClick={handleNewChat}
+            aria-label="Percakapan baru"
+            style={{
+              background: "none",
+              border: "none",
+              padding: 4,
+              lineHeight: 1,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="rgba(255,255,255,0.8)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setHovered(false); onClose(); }}
+            aria-label="Tutup panel"
+            style={{
+              background: "none",
+              border: "none",
+              padding: 4,
+              lineHeight: 1,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="rgba(255,255,255,0.8)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
@@ -733,8 +1008,7 @@ export default function Chatbot({
         <div
           style={{
             height: 1,
-            background: "rgba(255,255,255,0.3)",
-            marginBottom: 4,
+            background: "rgba(255,255,255,0.25)",
             flexShrink: 0,
           }}
         />

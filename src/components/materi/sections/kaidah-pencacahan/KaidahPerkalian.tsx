@@ -1980,7 +1980,7 @@ export default function KaidahPerkalian({
       )}
 
       {allComplete && (
-        <div className="flex items-start gap-3.5 rounded-2xl bg-[#346739] p-6">
+        <div className="flex items-start gap-3.5 rounded-2xl bg-[#663362] p-6">
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">

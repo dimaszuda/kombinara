@@ -65,6 +65,7 @@ model Student {
   aktivitasDeepLearning   AktivitasDeepLearning[]
   refleksiMini            RefleksiMini[]
   aktivitasSiswaEntries   AktivitasSiswaEntry[]
+  aiMessages              AiMessage[]
 
   @@map("students")
 }
@@ -151,6 +152,23 @@ model AiQuestion {
   materi Materi @relation(fields: [materiId], references: [id], onDelete: Cascade)
 
   @@map("ai_questions")
+}
+
+// Panel Chatbot — menyimpan semua percakapan siswa dengan AI
+model AiMessage {
+  messageId      Int      @id @default(autoincrement()) @map("message_id")
+  studentId      Int      @map("student_id")
+  conversationId String   @map("conversation_id") @db.Uuid
+  role           String   // "user" | "assistant"
+  content        String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([conversationId])
+  @@index([studentId, conversationId])
+  @@map("ai_messages")
 }
 
 // ============================================================
