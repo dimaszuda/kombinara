@@ -85,7 +85,7 @@ function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean })
   return (
     <div className={`mt-3 rounded-lg border ${borderColor} ${bgColor} p-3`}>
       <p className={`mb-1 text-xs font-medium ${labelColor}`}>{icon} Feedback Kombi</p>
-      <p className="text-sm leading-relaxed text-[#2C2C2A]">{text}</p>
+      <p className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{text}</p>
     </div>
   );
 }
@@ -317,7 +317,7 @@ export default function AktivitasKP3() {
             const sub = data.submissions[step.questionKey];
             if (sub) {
               fb[step.index] = {
-                text: sub.feedback ?? "Jawaban sudah tersimpan.",
+                text: `📝 Jawaban kamu: ${sub.answer}\n\n💬 Feedback: ${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                 isCorrect: sub.isCorrect,
               };
             }

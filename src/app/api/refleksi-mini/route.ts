@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Insert each question as a separate row
+    // Insert each question as a separate row (allow multiple attempts)
     await Promise.all(
       rows.map((row) =>
         prisma.$executeRaw`
