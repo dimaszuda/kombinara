@@ -10,18 +10,18 @@ const MAKANAN = [
   { id: "nasi-goreng", label: "Nasi Goreng", src: "/illustrations/Nasi Goreng.jpg" },
   { id: "mie-ayam", label: "Mie Ayam", src: "/illustrations/Mi Ayam.jpg" },
   { id: "sate-ayam", label: "Sate Ayam", src: "/illustrations/Sate Ayam.jpg" },
-  { id: "ayam-bakar", label: "Ayam Bakar", src: "/illustrations/Ayam Bakar.jpg" },
+  { id: "ayam-bakar", label: "Ayam Bakar", src: "/illustrations/Ayam Bakar.png" },
 ];
 
 const MINUMAN = [
   { id: "es-teh", label: "Es Teh", src: "/illustrations/Es Teh.jpg" },
-  { id: "es-jeruk", label: "Es Jeruk", src: "/illustrations/Es Jeruk.jpg" },
+  { id: "es-jeruk", label: "Es Jeruk", src: "/illustrations/Es Jeruk.png" },
   { id: "jus-alpukat", label: "Jus Alpukat", src: "/illustrations/Jus Alpukat.jpg" },
 ];
 
 const DESSERT = [
   { id: "puding", label: "Puding Cokelat", src: "/illustrations/Puding Coklat.jpg" },
-  { id: "es-krim", label: "Es Krim Vanilla", src: "/illustrations/Ice Cream Vanilla.jpg" },
+  { id: "es-krim", label: "Es Krim Vanilla", src: "/illustrations/Ice Cream Vanilla.png" },
 ];
 
 const SKIP_MINUMAN = { id: "__skip_minum__", label: "Tidak pakai minuman", isSkip: true };

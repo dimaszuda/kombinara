@@ -669,6 +669,13 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     readOnly ? (savedAnswer?.operasi_matematika ?? "") : ""
   );
   const [submitted, setSubmitted] = useState(wasAlreadyCorrect);
+  const [dlSaving, setDlSaving] = useState(false);
+  const [dlFeedback, setDlFeedback] = useState<string | null>(
+    readOnly ? (savedFeedback ?? null) : null
+  );
+  const [dlFeedbackType, setDlFeedbackType] = useState<"success" | "retry" | "error" | null>(
+    wasAlreadyCorrect ? "success" : null
+  );
 
   // Notify parent when submitted
   const dlCalledComplete = useRef(false);
@@ -700,12 +707,14 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     }
     if (savedData.isCorrect === true) {
       setSubmitted(true);
+      setDlFeedbackType("success");
     }
+    if (savedData.feedback) setDlFeedback(savedData.feedback);
 
     didRestoreDL.current = true;
   }, [readOnly, savedData]);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const jawabanObj = {
       tabel: situations.map((s, i) => ({
         situasi: s.situation,
@@ -719,28 +728,54 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     const soal =
       "Aktivitas menemukan pola kaidah penjumlahan: Siswa menganalisis 3 situasi pilihan saling lepas (transportasi, baju, jurusan) untuk menentukan boleh tidaknya memilih keduanya, total pilihan, apakah ada pola, dan operasi matematika yang digunakan.";
 
-    setSubmitted(true);
+    setDlSaving(true);
+    setDlFeedback(null);
+    setDlFeedbackType(null);
 
-    // Background: call AI then save to DB
-    fetch("/api/ai/deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj) }),
-    })
-      .then((res) => (res.ok ? res.json() : Promise.resolve(null)))
-      .then((data) =>
-        fetch("/api/aktivitas-deep-learning", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            concept_id: "kaidah_penjumlahan",
-            answer: jawabanObj,
-            feedback: data?.feedback ?? null,
-            is_correct: data?.isCorrect ?? null,
-          }),
-        })
-      )
-      .catch((err) => console.error("[deep-learning] background error:", err));
+    try {
+      // Step 1: Panggil AI untuk dapatkan feedback & penilaian
+      const aiRes = await fetch("/api/ai/deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj) }),
+      });
+
+      if (!aiRes.ok) {
+        throw new Error("AI API returned non-OK status");
+      }
+
+      const aiData = await aiRes.json();
+
+      // Step 2: Simpan ke DB (selalu INSERT, bukan upsert)
+      await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "kaidah_penjumlahan",
+          answer: jawabanObj,
+          feedback: aiData?.feedback ?? null,
+          is_correct: aiData?.isCorrect ?? null,
+        }),
+      });
+
+      // Step 3: Validasi — hanya lanjut section berikutnya jika AI menilai benar
+      if (aiData?.isCorrect === true) {
+        setSubmitted(true);
+        setDlFeedback(aiData.feedback ?? null);
+        setDlFeedbackType("success");
+      } else {
+        // Jawaban belum tepat → tampilkan feedback & biarkan siswa retry
+        setDlFeedback(aiData?.feedback ?? "Coba lagi ya, jawabanmu belum tepat. Perbaiki jawabanmu!");
+        setDlFeedbackType("retry");
+        // submitted tetap false → siswa bisa edit & kirim ulang
+      }
+    } catch (err) {
+      console.error("[deep-learning] error:", err);
+      setDlFeedback("Maaf, ada kendala saat memproses jawabanmu. Coba lagi ya!");
+      setDlFeedbackType("error");
+    } finally {
+      setDlSaving(false);
+    }
   }
 
   return (
@@ -772,11 +807,12 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
                   <select
                     value={tableAnswers[i].both}
                     disabled={readOnly}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setTableAnswers((prev) =>
                         prev.map((a, idx) => idx === i ? { ...a, both: e.target.value } : a)
-                      )
-                    }
+                      );
+                      if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); }
+                    }}
                     className={`rounded-md border border-[#34673933] px-2 py-1.5 text-xs text-[#2C2C2A] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                   >
                     <option value="">Ya/Tidak</option>
@@ -789,11 +825,12 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
                     type="text"
                     value={tableAnswers[i].total}
                     disabled={readOnly}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setTableAnswers((prev) =>
                         prev.map((a, idx) => idx === i ? { ...a, total: e.target.value } : a)
-                      )
-                    }
+                      );
+                      if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); }
+                    }}
                     placeholder="..."
                     className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
                   />
@@ -811,8 +848,8 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
 
       <p className="mt-4 text-lg font-semibold text-[#346739]">🤔 Apakah ada pola?</p>
       <div className="mt-2.5 flex gap-2">
-        <ToggleButton label="Ya" active={foundPattern === "yes"} onClick={readOnly ? () => {} : () => setFoundPattern("yes")} />
-        <ToggleButton label="Tidak" active={foundPattern === "no"} onClick={readOnly ? () => {} : () => setFoundPattern("no")} />
+        <ToggleButton label="Ya" active={foundPattern === "yes"} onClick={readOnly ? () => {} : () => { setFoundPattern("yes"); if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); } }} />
+        <ToggleButton label="Tidak" active={foundPattern === "no"} onClick={readOnly ? () => {} : () => { setFoundPattern("no"); if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); } }} />
       </div>
 
       <p className="mt-4 text-lg font-semibold text-[#346739]">
@@ -823,7 +860,10 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
         placeholder="Tulis jawabanmu..."
         value={operasiMatematika}
         disabled={readOnly}
-        onChange={(e) => setOperasiMatematika(e.target.value)}
+        onChange={(e) => {
+          setOperasiMatematika(e.target.value);
+          if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); }
+        }}
         className={`mt-2 w-full rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
       />
       {!readOnly && (
@@ -831,10 +871,15 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitted}
+            disabled={submitted || dlSaving}
             className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
           >
-            {submitted ? (
+            {dlSaving ? (
+              <>
+                <Spinner />
+                Mengecek...
+              </>
+            ) : submitted ? (
               <>
                 <CheckIcon />
                 Tersimpan
@@ -847,10 +892,46 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             )}
           </button>
 
-          {/* Saved confirmation */}
+          {/* Feedback AI — tampil setelah submit */}
+          {dlFeedback && (
+            <div
+              className={`w-full rounded-lg border p-3 ${
+                dlFeedbackType === "success"
+                  ? "border-[#34673933] bg-[#DBFFD5]/50"
+                  : dlFeedbackType === "retry"
+                  ? "border-[#FFB34733] bg-[#FFF3E0]/50"
+                  : "border-[#EF444433] bg-[#FEF2F2]/50"
+              }`}
+            >
+              <p className="mb-1 text-xs font-medium text-[#663362]">
+                {dlFeedbackType === "success"
+                  ? "✅ Feedback Kombi"
+                  : dlFeedbackType === "retry"
+                  ? "💬 Feedback Kombi — Yuk diperbaiki!"
+                  : "⚠️ Ups, ada kendala"}
+              </p>
+              <p className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">
+                {dlFeedback}
+              </p>
+              {dlFeedbackType === "retry" && (
+                <p className="mt-2 text-xs text-[#663362] italic">
+                  Kamu bisa mengedit jawabanmu di atas lalu klik &ldquo;Simpan Jawaban&rdquo; lagi.
+                </p>
+              )}
+              {dlFeedbackType === "error" && (
+                <p className="mt-2 text-xs text-[#663362] italic">
+                  Silakan coba klik &ldquo;Simpan Jawaban&rdquo; lagi.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Sukses permanen — hanya saat is_correct true */}
           {submitted && (
             <div className="w-full rounded-lg border border-[#66336233] bg-[#66336208] p-3">
-              <p className="text-sm leading-relaxed text-[#2C2C2A]">Jawaban kamu sudah tersimpan! ✅</p>
+              <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                Jawaban kamu sudah benar dan tersimpan! Lanjut ke bagian berikutnya ya. 🎉
+              </p>
             </div>
           )}
         </div>

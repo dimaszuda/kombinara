@@ -5,11 +5,17 @@
  * Body: { soal: string, jawaban: string, alasan: string }
  * Response: { feedback: string, isCorrect: boolean }
  *
+ * Strategy:
+ * - Jika soal memiliki ground truth (jawaban faktual pasti) → gunakan
+ *   AnswerClassificationPrompt untuk perbandingan objektif.
+ * - Jika tidak → gunakan EskplorasiPrompt untuk feedback eksploratif.
+ *
  * Edge Runtime — low latency AI feedback.
  */
 export const runtime = "edge";
 
-import { EskplorasiPrompt } from "@/lib/ai/client";
+import { EskplorasiPrompt, AnswerClassificationPrompt } from "@/lib/ai/client";
+import { EKSPLORASI_GROUND_TRUTH } from "@/lib/ai/ground-truths";
 
 export async function POST(req: Request) {
   try {
@@ -31,6 +37,19 @@ export async function POST(req: Request) {
       );
     }
 
+    // ── Pilih strategi berdasarkan ketersediaan ground truth ──────
+    const groundTruth = EKSPLORASI_GROUND_TRUTH[soal];
+
+    if (groundTruth) {
+      // Soal faktual dengan jawaban pasti → gunakan AnswerClassification
+      const result = await AnswerClassificationPrompt(soal, groundTruth, jawaban);
+      return new Response(JSON.stringify({ feedback: result.feedback, isCorrect: result.isCorrect }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Soal eksploratif → gunakan EskplorasiPrompt (existing behavior)
     const result = await EskplorasiPrompt(soal, jawaban, alasan);
 
     return new Response(JSON.stringify({ feedback: result.feedback, isCorrect: result.isCorrect }), {

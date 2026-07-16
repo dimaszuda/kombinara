@@ -15,6 +15,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import { toGMT7SQL } from "@/lib/date";
 
 const VALID_CONCEPTS = ["kaidah_penjumlahan", "kaidah_perkalian", "permutasi", "kombinasi"] as const;
 const VALID_DIFFICULTIES = ["mudah", "sedang", "hots"] as const;
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
     // Calculate next attempt number for this student + question_key atomically
     const result = await prisma.$queryRaw<[{ attempt_number: number }]>`
       INSERT INTO contoh_soal_bertahap_attempts
-        (student_id, concept_id, question_key, difficulty_level, order_index, attempt_number, answer, is_correct)
+        (student_id, concept_id, question_key, difficulty_level, order_index, attempt_number, answer, is_correct, submitted_at)
       VALUES (
         ${student.id},
         ${concept_id},
@@ -81,7 +82,8 @@ export async function POST(req: Request) {
             AND question_key = ${question_key}
         ),
         ${JSON.stringify(answer)}::jsonb,
-        ${is_correct}
+        ${is_correct},
+        ${toGMT7SQL()}::timestamptz
       )
       RETURNING attempt_number
     `;

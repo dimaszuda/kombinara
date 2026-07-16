@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { IconClock, IconUserPair } from "@/components/activity/ActivityIcons";
 
@@ -221,6 +221,45 @@ export default function AktivitasKP2() {
     Object.fromEntries(SITUASI.map((s) => [s.kode, { aturan: "" as AturanValue }]))
   );
   const [diskusi, setDiskusi] = useState({ a: "", b: "", c: "", d: "" });
+
+  // ── Loading existing submissions ──────────────────────────────
+  const [isLoadingExisting, setIsLoadingExisting] = useState(true);
+  const [hasExistingSubmissions, setHasExistingSubmissions] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadExisting() {
+      try {
+        const res = await fetch(
+          "/api/aktivitas-siswa?concept_id=kaidah_penjumlahan&activity_key=aktivitas_2"
+        );
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (data.hasSubmissions && data.submissions) {
+          setHasExistingSubmissions(true);
+          const fb: Record<number, { text: string; isCorrect: boolean }> = {};
+          for (const step of STEPS) {
+            const sub = data.submissions[step.questionKey];
+            if (sub) {
+              fb[step.index] = {
+                text: sub.feedback ?? "Jawaban sudah tersimpan.",
+                isCorrect: sub.isCorrect,
+              };
+            }
+          }
+          setFeedbackMap(fb);
+          setCurrentStep(TOTAL_STEPS - 1);
+        }
+      } catch {
+        // Silently ignore
+      } finally {
+        if (!cancelled) setIsLoadingExisting(false);
+      }
+    }
+    loadExisting();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const allComplete =
     currentStep >= TOTAL_STEPS - 1 &&
@@ -548,8 +587,31 @@ export default function AktivitasKP2() {
           {/* ── Progress Indicator ── */}
           <ProgressIndicator currentStep={currentStep} feedbackMap={feedbackMap} />
 
+          {/* ── Loading State ── */}
+          {isLoadingExisting && (
+            <div className="flex items-center justify-center py-12">
+              <Spinner />
+              <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+            </div>
+          )}
+
+          {/* ── Already Completed Banner ── */}
+          {!isLoadingExisting && hasExistingSubmissions && (
+            <div
+              className="rounded-xl p-4 text-center"
+              style={{ backgroundColor: C.greenLight }}
+            >
+              <p className="font-bold text-base" style={{ color: C.green }}>
+                ✅ Kamu sudah menyelesaikan aktivitas ini!
+              </p>
+              <p className="text-sm text-slate-600 mt-1">
+                Berikut jawaban dan feedback dari AI. Tidak perlu menjawab ulang.
+              </p>
+            </div>
+          )}
+
           {/* ── All Complete Banner ── */}
-          {allComplete && (
+          {!isLoadingExisting && !hasExistingSubmissions && allComplete && (
             <div
               className="rounded-xl p-4 text-center"
               style={{ backgroundColor: C.greenLight }}
@@ -564,7 +626,7 @@ export default function AktivitasKP2() {
           )}
 
           {/* ── Sequential Steps ── */}
-          {renderVisibleSteps()}
+          {!isLoadingExisting && renderVisibleSteps()}
         </div>
       </div>
     </div>

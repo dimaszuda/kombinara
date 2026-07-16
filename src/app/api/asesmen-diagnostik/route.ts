@@ -15,6 +15,7 @@ import { NextResponse } from "next/server";
 import { gradeAnswers, type StudentAnswers } from "@/lib/data/asesmen-diagnostik";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import { toGMT7ISO } from "@/lib/date";
 
 export async function POST(req: Request) {
   try {
@@ -101,7 +102,7 @@ async function persistAttempt(
     passed: result.isPass,
     feedback: "",
     draft_answers: answers,
-    submitted_at: new Date().toISOString(),
+    submitted_at: toGMT7ISO(),
   };
 
   if (finalAttemptId) {

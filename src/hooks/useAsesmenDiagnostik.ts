@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { GradingResult } from "@/lib/data/asesmen-diagnostik";
+import { toGMT7ISO } from "@/lib/date";
 
 const AUTO_SAVE_DEBOUNCE_MS = 500;
 const COOLDOWN_MINUTES = 10;
@@ -234,12 +235,10 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
             number: q.number,
             correct: q.correct,
           })),
-          lastSubmittedAt: new Date().toISOString(),
+          lastSubmittedAt: toGMT7ISO(),
           cooldownEndsAt: result.isPass
             ? null
-            : new Date(
-                Date.now() + COOLDOWN_MINUTES * 60 * 1000
-              ).toISOString(),
+            : toGMT7ISO(Date.now() + COOLDOWN_MINUTES * 60 * 1000),
           cooldownRemainingSeconds: result.isPass
             ? null
             : COOLDOWN_MINUTES * 60,

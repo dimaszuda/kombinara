@@ -12,6 +12,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import { toGMT7ISO } from "@/lib/date";
 
 // ─── Shared auth helper ────────────────────────────────────────────────────
 
@@ -133,7 +134,7 @@ export async function PATCH(req: Request) {
     .from("diagnostic_attempts")
     .update({
       draft_answers: body.draft_answers,
-      last_saved_at: new Date().toISOString(),
+      last_saved_at: toGMT7ISO(),
     })
     .eq("attempt_id", body.attempt_id)
     .eq("student_id", studentId) // verifikasi kepemilikan

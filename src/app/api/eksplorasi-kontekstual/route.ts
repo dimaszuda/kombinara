@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import { toGMT7SQL } from "@/lib/date";
 
 export async function POST(req: Request) {
   try {
@@ -45,14 +46,15 @@ export async function POST(req: Request) {
     const { concept_id, question_key, answer, feedback, is_correct } = body;
 
     await prisma.$executeRaw`
-      INSERT INTO eksplorasi_kontekstual (student_id, concept_id, question_key, answer, feedback, is_correct)
+      INSERT INTO eksplorasi_kontekstual (student_id, concept_id, question_key, answer, feedback, is_correct, created_at)
       VALUES (
         ${student.id},
         ${concept_id}::concept_type,
         ${question_key},
         ${JSON.stringify(answer)}::jsonb,
         ${feedback ?? null},
-        ${is_correct ?? null}
+        ${is_correct ?? null},
+        ${toGMT7SQL()}::timestamptz
       )
     `;
 

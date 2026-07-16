@@ -16,6 +16,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import { gmt7Now } from "@/lib/date";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -132,6 +133,7 @@ export async function POST(req: Request) {
           moduleId,
           conceptId: concept_id ?? null,
           answers: answersJson as unknown as object,
+          submittedAt: gmt7Now(),
         },
       }),
       prisma.asesmenFormatifDraft.deleteMany({

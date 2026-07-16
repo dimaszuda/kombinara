@@ -133,6 +133,7 @@ export type AnswerClassificationResult = z.infer<typeof AnswerClassificationSche
 
 export const AnswerClassificationPrompt = async (
   soal: string,
+  groundTruth: string,
   jawaban: string
 ): Promise<AnswerClassificationResult> => {
   const response = await client.responses.parse({
@@ -144,7 +145,7 @@ export const AnswerClassificationPrompt = async (
       },
       {
         role: "user",
-        content: PROMPTS.AnswerClassification.user(soal, jawaban),
+        content: PROMPTS.AnswerClassification.user(soal, groundTruth, jawaban),
       },
     ],
     text: {

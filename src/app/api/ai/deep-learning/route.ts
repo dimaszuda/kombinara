@@ -2,15 +2,24 @@
  * Deep Learning Activity — AI Feedback API
  *
  * POST /api/ai/deep-learning
- * Body: { soal: string, jawaban: string }
+ * Body: { soal: string, jawaban: string, concept_id?: string }
  * Response: { feedback: string, isCorrect: boolean }
  *
  * Uses AnswerClassification prompt to analyse student answers and return
  * constructive feedback without revealing the correct answer explicitly.
+ * Ground truth is determined from concept_id or auto-detected from soal text.
  */
 export const runtime = "edge";
 
 import { AnswerClassificationPrompt } from "@/lib/ai/client";
+import { DEEP_LEARNING_GROUND_TRUTH } from "@/lib/ai/ground-truths";
+
+/** Auto-detect concept_id from soal description text */
+function detectConcept(soal: string): string | null {
+  if (soal.includes("kaidah_penjumlahan") || soal.includes("kaidah penjumlahan")) return "kaidah_penjumlahan";
+  if (soal.includes("kaidah_perkalian") || soal.includes("kaidah perkalian")) return "kaidah_perkalian";
+  return null;
+}
 
 export async function POST(req: Request) {
   try {
@@ -27,7 +36,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { soal, jawaban } = body;
+    const { soal, jawaban, concept_id } = body as { soal: string; jawaban: string; concept_id?: string };
 
     if (!soal.trim() || !jawaban.trim()) {
       return new Response(
@@ -36,7 +45,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await AnswerClassificationPrompt(soal, jawaban);
+    const cid = concept_id ?? detectConcept(soal);
+    const groundTruth = cid ? (DEEP_LEARNING_GROUND_TRUTH[cid] ?? "") : "";
+
+    const result = await AnswerClassificationPrompt(soal, groundTruth, jawaban);
 
     return new Response(JSON.stringify({ feedback: result.feedback, isCorrect: result.isCorrect }), {
       status: 200,

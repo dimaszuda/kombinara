@@ -29,6 +29,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { EskplorasiPrompt } from "@/lib/ai/client";
+import { gmt7Now } from "@/lib/date";
 
 const VALID_ENTRY_TYPES = new Set(["soal", "refleksi"]);
 const VALID_CONCEPT_IDS = new Set([
@@ -38,6 +39,79 @@ const VALID_CONCEPT_IDS = new Set([
   "permutasi",
   "kombinasi",
 ]);
+
+// ── GET: Check existing submissions for a student ──────────────
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const concept_id = searchParams.get("concept_id");
+    const activity_key = searchParams.get("activity_key");
+
+    if (
+      typeof concept_id !== "string" ||
+      !VALID_CONCEPT_IDS.has(concept_id) ||
+      typeof activity_key !== "string" ||
+      !activity_key.trim()
+    ) {
+      return NextResponse.json({ error: "Invalid query params" }, { status: 400 });
+    }
+
+    // Auth
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get student_id
+    const student = await prisma.student.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+    if (!student) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
+    }
+
+    // Query existing entries
+    const entries = await prisma.aktivitasSiswaEntry.findMany({
+      where: {
+        studentId: student.id,
+        conceptId: concept_id,
+        activityKey: activity_key,
+      },
+      orderBy: { submittedAt: "asc" },
+      select: {
+        questionKey: true,
+        answer: true,
+        isCorrect: true,
+        feedback: true,
+        submittedAt: true,
+      },
+    });
+
+    // Build a map keyed by questionKey (take the latest per questionKey)
+    const submissionsMap: Record<string, {
+      answer: string;
+      isCorrect: boolean;
+      feedback: string | null;
+    }> = {};
+
+    for (const e of entries) {
+      submissionsMap[e.questionKey] = {
+        answer: e.answer,
+        isCorrect: e.isCorrect,
+        feedback: e.feedback,
+      };
+    }
+
+    const hasSubmissions = entries.length > 0;
+
+    return NextResponse.json({ hasSubmissions, submissions: submissionsMap });
+  } catch (error) {
+    console.error("[GET /api/aktivitas-siswa] Error:", error);
+    return NextResponse.json({ error: "Gagal mengambil data" }, { status: 500 });
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -122,6 +196,7 @@ export async function POST(req: Request) {
         answer: jawaban,
         isCorrect: llmResult.isCorrect,
         feedback: llmResult.feedback,
+        submittedAt: gmt7Now(),
       },
     });
 

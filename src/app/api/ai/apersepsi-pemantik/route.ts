@@ -27,6 +27,8 @@ import { Prisma } from "@prisma/client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { AnswerClassificationPrompt } from "@/lib/ai/client";
+import { APERSEPSI_PEMANTIK_GROUND_TRUTH } from "@/lib/ai/ground-truths";
+import { gmt7Now } from "@/lib/date";
 
 type ResponseItem = {
   question_key: string;
@@ -95,10 +97,16 @@ export async function POST(req: Request) {
     }
 
     // ── 2. Auth ────────────────────────────────────────────────
+    const authHeader = req.headers.get("authorization");
+    const bearerToken = authHeader?.replace(/^Bearer\s+/i, "");
+
     const supabase = await createSupabaseServerClient();
+
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = bearerToken
+      ? await supabase.auth.getUser(bearerToken)
+      : await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -118,7 +126,8 @@ export async function POST(req: Request) {
     const results = await Promise.all(
       body.responses.map(async (item) => {
         const jawabanStr = JSON.stringify(item.response_data);
-        const llmResult = await AnswerClassificationPrompt(item.soal, jawabanStr);
+        const groundTruth = APERSEPSI_PEMANTIK_GROUND_TRUTH[item.question_key] ?? "";
+        const llmResult = await AnswerClassificationPrompt(item.soal, groundTruth, jawabanStr);
 
         await prisma.apersepsiPemantikResponse.create({
           data: {
@@ -129,6 +138,7 @@ export async function POST(req: Request) {
             isCorrect: llmResult.isCorrect,
             misconceptionType: llmResult.misconceptionType,
             feedback: llmResult.feedback,
+            submittedAt: gmt7Now(),
           },
         });
 

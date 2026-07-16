@@ -326,126 +326,128 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
             <p className="mb-1 text-sm italic text-[#34673999]">
                 Sebelum lanjur, buat tabel pasangan di bawah ini:
             </p>
-            <table className="w-full border-collapse text-sm">
+            <div className="overflow-x-auto rounded-xl border border-[#34673926]">
+            <table className="w-full table-fixed border-collapse text-sm">
                 <thead>
-                    <tr className="bg-[#B8E6BC] border-b border-gray-200">
-                        <th className="px-4 py-3 text-left font-semibold text-gray-600 w-3/5">
+                    <tr className="bg-[#B8E6BC]">
+                        <th className="px-3 py-2.5 text-left font-semibold text-gray-600 w-1/4">
                             Kemeja
                         </th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-600 w-1/5">
+                        <th className="px-3 py-2.5 text-left font-semibold text-gray-600 w-1/4">
                             Celana/Rok
                         </th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-600 w-1/5">
+                        <th className="px-3 py-2.5 text-left font-semibold text-gray-600 w-1/2">
                             Kombinasi
                         </th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-[#34673915]">
                     <tr>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">Putih</td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">Hitam</td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">(Putih, Hitam)</td>
+                        <td className="px-3 py-2.5 text-gray-700">Putih</td>
+                        <td className="px-3 py-2.5 text-gray-700">Hitam</td>
+                        <td className="px-3 py-2.5 text-gray-700">(Putih, Hitam)</td>
                     </tr>
                     <tr>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">Putih</td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">Navy</td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">(Putih, Navy)</td>
+                        <td className="px-3 py-2.5 text-gray-700">Putih</td>
+                        <td className="px-3 py-2.5 text-gray-700">Navy</td>
+                        <td className="px-3 py-2.5 text-gray-700">(Putih, Navy)</td>
                     </tr>
                     <tr>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">Biru</td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">Hitam</td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5 text-gray-700">Biru</td>
+                        <td className="px-3 py-2.5 text-gray-700">Hitam</td>
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="kombinasi 3"
-                                placeholder="..."
+                                placeholder="(..., ...)"
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                     </tr>
                     <tr>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">Biru</td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5 text-gray-700">Biru</td>
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="Celana/Rok 4"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="kombinasi 4"
-                                placeholder="..."
+                                placeholder="(..., ...)"
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                     </tr>
                     <tr>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="Kemeja 5"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="Celana/Rok 5"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="kombinasi 5"
-                                placeholder="..."
+                                placeholder="(..., ...)"
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                     </tr>
                     <tr>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="Kemeja 6"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="Celana/Rok 6"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
-                        <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                        <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="kombinasi 6"
-                                placeholder="..."
+                                placeholder="(..., ...)"
                                 disabled={readOnly}
-                                className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <p>Hitung manual: Berapa total baris yang kamu isi? </p>
+            </div>
+            <p className="mt-3">Hitung manual: Berapa total baris yang kamu isi? </p>
             <p><b>Apakah hasilnya</b> 3x2? </p>
             <div className="mb-3 flex gap-2">
                 <ToggleButton label="Bisa" active={choice2 === "yes"} onClick={() => !readOnly && setChoice2("yes")} disabled={readOnly} />

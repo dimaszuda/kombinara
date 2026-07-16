@@ -12,6 +12,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import { toGMT7SQL } from "@/lib/date";
 
 const VALID_CONCEPTS = ["kaidah_penjumlahan", "kaidah_perkalian", "permutasi", "kombinasi"] as const;
 
@@ -68,14 +69,15 @@ export async function POST(req: Request) {
     await Promise.all(
       rows.map((row) =>
         prisma.$executeRaw`
-          INSERT INTO refleksi_mini (student_id, concept_id, question_key, answer, feedback, is_correct)
+          INSERT INTO refleksi_mini (student_id, concept_id, question_key, answer, feedback, is_correct, created_at)
           VALUES (
             ${student.id},
             ${concept_id},
             ${row.question_key},
             ${row.answer},
             ${row.feedback ?? null},
-            ${row.is_correct ?? null}
+            ${row.is_correct ?? null},
+            ${toGMT7SQL()}::timestamptz
           )
         `
       )

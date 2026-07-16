@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import { toGMT7SQL } from "@/lib/date";
 
 export async function POST(req: Request) {
   try {
@@ -43,13 +44,14 @@ export async function POST(req: Request) {
     const { concept_id, answer, feedback, is_correct } = body;
 
     await prisma.$executeRaw`
-      INSERT INTO aktivitas_deep_learning (student_id, concept_id, answer, feedback, is_correct)
+      INSERT INTO aktivitas_deep_learning (student_id, concept_id, answer, feedback, is_correct, created_at)
       VALUES (
         ${student.id},
         ${concept_id},
         ${JSON.stringify(answer)}::jsonb,
         ${feedback ?? null},
-        ${is_correct ?? null}
+        ${is_correct ?? null},
+        ${toGMT7SQL()}::timestamptz
       )
     `;
 

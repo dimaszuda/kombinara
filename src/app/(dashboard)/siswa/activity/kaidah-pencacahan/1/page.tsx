@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { IconClock, IconUserSolo } from "@/components/activity/ActivityIcons";
 
@@ -360,6 +360,47 @@ export default function AktivitasKP1() {
   const [refleksi1, setRefleksi1] = useState("");
   const [refleksi2, setRefleksi2] = useState("");
 
+  // ── Loading existing submissions ──────────────────────────────
+  const [isLoadingExisting, setIsLoadingExisting] = useState(true);
+  const [hasExistingSubmissions, setHasExistingSubmissions] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadExisting() {
+      try {
+        const res = await fetch(
+          "/api/aktivitas-siswa?concept_id=kaidah_penjumlahan&activity_key=aktivitas_1"
+        );
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (data.hasSubmissions && data.submissions) {
+          setHasExistingSubmissions(true);
+          // Build feedbackMap from stored data
+          const fb: Record<number, { text: string; isCorrect: boolean }> = {};
+          for (const step of STEPS) {
+            const sub = data.submissions[step.questionKey];
+            if (sub) {
+              fb[step.index] = {
+                text: sub.feedback ?? "Jawaban sudah tersimpan.",
+                isCorrect: sub.isCorrect,
+              };
+            }
+          }
+          setFeedbackMap(fb);
+          // Show all steps
+          setCurrentStep(TOTAL_STEPS - 1);
+        }
+      } catch {
+        // Silently ignore — user can still fill in manually
+      } finally {
+        if (!cancelled) setIsLoadingExisting(false);
+      }
+    }
+    loadExisting();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const allComplete =
     currentStep >= TOTAL_STEPS - 1 &&
     feedbackMap[TOTAL_STEPS - 1]?.isCorrect === true;
@@ -557,7 +598,7 @@ export default function AktivitasKP1() {
               readOnly={readOnly}
             />
             <AturanSelect id="s1-aturan" value={s1.aturan} onChange={(v) => setS1((p) => ({ ...p, aturan: v }))} readOnly={readOnly} />
-            <TextInput id="s1-hitungan" label="Hitungan:" value={s1.hitungan} onChange={(v) => setS1((p) => ({ ...p, hitungan: v }))} placeholder="Contoh: 4 + 3 = 7" readOnly={readOnly} />
+            <TextInput id="s1-hitungan" label="Hitungan:" value={s1.hitungan} onChange={(v) => setS1((p) => ({ ...p, hitungan: v }))} placeholder="Tulis jawabanmu disini" readOnly={readOnly} />
           </div>
         </div>
         {fb && <FeedbackBox text={fb.text} isCorrect={fb.isCorrect} />}
@@ -590,7 +631,7 @@ export default function AktivitasKP1() {
               readOnly={readOnly}
             />
             <AturanSelect id="s2-aturan" value={s2.aturan} onChange={(v) => setS2((p) => ({ ...p, aturan: v }))} readOnly={readOnly} />
-            <TextInput id="s2-hitungan" label="Hitungan:" value={s2.hitungan} onChange={(v) => setS2((p) => ({ ...p, hitungan: v }))} placeholder="Contoh: 3 × 2 = 6" readOnly={readOnly} />
+            <TextInput id="s2-hitungan" label="Hitungan:" value={s2.hitungan} onChange={(v) => setS2((p) => ({ ...p, hitungan: v }))} placeholder="Tulis jawabanmu disini" readOnly={readOnly} />
           </div>
         </div>
         {fb && <FeedbackBox text={fb.text} isCorrect={fb.isCorrect} />}
@@ -617,7 +658,7 @@ export default function AktivitasKP1() {
               yang dipilih oleh siswa?
             </p>
             <AturanSelect id="s3-aturan" value={s3.aturan} onChange={(v) => setS3((p) => ({ ...p, aturan: v }))} readOnly={readOnly} />
-            <TextInput id="s3-hitungan" label="Hitungan:" value={s3.hitungan} onChange={(v) => setS3((p) => ({ ...p, hitungan: v }))} placeholder="Contoh: 5 + 4 = 9" readOnly={readOnly} />
+            <TextInput id="s3-hitungan" label="Hitungan:" value={s3.hitungan} onChange={(v) => setS3((p) => ({ ...p, hitungan: v }))} placeholder="Tulis jawabanmu disini" readOnly={readOnly} />
           </div>
         </div>
         {fb && <FeedbackBox text={fb.text} isCorrect={fb.isCorrect} />}
@@ -652,11 +693,11 @@ export default function AktivitasKP1() {
         <div className="grid sm:grid-cols-2 gap-3">
           <SubBox title="Bioskop A" readOnly={readOnly}>
             <AturanSelect id="s4-aturanA" value={s4.aturanA} onChange={(v) => setS4((p) => ({ ...p, aturanA: v }))} readOnly={readOnly} />
-            <TextInput id="s4-hitunganA" label="Hitungan:" value={s4.hitunganA} onChange={(v) => setS4((p) => ({ ...p, hitunganA: v }))} placeholder="3 × 2 = ..." readOnly={readOnly} />
+            <TextInput id="s4-hitunganA" label="Hitungan:" value={s4.hitunganA} onChange={(v) => setS4((p) => ({ ...p, hitunganA: v }))} placeholder="Tulis jawabanmu disini" readOnly={readOnly} />
           </SubBox>
           <SubBox title="Bioskop B" readOnly={readOnly}>
             <AturanSelect id="s4-aturanB" value={s4.aturanB} onChange={(v) => setS4((p) => ({ ...p, aturanB: v }))} readOnly={readOnly} />
-            <TextInput id="s4-hitunganB" label="Hitungan:" value={s4.hitunganB} onChange={(v) => setS4((p) => ({ ...p, hitunganB: v }))} placeholder="2 × 3 = ..." readOnly={readOnly} />
+            <TextInput id="s4-hitunganB" label="Hitungan:" value={s4.hitunganB} onChange={(v) => setS4((p) => ({ ...p, hitunganB: v }))} placeholder="Tulis jawabanmu disini" readOnly={readOnly} />
           </SubBox>
         </div>
         <div className="mt-3 rounded-xl p-4 space-y-3" style={{ background: readOnly ? "#F5F5F0" : C.bg, border: `1px solid ${C.greenLight}` }}>
@@ -843,8 +884,31 @@ export default function AktivitasKP1() {
           {/* ── Progress Indicator ── */}
           <ProgressIndicator currentStep={currentStep} feedbackMap={feedbackMap} />
 
+          {/* ── Loading State ── */}
+          {isLoadingExisting && (
+            <div className="flex items-center justify-center py-12">
+              <Spinner />
+              <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+            </div>
+          )}
+
+          {/* ── Already Completed Banner ── */}
+          {!isLoadingExisting && hasExistingSubmissions && (
+            <div
+              className="rounded-xl p-4 text-center"
+              style={{ backgroundColor: C.greenLight }}
+            >
+              <p className="font-bold text-base" style={{ color: C.green }}>
+                ✅ Kamu sudah menyelesaikan aktivitas ini!
+              </p>
+              <p className="text-sm text-slate-600 mt-1">
+                Berikut jawaban dan feedback dari AI. Tidak perlu menjawab ulang.
+              </p>
+            </div>
+          )}
+
           {/* ── All Complete Banner ── */}
-          {allComplete && (
+          {!isLoadingExisting && !hasExistingSubmissions && allComplete && (
             <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
               <p className="font-bold text-base" style={{ color: C.green }}>
                 🎉 Semua langkah selesai!
@@ -856,7 +920,7 @@ export default function AktivitasKP1() {
           )}
 
           {/* ── Sequential Steps ── */}
-          {renderVisibleSteps()}
+          {!isLoadingExisting && renderVisibleSteps()}
         </div>
       </div>
     </div>
