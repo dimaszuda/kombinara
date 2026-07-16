@@ -206,6 +206,13 @@ function AturanRadio({
   );
 }
 
+// ── Format stored answer for display ─────────────────────────
+function formatJawaban(raw: string): string {
+  return raw
+    .replace(/ \| /g, '\n• ')
+    .replace(/\. (Aturan|Hitungan|Total|Sekaligus|Bagian|Gabungan|Rancangan|Mencukupi)/g, '.\n$1');
+}
+
 // ── Main Page ────────────────────────────────────────────────────
 
 type AnswerRow = { aturan: AturanValue };
@@ -242,7 +249,7 @@ export default function AktivitasKP2() {
             const sub = data.submissions[step.questionKey];
             if (sub) {
               fb[step.index] = {
-                text: `📝 Jawaban kamu: ${sub.answer}\n\n💬 Feedback: ${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                 isCorrect: sub.isCorrect,
               };
             }

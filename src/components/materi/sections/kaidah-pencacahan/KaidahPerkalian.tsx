@@ -1979,16 +1979,15 @@ export default function KaidahPerkalian({
         />
       )}
 
-      {/* All complete banner */}
       {allComplete && (
         <div className="flex items-start gap-3.5 rounded-2xl bg-[#346739] p-6">
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">
-              🎉 Semua bagian Kaidah Perkalian selesai!
+              Selamat! Kamu sudah menyelesaikan Kaidah Penjumlahan dan Kaidah Perkalian!
             </p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
-              Kamu sudah menyelesaikan seluruh materi Kaidah Perkalian. Lanjutkan ke materi berikutnya!
+              Langkah selanjutnya, kerjakan Asesmen Formatif di menu Asesmen untuk menguji pemahamanmu.
             </p>
           </div>
         </div>
