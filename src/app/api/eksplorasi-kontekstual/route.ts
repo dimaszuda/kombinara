@@ -6,11 +6,16 @@
  * Response: { success: true }
  *
  * Each question/sub-step is saved as its own row, identified by question_key.
+ *
+ * Trigger 1: When the LAST question in eksplorasi_kontekstual is answered
+ * correctly, marks the section as completed and unlocks the next section
+ * (aktivitas_deep_learning) within a single transaction.
  */
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { toGMT7SQL } from "@/lib/date";
+import { completeSectionAndUnlockNext, isLastQuestionInSection } from "@/lib/data/student-section-status";
 
 export async function POST(req: Request) {
   try {
@@ -45,18 +50,34 @@ export async function POST(req: Request) {
 
     const { concept_id, question_key, answer, feedback, is_correct } = body;
 
-    await prisma.$executeRaw`
-      INSERT INTO eksplorasi_kontekstual (student_id, concept_id, question_key, answer, feedback, is_correct, created_at)
-      VALUES (
-        ${student.id},
-        ${concept_id}::concept_type,
-        ${question_key},
-        ${JSON.stringify(answer)}::jsonb,
-        ${feedback ?? null},
-        ${is_correct ?? null},
-        ${toGMT7SQL()}::timestamptz
-      )
-    `;
+    // Wrap insert + conditional section completion in a single transaction.
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        INSERT INTO eksplorasi_kontekstual (student_id, concept_id, question_key, answer, feedback, is_correct, created_at)
+        VALUES (
+          ${student.id},
+          ${concept_id}::concept_type,
+          ${question_key},
+          ${JSON.stringify(answer)}::jsonb,
+          ${feedback ?? null},
+          ${is_correct ?? null},
+          ${toGMT7SQL()}::timestamptz
+        )
+      `;
+
+      // Trigger section completion only for the last question, only when correct.
+      if (
+        is_correct === true &&
+        isLastQuestionInSection(concept_id, "eksplorasi_kontekstual", question_key)
+      ) {
+        await completeSectionAndUnlockNext(
+          student.id,
+          concept_id,
+          "eksplorasi_kontekstual",
+          tx
+        );
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {

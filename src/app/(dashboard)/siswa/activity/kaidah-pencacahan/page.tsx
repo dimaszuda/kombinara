@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { IconClock, IconUserSolo, IconUserPair, IconUserGroup } from "@/components/activity/ActivityIcons";
+import AktivitasSiswaAccessGate from "@/components/activity/AktivitasSiswaAccessGate";
 
 // ── Types ──
 type GroupingType = "individu" | "pasangan" | "kelompok";
@@ -170,14 +171,16 @@ function ActivityCard({ data }: ActivityCardProps) {
 
 export default function AktivitasSiswa() {
   return (
-    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: C.white }}>
-      <div className="max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3 pb-4">
-          {aktivitas.map((a) => (
-            <ActivityCard key={a.nomor} data={a} />
-          ))}
+    <AktivitasSiswaAccessGate conceptId="kaidah_perkalian">
+      <div className="min-h-screen py-8 px-4" style={{ backgroundColor: C.white }}>
+        <div className="max-w-[1400px] mx-auto">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 pb-4">
+            {aktivitas.map((a) => (
+              <ActivityCard key={a.nomor} data={a} />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </AktivitasSiswaAccessGate>
   );
 }

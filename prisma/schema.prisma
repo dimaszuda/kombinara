@@ -66,6 +66,7 @@ model Student {
   refleksiMini            RefleksiMini[]
   aktivitasSiswaEntries   AktivitasSiswaEntry[]
   aiMessages              AiMessage[]
+  studentSectionStatuses  StudentSectionStatus[]
 
   @@map("students")
 }
@@ -474,4 +475,21 @@ model AktivitasSiswaEntry {
   @@index([studentId, conceptId])
   @@index([studentId, conceptId, activityKey])
   @@map("aktivitas_siswa_entries")
+}
+
+// ============================================================
+// PHASE 9 — Student Section Status (Materi Progress Tracking)
+// ============================================================
+
+model StudentSectionStatus {
+  studentId   Int       @map("student_id")
+  conceptId   String    @map("concept_id")
+  section     String
+  status      String    @default("locked")
+  completedAt DateTime? @map("completed_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, conceptId, section])
+  @@map("student_section_status")
 }

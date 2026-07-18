@@ -8,11 +8,21 @@
  * }
  * Inserts one row per question (1 soal = 1 row).
  * Response: { success: true }
+ *
+ * Trigger 1: When the LAST refleksi question is answered correctly AND all
+ * required refleksi questions for the concept are correct, marks
+ * refleksi_mini as completed and unlocks the next section within a
+ * single transaction.
  */
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { toGMT7SQL } from "@/lib/date";
+import {
+  completeSectionAndUnlockNext,
+  isLastQuestionInSection,
+  getRefleksiAllQuestionKeys,
+} from "@/lib/data/student-section-status";
 
 const VALID_CONCEPTS = ["kaidah_penjumlahan", "kaidah_perkalian", "permutasi", "kombinasi"] as const;
 
@@ -65,23 +75,60 @@ export async function POST(req: Request) {
       }
     }
 
-    // Insert each question as a separate row (allow multiple attempts)
-    await Promise.all(
-      rows.map((row) =>
-        prisma.$executeRaw`
-          INSERT INTO refleksi_mini (student_id, concept_id, question_key, answer, feedback, is_correct, created_at)
-          VALUES (
-            ${student.id},
-            ${concept_id},
-            ${row.question_key},
-            ${row.answer},
-            ${row.feedback ?? null},
-            ${row.is_correct ?? null},
-            ${toGMT7SQL()}::timestamptz
-          )
-        `
-      )
-    );
+    // Wrap inserts + conditional section completion in a single transaction.
+    await prisma.$transaction(async (tx) => {
+      // Insert each question as a separate row (allow multiple attempts)
+      await Promise.all(
+        rows.map((row) =>
+          tx.$executeRaw`
+            INSERT INTO refleksi_mini (student_id, concept_id, question_key, answer, feedback, is_correct, created_at)
+            VALUES (
+              ${student.id},
+              ${concept_id},
+              ${row.question_key},
+              ${row.answer},
+              ${row.feedback ?? null},
+              ${row.is_correct ?? null},
+              ${toGMT7SQL()}::timestamptz
+            )
+          `
+        )
+      );
+
+      // Check if any submitted row triggers section completion.
+      // Completion requires: (a) the last question is answered correctly, AND
+      // (b) ALL required refleksi questions for this concept have a correct answer.
+      const hasLastQuestionCorrect = rows.some(
+        (row) =>
+          row.is_correct === true &&
+          isLastQuestionInSection(concept_id, "refleksi_mini", row.question_key)
+      );
+
+      if (hasLastQuestionCorrect) {
+        const requiredKeys = getRefleksiAllQuestionKeys(concept_id);
+
+        // Count distinct question_keys with at least one correct answer.
+        const correctCountResult = await tx.$queryRaw<[{ count: bigint }]>`
+          SELECT COUNT(DISTINCT question_key) as count
+          FROM refleksi_mini
+          WHERE student_id = ${student.id}
+            AND concept_id = ${concept_id}
+            AND question_key = ANY(${requiredKeys}::text[])
+            AND is_correct = true
+        `;
+
+        const correctCount = Number(correctCountResult[0].count);
+
+        if (correctCount >= requiredKeys.length) {
+          await completeSectionAndUnlockNext(
+            student.id,
+            concept_id,
+            "refleksi_mini",
+            tx
+          );
+        }
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {

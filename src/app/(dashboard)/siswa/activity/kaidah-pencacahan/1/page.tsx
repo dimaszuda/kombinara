@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { IconClock, IconUserSolo } from "@/components/activity/ActivityIcons";
+import AktivitasSiswaAccessGate from "@/components/activity/AktivitasSiswaAccessGate";
 
 // ── Color palette ──
 const C = {
@@ -804,7 +805,8 @@ export default function AktivitasKP1() {
 
   // ── Main Render ──────────────────────────────────────────────────
   return (
-    <div className="min-h-screen py-8 px-4 bg-white">
+    <AktivitasSiswaAccessGate conceptId="kaidah_perkalian">
+      <div className="min-h-screen py-8 px-4 bg-white">
       <div className="max-w-5xl mx-auto">
         <div
           className="border-2 rounded-2xl p-6 space-y-6"
@@ -931,5 +933,6 @@ export default function AktivitasKP1() {
         </div>
       </div>
     </div>
+    </AktivitasSiswaAccessGate>
   );
 }

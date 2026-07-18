@@ -1,55 +1,25 @@
 /**
- * Kaidah Penjumlahan — Status API
+ * Kaidah Penjumlahan -- Status API (REFACTORED)
  *
  * GET /api/kaidah-penjumlahan/status
- *   → Mengecek per-section mana yang sudah diselesaikan siswa
- *     + mengembalikan data jawaban & feedback yang sudah disimpan.
+ *   Returns section-by-section status from student_section_status ONLY.
+ *   No longer queries answer tables -- those are moved to the on-demand
+ *   "Lihat jawabanku" endpoint.
  *
  * Response:
  * {
- *   completedSections: Record<number, boolean>,
- *   savedData: {
- *     eksplorasi?: Record<questionKey, { answer, feedback, isCorrect }>,
- *     deepLearning?: { answer, feedback, isCorrect } | null,
- *     contohSoal?: Record<questionKey, { answer, isCorrect }>,
- *     refleksi?: Record<questionKey, { answer, feedback, isCorrect }>,
- *   }
+ *   sections: Record<string, "locked" | "unlocked" | "completed">
  * }
  *
- * Section mapping:
- *   0 = Eksplorasi Kontekstual (eksplorasi_kontekstual)
- *   1 = Aktivitas Deep Learning (aktivitas_deep_learning)
- *   3 = Contoh Soal Bertahap (contoh_soal_bertahap_attempts)
- *   5 = Refleksi Mini (refleksi_mini)
- *
- * Section 2 (Penjelasan Konsep) dan 4 (Mengapa Corner) adalah
- * read-only — tidak disimpan di DB.
+ * Section keys returned:
+ *   apersepsi, pemantik, refleksi_sebelum_mulai, eksplorasi_kontekstual,
+ *   aktivitas_deep_learning, penjelasan_konsep, contoh_soal, refleksi_mini
  */
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 
 const CONCEPT_ID = "kaidah_penjumlahan";
-
-const REFLEKSI_QUESTION_KEYS = [
-  "refleksi_penjumlahan_1",
-  "refleksi_penjumlahan_2",
-  "refleksi_penjumlahan_3",
-];
-
-const EKSPLORASI_QUESTION_KEYS = [
-  "situasi_1",
-  "situasi_2",
-  "operasi_matematika",
-];
-
-const CONTOH_SOAL_QUESTION_KEYS = [
-  "penjumlahan_minuman",
-  "penjumlahan_buku",
-  "penjumlahan_transport",
-];
-
-// ─── GET ────────────────────────────────────────────────────────────
 
 export async function GET() {
   try {
@@ -71,125 +41,25 @@ export async function GET() {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    const completedSections: Record<number, boolean> = {};
-
-    // ── Section 0: Eksplorasi Kontekstual ─────────────────────────
-    const allEksplorasi = await prisma.$queryRaw<
-      Array<{ question_key: string; answer: unknown; feedback: string | null; is_correct: boolean | null }>
-    >`
-      SELECT question_key, answer, feedback, is_correct
-      FROM eksplorasi_kontekstual
-      WHERE student_id = ${student.id}
-        AND concept_id = ${CONCEPT_ID}::concept_type
-        AND question_key IS NOT NULL
-      ORDER BY question_key ASC, created_at DESC
-    `;
-
-    // Deduplicate: ambil row terbaru per question_key
-    const eksplorasiLatestByKey = new Map<string, { answer: unknown; feedback: string | null; isCorrect: boolean | null }>();
-    for (const e of allEksplorasi) {
-      if (!eksplorasiLatestByKey.has(e.question_key)) {
-        eksplorasiLatestByKey.set(e.question_key, {
-          answer: e.answer,
-          feedback: e.feedback,
-          isCorrect: e.is_correct,
-        });
-      }
-    }
-
-    const eksplorasiComplete = EKSPLORASI_QUESTION_KEYS.every(
-      (key) => eksplorasiLatestByKey.get(key)?.isCorrect === true
-    );
-    if (eksplorasiComplete) {
-      completedSections[0] = true;
-    }
-
-    // Build eksplorasi saved data
-    const eksplorasiSavedData: Record<string, { answer: unknown; feedback: string | null; isCorrect: boolean | null }> = {};
-    for (const [key, val] of eksplorasiLatestByKey) {
-      eksplorasiSavedData[key] = val;
-    }
-
-    // ── Section 1: Aktivitas Deep Learning ───────────────────────
-    const deepLearning = await prisma.aktivitasDeepLearning.findFirst({
-      where: { studentId: student.id, conceptId: CONCEPT_ID },
-      orderBy: { createdAt: "desc" },
-      select: { answer: true, feedback: true, isCorrect: true },
-    });
-    if (deepLearning?.isCorrect === true) {
-      completedSections[1] = true;
-    }
-
-    // ── Section 3: Contoh Soal Bertahap ──────────────────────────
-    const allContohSoal = await prisma.$queryRaw<
-      Array<{ question_key: string; answer: unknown; is_correct: boolean }>
-    >`
-      SELECT question_key, answer, is_correct
-      FROM contoh_soal_bertahap_attempts
-      WHERE student_id = ${student.id}
-        AND concept_id = ${CONCEPT_ID}
-        AND is_correct = true
-      ORDER BY question_key ASC, submitted_at DESC
-    `;
-
-    const contohSoalSavedData: Record<string, { answer: unknown; isCorrect: boolean }> = {};
-    for (const c of allContohSoal) {
-      if (!contohSoalSavedData[c.question_key]) {
-        contohSoalSavedData[c.question_key] = {
-          answer: c.answer,
-          isCorrect: c.is_correct,
-        };
-      }
-    }
-
-    const contohSoalComplete = CONTOH_SOAL_QUESTION_KEYS.every(
-      (key) => contohSoalSavedData[key]?.isCorrect === true
-    );
-    if (contohSoalComplete) {
-      completedSections[3] = true;
-    }
-
-    // ── Section 5: Refleksi Mini ─────────────────────────────────
-    const allRefleksi = await prisma.refleksiMini.findMany({
-      where: { studentId: student.id, conceptId: CONCEPT_ID },
-      orderBy: [{ questionKey: "asc" }, { createdAt: "desc" }],
-      select: { questionKey: true, answer: true, feedback: true, isCorrect: true },
-    });
-
-    const refleksiLatestByKey = new Map<string, { answer: string; feedback: string | null; isCorrect: boolean | null }>();
-    for (const r of allRefleksi) {
-      if (!refleksiLatestByKey.has(r.questionKey)) {
-        refleksiLatestByKey.set(r.questionKey, {
-          answer: r.answer,
-          feedback: r.feedback,
-          isCorrect: r.isCorrect,
-        });
-      }
-    }
-
-    const refleksiComplete = REFLEKSI_QUESTION_KEYS.every(
-      (key) => refleksiLatestByKey.get(key)?.isCorrect === true
-    );
-    if (refleksiComplete) {
-      completedSections[5] = true;
-    }
-
-    const refleksiSavedData: Record<string, { answer: string; feedback: string | null; isCorrect: boolean | null }> = {};
-    for (const [key, val] of refleksiLatestByKey) {
-      refleksiSavedData[key] = val;
-    }
-
-    return NextResponse.json({
-      completedSections,
-      savedData: {
-        eksplorasi: eksplorasiSavedData,
-        deepLearning: deepLearning
-          ? { answer: deepLearning.answer, feedback: deepLearning.feedback, isCorrect: deepLearning.isCorrect }
-          : null,
-        contohSoal: contohSoalSavedData,
-        refleksi: refleksiSavedData,
+    // Query student_section_status for ALL sections of this concept
+    const rows = await prisma.studentSectionStatus.findMany({
+      where: {
+        studentId: student.id,
+        conceptId: CONCEPT_ID,
+      },
+      select: {
+        section: true,
+        status: true,
       },
     });
+
+    // Build map: section -> status
+    const sections: Record<string, string> = {};
+    for (const row of rows) {
+      sections[row.section] = row.status;
+    }
+
+    return NextResponse.json({ sections });
   } catch (error) {
     console.error("[GET /api/kaidah-penjumlahan/status] Error:", error);
     return NextResponse.json(

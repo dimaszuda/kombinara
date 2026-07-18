@@ -30,6 +30,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { EskplorasiPrompt } from "@/lib/ai/client";
 import { gmt7Now } from "@/lib/date";
+import { getAktivitasSiswaStatus } from "@/lib/data/student-section-status";
 
 const VALID_ENTRY_TYPES = new Set(["soal", "refleksi"]);
 const VALID_CONCEPT_IDS = new Set([
@@ -200,6 +201,17 @@ export async function POST(req: Request) {
       },
     });
 
+    // ── 5b. Check aktivitas_siswa gate for refleksi_mini ────────
+    // If this entry is correct AND pertains to kaidah_perkalian,
+    // check whether ALL aktivitas_siswa entries are now completed.
+    // If so, AND if kaidah_perkalian.contoh_soal is already completed,
+    // unlock kaidah_perkalian.refleksi_mini.
+    if (llmResult.isCorrect && concept_id === "kaidah_perkalian") {
+      void checkAndUnlockRefleksiMini(student.id).catch((err) => {
+        console.error("[aktivitas-siswa] checkAndUnlockRefleksiMini error:", err);
+      });
+    }
+
     // ── 6. Return feedback ─────────────────────────────────────
     return NextResponse.json({
       success: true,
@@ -213,4 +225,43 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Checks whether all aktivitas_siswa entries for kaidah_perkalian are
+ * completed.  If yes, and if contoh_soal is already completed, unlocks
+ * refleksi_mini.  Called as fire-and-forget after each aktivitas_siswa
+ * submission (does NOT block the response to the student).
+ */
+async function checkAndUnlockRefleksiMini(studentId: number): Promise<void> {
+  const status = await getAktivitasSiswaStatus(prisma, studentId, "kaidah_perkalian");
+
+  if (!status.allCompleted) return;
+
+  // Check if contoh_soal is already completed
+  const contohSoalRow = await prisma.studentSectionStatus.findUnique({
+    where: {
+      studentId_conceptId_section: {
+        studentId,
+        conceptId: "kaidah_perkalian",
+        section: "contoh_soal",
+      },
+    },
+    select: { status: true },
+  });
+
+  if (contohSoalRow?.status !== "completed") return;
+
+  // Both conditions met -- unlock refleksi_mini if still locked
+  await prisma.studentSectionStatus.updateMany({
+    where: {
+      studentId,
+      conceptId: "kaidah_perkalian",
+      section: "refleksi_mini",
+      status: "locked",
+    },
+    data: {
+      status: "unlocked",
+    },
+  });
 }

@@ -33,6 +33,30 @@ const TIDAK_BOLEH = [
 type Phase = "intro" | "active" | "submitted";
 type AnswerPair = { cara_hitung: string; jawaban_akhir: string };
 
+/** Response shape from GET /api/asesmen-formatif/check-access */
+interface AccessCheckResponse {
+  allowed: boolean;
+  missingSections: Array<{ conceptId: string; section: string }>;
+  summary: { totalRequired: number; completed: number; missing: number };
+}
+
+/** Human-readable labels for sections, used in the locked screen. */
+const SECTION_LABELS: Record<string, string> = {
+  apersepsi: "Apersepsi",
+  pemantik: "Pemantik",
+  refleksi_sebelum_mulai: "Refleksi Sebelum Mulai",
+  eksplorasi_kontekstual: "Eksplorasi Kontekstual",
+  aktivitas_deep_learning: "Aktivitas Deep Learning",
+  penjelasan_konsep: "Penjelasan Konsep",
+  contoh_soal: "Contoh Soal",
+  refleksi_mini: "Refleksi Mini",
+};
+
+const CONCEPT_LABELS: Record<string, string> = {
+  kaidah_penjumlahan: "Kaidah Penjumlahan",
+  kaidah_perkalian: "Kaidah Perkalian",
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────────────────
 function formatTime(secs: number) {
   const m = Math.floor(secs / 60).toString().padStart(2, "0");
@@ -63,6 +87,54 @@ export default function AsesmenKaidahPencacahanPage() {
   const hasSubmittedRef = useRef(false);
   const handleSubmitRef = useRef<() => void>(() => {});
   const { setLocked } = useAssesmentLock();
+
+  // ── Access check state ────────────────────────────────────────────────────
+  const [accessAllowed, setAccessAllowed] = useState<boolean | null>(null);
+  const [missingSections, setMissingSections] = useState<
+    Array<{ conceptId: string; section: string }>
+  >([]);
+  const [accessSummary, setAccessSummary] = useState<{
+    totalRequired: number;
+    completed: number;
+    missing: number;
+  } | null>(null);
+
+  // ── Access check on mount ──────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    async function checkAccess() {
+      try {
+        const res = await fetch(
+          "/api/asesmen-formatif/check-access?module_slug=kaidah-pencacahan"
+        );
+        if (cancelled) return;
+
+        if (!res.ok) {
+          // If the endpoint fails, default to denying access for safety.
+          setAccessAllowed(false);
+          setMissingSections([]);
+          return;
+        }
+
+        const data: AccessCheckResponse = await res.json();
+        if (cancelled) return;
+
+        setAccessAllowed(data.allowed);
+        setMissingSections(data.missingSections);
+        setAccessSummary(data.summary);
+      } catch {
+        if (!cancelled) {
+          // Network error -- deny access for safety.
+          setAccessAllowed(false);
+          setMissingSections([]);
+        }
+      }
+    }
+    checkAccess();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ── Draft auto-save hook ──────────────────────────────────────────────────────
   const { isRestoring, saveAllDrafts } = useDraftSaver({
@@ -154,6 +226,25 @@ export default function AsesmenKaidahPencacahanPage() {
     );
   }
 
+  // ── Loading: access check in progress ────────────────────────────────────────
+  if (accessAllowed === null) {
+    return (
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+        <p style={{ fontSize: 15, color: "#6b8f6d" }}>Memeriksa akses asesmen...</p>
+      </div>
+    );
+  }
+
+  // ── Access denied: show locked screen with missing sections ──────────────────
+  if (!accessAllowed) {
+    return (
+      <LockedScreen
+        missingSections={missingSections}
+        summary={accessSummary}
+      />
+    );
+  }
+
   if (phase === "intro") {
     if (isRestoring) {
       return (
@@ -174,6 +265,279 @@ export default function AsesmenKaidahPencacahanPage() {
       isSubmitting={isSubmitting}
       submitError={submitError}
     />
+  );
+}
+
+// ── Locked Screen ────────────────────────────────────────────────────────────────────────
+
+interface LockedScreenProps {
+  missingSections: Array<{ conceptId: string; section: string }>;
+  summary: { totalRequired: number; completed: number; missing: number } | null;
+}
+
+function LockedScreen({ missingSections, summary }: LockedScreenProps) {
+  // Group missing sections by concept_id for a cleaner display.
+  const grouped = new Map<string, string[]>();
+  for (const ms of missingSections) {
+    const list = grouped.get(ms.conceptId);
+    if (list) {
+      list.push(ms.section);
+    } else {
+      grouped.set(ms.conceptId, [ms.section]);
+    }
+  }
+
+  // If the API response did not include section details (e.g. network error),
+  // show a generic message instead of an empty list.
+  const hasDetail = missingSections.length > 0 && summary !== null;
+
+  const progressPct =
+    summary && summary.totalRequired > 0
+      ? Math.round((summary.completed / summary.totalRequired) * 100)
+      : 0;
+
+  return (
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 24px" }}>
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: "50%",
+            backgroundColor: "#fff5f0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 16px",
+          }}
+        >
+          <svg
+            width="34"
+            height="34"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#b45309"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "#b45309",
+            opacity: 0.7,
+            margin: "0 0 6px",
+          }}
+        >
+          Akses Terkunci
+        </p>
+        <h1
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            color: "#7c2d12",
+            margin: "0 0 8px",
+          }}
+        >
+          Selesaikan Materi Terlebih Dahulu
+        </h1>
+        <p style={{ fontSize: 14, color: "#9a7b5c", margin: 0, lineHeight: 1.7 }}>
+          Kamu harus menyelesaikan seluruh section pada materi Kaidah
+          Penjumlahan dan Kaidah Perkalian sebelum dapat mengerjakan asesmen
+          formatif ini.
+        </p>
+      </div>
+
+      {/* Progress summary */}
+      {summary && (
+        <div
+          style={{
+            backgroundColor: "#fffbeb",
+            borderRadius: 12,
+            border: "1.5px solid #fde68a",
+            padding: "14px 18px",
+            marginBottom: 20,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 8,
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#92400e" }}>
+              Progress Materi
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#92400e" }}>
+              {summary.completed}/{summary.totalRequired} selesai
+            </span>
+          </div>
+          <div
+            style={{
+              height: 8,
+              backgroundColor: "#fde68a",
+              borderRadius: 99,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                backgroundColor: "#d97706",
+                borderRadius: 99,
+                width: `${progressPct}%`,
+                transition: "width 0.5s ease",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Missing sections list */}
+      {hasDetail ? (
+        <div
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: 12,
+            border: "1.5px solid #e2ede2",
+            padding: "18px 20px",
+            marginBottom: 24,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#346739",
+              margin: "0 0 12px",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+            }}
+          >
+            Section yang Belum Selesai
+          </h3>
+          {Array.from(grouped.entries()).map(([conceptId, sections]) => (
+            <div key={conceptId} style={{ marginBottom: 12 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#1a3d1c",
+                  margin: "0 0 6px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {CONCEPT_LABELS[conceptId] ?? conceptId}
+              </p>
+              <ul
+                style={{
+                  listStyle: "none",
+                  padding: "0 0 0 4px",
+                  margin: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                }}
+              >
+                {sections.map((section) => (
+                  <li
+                    key={section}
+                    style={{
+                      fontSize: 13,
+                      color: "#5a7d5c",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        backgroundColor: "#d97706",
+                        flexShrink: 0,
+                      }}
+                    />
+                    {SECTION_LABELS[section] ?? section}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          style={{
+            backgroundColor: "#fff5f5",
+            borderRadius: 12,
+            border: "1.5px solid #fecaca",
+            padding: "14px 18px",
+            marginBottom: 24,
+            textAlign: "center",
+          }}
+        >
+          <p style={{ fontSize: 13, color: "#b91c1c", margin: 0 }}>
+            Tidak dapat memeriksa status materi saat ini. Silakan coba lagi
+            beberapa saat.
+          </p>
+        </div>
+      )}
+
+      {/* CTA button */}
+      <div style={{ textAlign: "center" }}>
+        <Link
+          href="/siswa/materi/kaidah-pencacahan"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "13px 32px",
+            backgroundColor: "#346739",
+            color: "#fff",
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Kembali ke Materi
+        </Link>
+        <p
+          style={{
+            marginTop: 10,
+            fontSize: 12,
+            color: "#9aada0",
+          }}
+        >
+          Selesaikan semua section di atas, lalu kembali ke halaman ini untuk
+          memulai asesmen.
+        </p>
+      </div>
+    </div>
   );
 }
 

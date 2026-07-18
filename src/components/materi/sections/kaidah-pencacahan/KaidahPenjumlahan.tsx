@@ -669,13 +669,6 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     readOnly ? (savedAnswer?.operasi_matematika ?? "") : ""
   );
   const [submitted, setSubmitted] = useState(wasAlreadyCorrect);
-  const [dlSaving, setDlSaving] = useState(false);
-  const [dlFeedback, setDlFeedback] = useState<string | null>(
-    readOnly ? (savedFeedback ?? null) : null
-  );
-  const [dlFeedbackType, setDlFeedbackType] = useState<"success" | "retry" | "error" | null>(
-    wasAlreadyCorrect ? "success" : null
-  );
 
   // Notify parent when submitted
   const dlCalledComplete = useRef(false);
@@ -707,14 +700,12 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     }
     if (savedData.isCorrect === true) {
       setSubmitted(true);
-      setDlFeedbackType("success");
     }
-    if (savedData.feedback) setDlFeedback(savedData.feedback);
 
     didRestoreDL.current = true;
   }, [readOnly, savedData]);
 
-  async function handleSubmit() {
+  function handleSubmit() {
     const jawabanObj = {
       tabel: situations.map((s, i) => ({
         situasi: s.situation,
@@ -728,54 +719,28 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     const soal =
       "Aktivitas menemukan pola kaidah penjumlahan: Siswa menganalisis 3 situasi pilihan saling lepas (transportasi, baju, jurusan) untuk menentukan boleh tidaknya memilih keduanya, total pilihan, apakah ada pola, dan operasi matematika yang digunakan.";
 
-    setDlSaving(true);
-    setDlFeedback(null);
-    setDlFeedbackType(null);
+    setSubmitted(true);
 
-    try {
-      // Step 1: Panggil AI untuk dapatkan feedback & penilaian
-      const aiRes = await fetch("/api/ai/deep-learning", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj) }),
-      });
-
-      if (!aiRes.ok) {
-        throw new Error("AI API returned non-OK status");
-      }
-
-      const aiData = await aiRes.json();
-
-      // Step 2: Simpan ke DB (selalu INSERT, bukan upsert)
-      await fetch("/api/aktivitas-deep-learning", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          concept_id: "kaidah_penjumlahan",
-          answer: jawabanObj,
-          feedback: aiData?.feedback ?? null,
-          is_correct: aiData?.isCorrect ?? null,
-        }),
-      });
-
-      // Step 3: Validasi — hanya lanjut section berikutnya jika AI menilai benar
-      if (aiData?.isCorrect === true) {
-        setSubmitted(true);
-        setDlFeedback(aiData.feedback ?? null);
-        setDlFeedbackType("success");
-      } else {
-        // Jawaban belum tepat → tampilkan feedback & biarkan siswa retry
-        setDlFeedback(aiData?.feedback ?? "Coba lagi ya, jawabanmu belum tepat. Perbaiki jawabanmu!");
-        setDlFeedbackType("retry");
-        // submitted tetap false → siswa bisa edit & kirim ulang
-      }
-    } catch (err) {
-      console.error("[deep-learning] error:", err);
-      setDlFeedback("Maaf, ada kendala saat memproses jawabanmu. Coba lagi ya!");
-      setDlFeedbackType("error");
-    } finally {
-      setDlSaving(false);
-    }
+    // Background: call AI then save to DB
+    fetch("/api/ai/deep-learning", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj) }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.resolve(null)))
+      .then((data) =>
+        fetch("/api/aktivitas-deep-learning", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            concept_id: "kaidah_penjumlahan",
+            answer: jawabanObj,
+            feedback: data?.feedback ?? null,
+            is_correct: data?.isCorrect ?? null,
+          }),
+        })
+      )
+      .catch((err) => console.error("[deep-learning] background error:", err));
   }
 
   return (
@@ -807,12 +772,11 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
                   <select
                     value={tableAnswers[i].both}
                     disabled={readOnly}
-                    onChange={(e) => {
+                    onChange={(e) =>
                       setTableAnswers((prev) =>
                         prev.map((a, idx) => idx === i ? { ...a, both: e.target.value } : a)
-                      );
-                      if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); }
-                    }}
+                      )
+                    }
                     className={`rounded-md border border-[#34673933] px-2 py-1.5 text-xs text-[#2C2C2A] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                   >
                     <option value="">Ya/Tidak</option>
@@ -825,12 +789,11 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
                     type="text"
                     value={tableAnswers[i].total}
                     disabled={readOnly}
-                    onChange={(e) => {
+                    onChange={(e) =>
                       setTableAnswers((prev) =>
                         prev.map((a, idx) => idx === i ? { ...a, total: e.target.value } : a)
-                      );
-                      if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); }
-                    }}
+                      )
+                    }
                     placeholder="..."
                     className={`w-20 rounded-md border border-[#34673933] px-2 py-1.5 text-center text-xs ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
                   />
@@ -848,8 +811,8 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
 
       <p className="mt-4 text-lg font-semibold text-[#346739]">🤔 Apakah ada pola?</p>
       <div className="mt-2.5 flex gap-2">
-        <ToggleButton label="Ya" active={foundPattern === "yes"} onClick={readOnly ? () => {} : () => { setFoundPattern("yes"); if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); } }} />
-        <ToggleButton label="Tidak" active={foundPattern === "no"} onClick={readOnly ? () => {} : () => { setFoundPattern("no"); if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); } }} />
+        <ToggleButton label="Ya" active={foundPattern === "yes"} onClick={readOnly ? () => {} : () => setFoundPattern("yes")} />
+        <ToggleButton label="Tidak" active={foundPattern === "no"} onClick={readOnly ? () => {} : () => setFoundPattern("no")} />
       </div>
 
       <p className="mt-4 text-lg font-semibold text-[#346739]">
@@ -860,10 +823,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
         placeholder="Tulis jawabanmu..."
         value={operasiMatematika}
         disabled={readOnly}
-        onChange={(e) => {
-          setOperasiMatematika(e.target.value);
-          if (dlFeedback) { setDlFeedback(null); setDlFeedbackType(null); setSubmitted(false); }
-        }}
+        onChange={(e) => setOperasiMatematika(e.target.value)}
         className={`mt-2 w-full rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
       />
       {!readOnly && (
@@ -871,15 +831,10 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitted || dlSaving}
+            disabled={submitted}
             className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
           >
-            {dlSaving ? (
-              <>
-                <Spinner />
-                Mengecek...
-              </>
-            ) : submitted ? (
+            {submitted ? (
               <>
                 <CheckIcon />
                 Tersimpan
@@ -892,46 +847,10 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             )}
           </button>
 
-          {/* Feedback AI — tampil setelah submit */}
-          {dlFeedback && (
-            <div
-              className={`w-full rounded-lg border p-3 ${
-                dlFeedbackType === "success"
-                  ? "border-[#34673933] bg-[#DBFFD5]/50"
-                  : dlFeedbackType === "retry"
-                  ? "border-[#FFB34733] bg-[#FFF3E0]/50"
-                  : "border-[#EF444433] bg-[#FEF2F2]/50"
-              }`}
-            >
-              <p className="mb-1 text-xs font-medium text-[#663362]">
-                {dlFeedbackType === "success"
-                  ? "✅ Feedback Kombi"
-                  : dlFeedbackType === "retry"
-                  ? "💬 Feedback Kombi — Yuk diperbaiki!"
-                  : "⚠️ Ups, ada kendala"}
-              </p>
-              <p className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">
-                {dlFeedback}
-              </p>
-              {dlFeedbackType === "retry" && (
-                <p className="mt-2 text-xs text-[#663362] italic">
-                  Kamu bisa mengedit jawabanmu di atas lalu klik &ldquo;Simpan Jawaban&rdquo; lagi.
-                </p>
-              )}
-              {dlFeedbackType === "error" && (
-                <p className="mt-2 text-xs text-[#663362] italic">
-                  Silakan coba klik &ldquo;Simpan Jawaban&rdquo; lagi.
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Sukses permanen — hanya saat is_correct true */}
+          {/* Saved confirmation */}
           {submitted && (
             <div className="w-full rounded-lg border border-[#66336233] bg-[#66336208] p-3">
-              <p className="text-sm leading-relaxed text-[#2C2C2A]">
-                Jawaban kamu sudah benar dan tersimpan! Lanjut ke bagian berikutnya ya. 🎉
-              </p>
+              <p className="text-sm leading-relaxed text-[#2C2C2A]">Jawaban kamu sudah tersimpan! ✅</p>
             </div>
           )}
         </div>
@@ -953,7 +872,38 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
 // Penjelasan Konsep
 // ============================================================================
 
-function PenjelasanKonsep({ onNext }: ReadOnlySectionProps) {
+function PenjelasanKonsep({ onNext, conceptId }: ReadOnlySectionProps & { conceptId?: string }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleLanjutkan() {
+    if (!conceptId || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/student-section-status/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: conceptId,
+          section: "penjelasan_konsep",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to update section status");
+      }
+
+      onNext?.();
+    } catch (err) {
+      console.error("[PenjelasanKonsep] Failed to complete section:", err);
+      // Still allow local navigation even if server fails --
+      // the status update will be retried on next page load via seeding check.
+      onNext?.();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
   return (
     <article>
       <SectionBadge>Penjelasan Konsep</SectionBadge>
@@ -1016,7 +966,7 @@ function PenjelasanKonsep({ onNext }: ReadOnlySectionProps) {
           <RichText>{"Total = $n_1 + n_2 + n_3 + ... + n_k$"}</RichText>
         </div>
       </div>
-      {onNext && <NextButton onClick={onNext} />}
+      {onNext && <NextButton onClick={handleLanjutkan} />}
       <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
@@ -1603,21 +1553,183 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
 }
 
 // ============================================================================
-// Main Export — Sequential Section Unlocking
+// Collapsible "Lihat Jawabanku" Wrapper (TASK 4)
+// ============================================================================
+
+/** Jawaban entries returned by /api/student-section-status/jawaban */
+interface JawabanEntry {
+  questionKey: string;
+  answer: unknown;
+  feedback: string | null;
+  isCorrect: boolean | null;
+  submittedAt: string | null;
+}
+
+interface JawabanResponse {
+  section: string;
+  conceptId: string;
+  entries: JawabanEntry[];
+}
+
+/**
+ * Converts raw jawaban entries from the on-demand endpoint into the
+ * savedData shape expected by each section sub-component (penjumlahan variant).
+ */
+function entriesToSavedData(section: string, entries: JawabanEntry[]): Partial<KaidahPenjumlahanSavedData> {
+  switch (section) {
+    case "eksplorasi_kontekstual": {
+      const data: PenjumlahanEksplorasiSavedData = {};
+      for (const e of entries) {
+        const raw = e.answer as Record<string, unknown> | undefined;
+        data[e.questionKey] = {
+          answer: {
+            soal: String(raw?.soal ?? ""),
+            jawaban: String(raw?.jawaban ?? ""),
+            alasan: raw?.alasan ? String(raw.alasan) : undefined,
+          },
+          feedback: e.feedback,
+          isCorrect: e.isCorrect,
+        };
+      }
+      return { eksplorasi: data };
+    }
+    case "aktivitas_deep_learning": {
+      const entry = entries[0];
+      if (!entry) return {};
+      return {
+        deepLearning: {
+          answer: entry.answer as PenjumlahanDeepLearningSavedData["answer"],
+          feedback: entry.feedback,
+          isCorrect: entry.isCorrect,
+        },
+      };
+    }
+    case "contoh_soal": {
+      const csData: KaidahPenjumlahanSavedData["contohSoal"] = {};
+      for (const e of entries) {
+        csData[e.questionKey] = {
+          answer: (e.answer as Record<string, string>) ?? {},
+          isCorrect: e.isCorrect === true,
+        };
+      }
+      return { contohSoal: csData };
+    }
+    case "refleksi_mini": {
+      const refData: KaidahPenjumlahanSavedData["refleksi"] = {};
+      for (const e of entries) {
+        refData[e.questionKey] = {
+          answer: typeof e.answer === "string" ? e.answer : JSON.stringify(e.answer),
+          feedback: e.feedback,
+          isCorrect: e.isCorrect,
+        };
+      }
+      return { refleksi: refData };
+    }
+    default:
+      return {};
+  }
+}
+
+/** Renders a completed section with a "Lihat jawabanku" button. */
+function CollapsibleJawabanSection({
+  sectionName,
+  isCompleted,
+  jawabanData,
+  loadingJawaban,
+  onFetchJawaban,
+  children,
+}: {
+  sectionName: string;
+  isCompleted: boolean;
+  jawabanData: Record<string, JawabanEntry[]>;
+  loadingJawaban: Record<string, boolean>;
+  onFetchJawaban: (sectionName: string) => void;
+  children: (derivedSavedData: Partial<KaidahPenjumlahanSavedData> | undefined) => React.ReactNode;
+}) {
+  const entries = jawabanData[sectionName];
+  const isLoading = loadingJawaban[sectionName] ?? false;
+  const hasJawaban = entries !== undefined && entries.length > 0;
+
+  if (!isCompleted) {
+    return <>{children(undefined)}</>;
+  }
+
+  if (hasJawaban) {
+    const derived = entriesToSavedData(sectionName, entries);
+    return <>{children(derived)}</>;
+  }
+
+  return (
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
+            ✓
+          </div>
+          <span className="text-sm font-medium text-[#2C2C2A]">Bagian ini sudah selesai</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onFetchJawaban(sectionName)}
+          disabled={isLoading}
+          className="flex items-center gap-2 rounded-full border border-[#346739] px-5 py-2 text-sm font-medium text-[#346739] transition-colors hover:bg-[#34673908] disabled:opacity-50"
+        >
+          {isLoading ? (
+            <>
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Memuat...
+            </>
+          ) : (
+            "Lihat jawabanku"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Main Export — Sequential Section Unlocking (REFACTORED)
 // ============================================================================
 
 export default function KaidahPenjumlahan({
   onComplete,
   initialCompletedSections = {},
-  savedData,
 }: {
   onComplete?: () => void;
-  /** Section indices yang sudah complete dari backend (hanya DB-tracked: 0,1,5) */
+  /** Section indices yang sudah complete dari backend (hanya DB-tracked: 0,1,3,5) */
   initialCompletedSections?: Record<number, boolean>;
-  /** Data jawaban & feedback yang sudah tersimpan di DB */
-  savedData?: KaidahPenjumlahanSavedData;
 }) {
   const onCompleteCalled = useRef(false);
+
+  // ── State untuk on-demand "Lihat jawabanku" ──────────────────
+  const [jawabanData, setJawabanData] = useState<Record<string, JawabanEntry[]>>({});
+  const [loadingJawaban, setLoadingJawaban] = useState<Record<string, boolean>>({});
+
+  /** Fetch jawaban+feedback untuk satu section dari on-demand endpoint */
+  async function fetchJawaban(sectionName: string) {
+    if (loadingJawaban[sectionName] || jawabanData[sectionName]) return;
+
+    setLoadingJawaban((prev) => ({ ...prev, [sectionName]: true }));
+    try {
+      const res = await fetch(
+        `/api/student-section-status/jawaban?concept_id=kaidah_penjumlahan&section=${sectionName}`
+      );
+      if (!res.ok) {
+        console.error("[fetchJawaban] Failed:", res.status);
+        return;
+      }
+      const data: JawabanResponse = await res.json();
+      setJawabanData((prev) => ({ ...prev, [sectionName]: data.entries }));
+    } catch (err) {
+      console.error("[fetchJawaban] Error:", err);
+    } finally {
+      setLoadingJawaban((prev) => ({ ...prev, [sectionName]: false }));
+    }
+  }
 
   // ── Build initial state dari data backend ───────────────────────
   // Infer read-only sections: jika section berikutnya sudah complete,
@@ -1719,36 +1831,67 @@ export default function KaidahPenjumlahan({
 
       {/* Section 0: Eksplorasi Kontekstual */}
       {isVisible(0) && (
-        <EksplorasiKontekstual
-          readOnly={isCompleted(0)}
-          savedData={savedData?.eksplorasi}
-          onComplete={isActive(0) ? () => markComplete(0) : undefined}
-        />
+        <CollapsibleJawabanSection
+          sectionName="eksplorasi_kontekstual"
+          isCompleted={isCompleted(0)}
+          jawabanData={jawabanData}
+          loadingJawaban={loadingJawaban}
+          onFetchJawaban={fetchJawaban}
+        >
+          {(derivedSavedData) => (
+            <EksplorasiKontekstual
+              readOnly={isCompleted(0)}
+              savedData={derivedSavedData?.eksplorasi}
+              onComplete={isActive(0) ? () => markComplete(0) : undefined}
+            />
+          )}
+        </CollapsibleJawabanSection>
       )}
 
       {/* Section 1: Deep Learning */}
       {isVisible(1) && (
-        <DeepLearning
-          readOnly={isCompleted(1)}
-          savedData={savedData?.deepLearning}
-          onComplete={isActive(1) ? () => markComplete(1) : undefined}
-        />
+        <CollapsibleJawabanSection
+          sectionName="aktivitas_deep_learning"
+          isCompleted={isCompleted(1)}
+          jawabanData={jawabanData}
+          loadingJawaban={loadingJawaban}
+          onFetchJawaban={fetchJawaban}
+        >
+          {(derivedSavedData) => (
+            <DeepLearning
+              readOnly={isCompleted(1)}
+              savedData={derivedSavedData?.deepLearning}
+              onComplete={isActive(1) ? () => markComplete(1) : undefined}
+            />
+          )}
+        </CollapsibleJawabanSection>
       )}
 
       {/* Section 2: Penjelasan Konsep (read-only) */}
       {isVisible(2) && (
         <PenjelasanKonsep
+          conceptId="kaidah_penjumlahan"
           onNext={isActive(2) ? () => handleNext(2) : undefined}
         />
       )}
 
       {/* Section 3: Contoh Soal Bertahap */}
       {isVisible(3) && (
-        <ContohSoal
-          readOnly={isCompleted(3)}
-          savedData={savedData?.contohSoal}
-          onComplete={isActive(3) ? () => markComplete(3) : undefined}
-        />
+        <CollapsibleJawabanSection
+          sectionName="contoh_soal"
+          isCompleted={isCompleted(3)}
+          jawabanData={jawabanData}
+          loadingJawaban={loadingJawaban}
+          onFetchJawaban={fetchJawaban}
+        >
+          {(derivedSavedData) => (
+            <ContohSoal
+              readOnly={isCompleted(3)}
+              savedData={derivedSavedData?.contohSoal}
+              onComplete={isActive(3) ? () => markComplete(3) : undefined}
+            />
+          )}
+        </CollapsibleJawabanSection>
       )}
 
       {/* Section 4: Mengapa? Corner (read-only) */}
@@ -1760,11 +1903,21 @@ export default function KaidahPenjumlahan({
 
       {/* Section 5: Refleksi Mini */}
       {isVisible(5) && (
-        <RefleksiMini
-          readOnly={isCompleted(5)}
-          savedData={savedData?.refleksi}
-          onComplete={isActive(5) ? () => markComplete(5) : undefined}
-        />
+        <CollapsibleJawabanSection
+          sectionName="refleksi_mini"
+          isCompleted={isCompleted(5)}
+          jawabanData={jawabanData}
+          loadingJawaban={loadingJawaban}
+          onFetchJawaban={fetchJawaban}
+        >
+          {(derivedSavedData) => (
+            <RefleksiMini
+              readOnly={isCompleted(5)}
+              savedData={derivedSavedData?.refleksi}
+              onComplete={isActive(5) ? () => markComplete(5) : undefined}
+            />
+          )}
+        </CollapsibleJawabanSection>
       )}
 
       {/* All complete banner */}

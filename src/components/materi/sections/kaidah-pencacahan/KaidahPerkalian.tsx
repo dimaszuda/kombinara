@@ -1023,7 +1023,39 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
   );
 }
 
-function PenjelasanKonsep({ onNext }: ReadOnlySectionProps) {
+function PenjelasanKonsep({ onNext, conceptId }: ReadOnlySectionProps & { conceptId?: string }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleLanjutkan() {
+    if (!conceptId || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/student-section-status/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: conceptId,
+          section: "penjelasan_konsep",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to update section status");
+      }
+
+      onNext?.();
+    } catch (err) {
+      console.error("[PenjelasanKonsep] Failed to complete section:", err);
+      // Still allow local navigation even if server fails --
+      // the status update will be retried on next page load via seeding check.
+      onNext?.();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <article>
       <SectionBadge>Penjelasan Konsep</SectionBadge>
@@ -1049,7 +1081,7 @@ function PenjelasanKonsep({ onNext }: ReadOnlySectionProps) {
         </p>
       </div>
 
-      {/* Mengapa penjumlahan? */}
+      {/* Mengapa perkalian? */}
       <div className="mt-5 rounded-xl bg-white p-5">
         <h3 className="mb-3 text-lg font-bold text-[#346739]">Mengapa perkalian?</h3>
         <RichText>
@@ -1061,7 +1093,7 @@ function PenjelasanKonsep({ onNext }: ReadOnlySectionProps) {
           <b>Ingat</b>Diagram pohon selalu menghasilkan perkalian jumlah cabang di setiap tingkat!
         </p>
       </div>
-      {onNext && <NextButton onClick={onNext} />}
+      {onNext && <NextButton onClick={handleLanjutkan} />}
       <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
@@ -1804,21 +1836,200 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
 }
 
 // ============================================================================
-// Main Export — Sequential Section Unlocking
+// Collapsible "Lihat Jawabanku" Wrapper (TASK 4)
 // ============================================================================
+
+/** Renders a completed section with a "Lihat jawabanku" button.
+ *  When the section is completed and no jawaban data has been fetched yet,
+ *  shows a collapsed view.  Once the user clicks "Lihat jawabanku", the
+ *  on-demand endpoint is called and the full answer content is displayed. */
+function CollapsibleJawabanSection({
+  sectionName,
+  isCompleted,
+  jawabanData,
+  loadingJawaban,
+  onFetchJawaban,
+  entriesToSavedData,
+  children,
+}: {
+  sectionName: string;
+  isCompleted: boolean;
+  jawabanData: Record<string, JawabanEntry[]>;
+  loadingJawaban: Record<string, boolean>;
+  onFetchJawaban: (sectionName: string) => void;
+  entriesToSavedData: (section: string, entries: JawabanEntry[]) => Partial<KaidahPerkalianSavedData>;
+  children: (derivedSavedData: Partial<KaidahPerkalianSavedData> | undefined) => React.ReactNode;
+}) {
+  const entries = jawabanData[sectionName];
+  const isLoading = loadingJawaban[sectionName] ?? false;
+  const hasJawaban = entries !== undefined && entries.length > 0;
+
+  // If the section is NOT completed, just render children normally (active section)
+  if (!isCompleted) {
+    return <>{children(undefined)}</>;
+  }
+
+  // Section is completed -- show collapsed view or fetched answers
+  if (hasJawaban) {
+    // Jawaban already fetched -- derive savedData and render children with it
+    const derived = entriesToSavedData(sectionName, entries);
+    return <>{children(derived)}</>;
+  }
+
+  // Jawaban not yet fetched -- show collapsed view with button
+  return (
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
+            ✓
+          </div>
+          <span className="text-sm font-medium text-[#2C2C2A]">Bagian ini sudah selesai</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onFetchJawaban(sectionName)}
+          disabled={isLoading}
+          className="flex items-center gap-2 rounded-full border border-[#346739] px-5 py-2 text-sm font-medium text-[#346739] transition-colors hover:bg-[#34673908] disabled:opacity-50"
+        >
+          {isLoading ? (
+            <>
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Memuat...
+            </>
+          ) : (
+            "Lihat jawabanku"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Main Export — Sequential Section Unlocking (REFACTORED)
+// ============================================================================
+
+/** Jawaban entries returned by /api/student-section-status/jawaban */
+interface JawabanEntry {
+  questionKey: string;
+  answer: unknown;
+  feedback: string | null;
+  isCorrect: boolean | null;
+  submittedAt: string | null;
+}
+
+interface JawabanResponse {
+  section: string;
+  conceptId: string;
+  entries: JawabanEntry[];
+}
+
+/**
+ * Converts raw jawaban entries from the on-demand endpoint into the
+ * savedData shape expected by each section sub-component.
+ */
+function entriesToSavedData(section: string, entries: JawabanEntry[]): Partial<KaidahPerkalianSavedData> {
+  switch (section) {
+    case "eksplorasi_kontekstual": {
+      const entry = entries[0];
+      if (!entry) return {};
+      const raw = entry.answer as Record<string, unknown> | undefined;
+      return {
+        eksplorasi: {
+          answer: {
+            soal: String(raw?.soal ?? ""),
+            jawaban: String(raw?.jawaban ?? ""),
+            alasan: String(raw?.alasan ?? ""),
+          },
+          feedback: entry.feedback,
+          isCorrect: entry.isCorrect,
+        },
+      };
+    }
+    case "aktivitas_deep_learning": {
+      const entry = entries[0];
+      if (!entry) return {};
+      return {
+        deepLearning: {
+          answer: entry.answer as DeepLearningSavedData["answer"],
+          feedback: entry.feedback,
+          isCorrect: entry.isCorrect,
+        },
+      };
+    }
+    case "contoh_soal": {
+      const csData: KaidahPerkalianSavedData["contohSoal"] = {};
+      for (const e of entries) {
+        csData[e.questionKey] = {
+          answer: (e.answer as Record<string, string>) ?? {},
+          isCorrect: e.isCorrect === true,
+        };
+      }
+      return { contohSoal: csData };
+    }
+    case "refleksi_mini": {
+      const refData: KaidahPerkalianSavedData["refleksi"] = {};
+      for (const e of entries) {
+        refData[e.questionKey] = {
+          answer: typeof e.answer === "string" ? e.answer : JSON.stringify(e.answer),
+          feedback: e.feedback,
+          isCorrect: e.isCorrect,
+        };
+      }
+      return { refleksi: refData };
+    }
+    default:
+      return {};
+  }
+}
 
 export default function KaidahPerkalian({
   onComplete,
   initialCompletedSections = {},
-  savedData,
 }: {
   onComplete?: () => void;
-  /** Section indices yang sudah complete dari backend (hanya DB-tracked: 0,1,7) */
+  /** Section indices yang sudah complete dari backend (hanya DB-tracked: 0,1,3,7) */
   initialCompletedSections?: Record<number, boolean>;
-  /** Data jawaban & feedback yang sudah tersimpan di DB */
-  savedData?: KaidahPerkalianSavedData;
 }) {
   const onCompleteCalled = useRef(false);
+
+  // ── State untuk on-demand "Lihat jawabanku" ──────────────────
+  const [jawabanData, setJawabanData] = useState<Record<string, JawabanEntry[]>>({});
+  const [loadingJawaban, setLoadingJawaban] = useState<Record<string, boolean>>({});
+
+  /** Fetch jawaban+feedback untuk satu section dari on-demand endpoint */
+  async function fetchJawaban(sectionName: string) {
+    if (loadingJawaban[sectionName] || jawabanData[sectionName]) return;
+
+    setLoadingJawaban((prev) => ({ ...prev, [sectionName]: true }));
+    try {
+      const res = await fetch(
+        `/api/student-section-status/jawaban?concept_id=kaidah_perkalian&section=${sectionName}`
+      );
+      if (!res.ok) {
+        console.error("[fetchJawaban] Failed:", res.status);
+        return;
+      }
+      const data: JawabanResponse = await res.json();
+      setJawabanData((prev) => ({ ...prev, [sectionName]: data.entries }));
+    } catch (err) {
+      console.error("[fetchJawaban] Error:", err);
+    } finally {
+      setLoadingJawaban((prev) => ({ ...prev, [sectionName]: false }));
+    }
+  }
+
+  // Section name mapping (component index -> DB section name)
+  const SECTION_DB_NAMES: Record<number, string> = {
+    0: "eksplorasi_kontekstual",
+    1: "aktivitas_deep_learning",
+    3: "contoh_soal",
+    7: "refleksi_mini",
+  };
 
   // ── Build initial state dari data backend ───────────────────────
   function buildInitialState(): {
@@ -1917,36 +2128,70 @@ export default function KaidahPerkalian({
 
       {/* Section 0: Eksplorasi Kontekstual */}
       {isVisible(0) && (
-        <EksplorasiKontekstual
-          readOnly={isCompleted(0)}
-          savedData={savedData?.eksplorasi}
-          onComplete={isActive(0) ? () => markComplete(0) : undefined}
-        />
+        <CollapsibleJawabanSection
+          sectionName="eksplorasi_kontekstual"
+          isCompleted={isCompleted(0)}
+          jawabanData={jawabanData}
+          loadingJawaban={loadingJawaban}
+          onFetchJawaban={fetchJawaban}
+          entriesToSavedData={entriesToSavedData}
+        >
+          {(derivedSavedData) => (
+            <EksplorasiKontekstual
+              readOnly={isCompleted(0)}
+              savedData={derivedSavedData?.eksplorasi}
+              onComplete={isActive(0) ? () => markComplete(0) : undefined}
+            />
+          )}
+        </CollapsibleJawabanSection>
       )}
 
       {/* Section 1: Deep Learning */}
       {isVisible(1) && (
-        <DeepLearning
-          readOnly={isCompleted(1)}
-          savedData={savedData?.deepLearning}
-          onComplete={isActive(1) ? () => markComplete(1) : undefined}
-        />
+        <CollapsibleJawabanSection
+          sectionName="aktivitas_deep_learning"
+          isCompleted={isCompleted(1)}
+          jawabanData={jawabanData}
+          loadingJawaban={loadingJawaban}
+          onFetchJawaban={fetchJawaban}
+          entriesToSavedData={entriesToSavedData}
+        >
+          {(derivedSavedData) => (
+            <DeepLearning
+              readOnly={isCompleted(1)}
+              savedData={derivedSavedData?.deepLearning}
+              onComplete={isActive(1) ? () => markComplete(1) : undefined}
+            />
+          )}
+        </CollapsibleJawabanSection>
       )}
 
       {/* Section 2: Penjelasan Konsep (read-only) */}
       {isVisible(2) && (
         <PenjelasanKonsep
+          conceptId="kaidah_perkalian"
           onNext={isActive(2) ? () => handleNext(2) : undefined}
         />
       )}
 
       {/* Section 3: Contoh Soal Bertahap */}
       {isVisible(3) && (
-        <ContohSoal
-          readOnly={isCompleted(3)}
-          savedData={savedData?.contohSoal}
-          onComplete={isActive(3) ? () => markComplete(3) : undefined}
-        />
+        <CollapsibleJawabanSection
+          sectionName="contoh_soal"
+          isCompleted={isCompleted(3)}
+          jawabanData={jawabanData}
+          loadingJawaban={loadingJawaban}
+          onFetchJawaban={fetchJawaban}
+          entriesToSavedData={entriesToSavedData}
+        >
+          {(derivedSavedData) => (
+            <ContohSoal
+              readOnly={isCompleted(3)}
+              savedData={derivedSavedData?.contohSoal}
+              onComplete={isActive(3) ? () => markComplete(3) : undefined}
+            />
+          )}
+        </CollapsibleJawabanSection>
       )}
 
       {/* Section 4: Mengapa? Corner (read-only) */}
@@ -1972,11 +2217,22 @@ export default function KaidahPerkalian({
 
       {/* Section 7: Refleksi Mini */}
       {isVisible(7) && (
-        <RefleksiMini
-          readOnly={isCompleted(7)}
-          savedData={savedData?.refleksi}
-          onComplete={isActive(7) ? () => markComplete(7) : undefined}
-        />
+        <CollapsibleJawabanSection
+          sectionName="refleksi_mini"
+          isCompleted={isCompleted(7)}
+          jawabanData={jawabanData}
+          loadingJawaban={loadingJawaban}
+          onFetchJawaban={fetchJawaban}
+          entriesToSavedData={entriesToSavedData}
+        >
+          {(derivedSavedData) => (
+            <RefleksiMini
+              readOnly={isCompleted(7)}
+              savedData={derivedSavedData?.refleksi}
+              onComplete={isActive(7) ? () => markComplete(7) : undefined}
+            />
+          )}
+        </CollapsibleJawabanSection>
       )}
 
       {allComplete && (
