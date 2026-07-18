@@ -23,7 +23,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 
-const COOLDOWN_MINUTES = 10;
+const COOLDOWN_MINUTES = 1;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

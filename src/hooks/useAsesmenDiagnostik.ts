@@ -5,7 +5,7 @@ import type { GradingResult } from "@/lib/data/asesmen-diagnostik";
 import { toGMT7ISO } from "@/lib/date";
 
 const AUTO_SAVE_DEBOUNCE_MS = 500;
-const COOLDOWN_MINUTES = 10;
+const COOLDOWN_MINUTES = 1;
 
 export interface DiagnosticStatus {
   status: "none" | "in_progress" | "passed" | "failed";
@@ -155,11 +155,19 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
   }, [isCoolingDown]);
 
   // ── Init: GET attempt saat mount (buat baru / restore draft) ────────────
+  // Hanya buat attempt baru jika TIDAK dalam masa cooldown
   const initAttempt = useCallback(async () => {
     setIsLoadingDraft(true);
     try {
       const res = await fetch("/api/asesmen-diagnostik/attempt");
-      if (!res.ok) return;
+      if (!res.ok) {
+        // Jika server menolak karena cooldown aktif, jangan buat attempt
+        const body = await res.json().catch(() => null);
+        if (res.status === 429 && body?.cooldownRemainingSeconds != null) {
+          setCooldownRemaining(body.cooldownRemainingSeconds);
+        }
+        return;
+      }
 
       const data: { attempt_id: number; draft_answers: Record<string, string> } =
         await res.json();
@@ -178,8 +186,10 @@ export function useAsesmenDiagnostik(): UseAsesmenDiagnostikReturn {
   }, []);
 
   useEffect(() => {
-    fetchStatus();
-    initAttempt();
+    // Fetch status dulu, baru init attempt — agar initAttempt tahu status cooldown
+    fetchStatus().then(() => {
+      initAttempt();
+    });
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);

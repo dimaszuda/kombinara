@@ -225,6 +225,32 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
         diagnosticStatus?.status === "passed" ||
         (lastResult?.isPass ?? false);
 
+    // ── COOLDOWN: status failed & timer masih jalan (contoh: setelah reload) ──
+    const isInCooldown =
+        diagnosticStatus?.status === "failed" &&
+        cooldownRemaining !== null &&
+        cooldownRemaining > 0;
+
+    if (isInCooldown) {
+        return (
+            <article
+                style={{
+                    backgroundColor: "white",
+                    borderRadius: "16px",
+                    padding: "32px",
+                    border: "1px solid #346739",
+                }}
+                className="flex flex-col gap-6"
+            >
+                <h2 className="kp-subtitle" style={{ color: "#346739" }}>
+                    Asesmen Diagnostik
+                </h2>
+                <CooldownScreen cooldownRemaining={cooldownRemaining} />
+            </article>
+        );
+    }
+
+    // ── SUDAH LULUS: tampilkan hanya ringkasan skor ─────────────────
     if (hasPassed && lastResult) {
         return (
             <article
@@ -698,6 +724,68 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
 }
 
 /**
+ * Layar cooldown saat siswa gagal dan harus menunggu sebelum mencoba lagi.
+ * Ditampilkan saat reload halaman ketika timer cooldown masih berjalan.
+ */
+function CooldownScreen({
+    cooldownRemaining,
+}: {
+    cooldownRemaining: number;
+}) {
+    return (
+        <div className="flex flex-col items-center gap-4 w-full">
+            <div
+                style={{
+                    width: "96px",
+                    height: "96px",
+                    borderRadius: "50%",
+                    border: "6px solid #dc2626",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    background: "#fef2f2",
+                }}
+            >
+                <span
+                    style={{
+                        fontSize: "20px",
+                        fontWeight: 700,
+                        color: "#dc2626",
+                        lineHeight: 1,
+                    }}
+                >
+                    ⏳
+                </span>
+            </div>
+
+            <div className="text-center">
+                <p
+                    style={{
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        color: "#dc2626",
+                        margin: 0,
+                    }}
+                >
+                    Belum Lulus, Tetap Semangat! 💪
+                </p>
+                <p style={{ fontSize: "13px", color: "#888", margin: "4px 0 0" }}>
+                    Silakan coba lagi dalam{" "}
+                    <strong style={{ color: "#dc2626" }}>
+                        {formatCooldown(cooldownRemaining)}
+                    </strong>
+                </p>
+            </div>
+
+            <p style={{ fontSize: "13px", color: "#888" }}>
+                📚 Pelajari dulu materi prasyarat agar lebih siap.
+            </p>
+        </div>
+    );
+}
+
+/**
  * Ringkasan untuk siswa yang sudah lulus — hanya skor, tanpa soal.
  */
 function PassedSummary({ result }: { result: GradingResult }) {
@@ -841,7 +929,7 @@ function ResultFeedback({
                 </div>
             )}
 
-            {/* Link belajar prasyarat (hanya jika belum lulus) */}
+            {/* Pesan belajar prasyarat (hanya jika belum lulus) */}
             {!isPass && (
                 <div
                     style={{
@@ -858,25 +946,7 @@ function ResultFeedback({
                     }}
                 >
                     <span style={{ fontWeight: 600 }}>📚 Sebelum mencoba lagi: </span>
-                    pelajari dulu{" "}
-                    <a
-                        href="#"
-                        style={{
-                            color: "#2563eb",
-                            textDecoration: "underline",
-                            fontWeight: 600,
-                        }}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            // TODO: arahkan ke halaman materi prasyarat
-                            alert(
-                                "Halaman materi prasyarat akan segera tersedia. Silakan pelajari kembali konsep faktorial, himpunan, dan logika DAN/ATAU."
-                            );
-                        }}
-                    >
-                        materi prasyarat
-                    </a>{" "}
-                    agar lebih siap.
+                    pelajari dulu materi prasyarat agar lebih siap.
                 </div>
             )}
 

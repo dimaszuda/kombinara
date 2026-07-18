@@ -14,6 +14,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { toGMT7ISO } from "@/lib/date";
 
+const COOLDOWN_MINUTES = 2;
+
 // ─── Shared auth helper ────────────────────────────────────────────────────
 
 async function getStudentId(
@@ -65,7 +67,36 @@ export async function GET() {
     });
   }
 
-  // Tidak ada — buat baru
+  // Tidak ada — cek cooldown dari attempt gagal sebelumnya
+  const { data: lastFailed } = await supabase
+    .from("diagnostic_attempts")
+    .select("submitted_at")
+    .eq("student_id", studentId)
+    .eq("status", "failed")
+    .order("submitted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (lastFailed) {
+    const submittedAt = new Date(
+      (lastFailed as { submitted_at: string }).submitted_at
+    );
+    const cooldownEndsAt = new Date(
+      submittedAt.getTime() + COOLDOWN_MINUTES * 60 * 1000
+    );
+    const now = new Date();
+    if (now < cooldownEndsAt) {
+      const remainingSeconds = Math.ceil(
+        (cooldownEndsAt.getTime() - now.getTime()) / 1000
+      );
+      return NextResponse.json(
+        { error: "cooldown_active", cooldownRemainingSeconds: remainingSeconds },
+        { status: 429 }
+      );
+    }
+  }
+
+  // Tidak ada cooldown — buat baru
   const { data: lastAttempt } = await supabase
     .from("diagnostic_attempts")
     .select("attempt_number")

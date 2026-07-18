@@ -386,16 +386,29 @@ async function gradeWithAI(
   qKey: QuestionKey,
   answers: StudentAnswers
 ): Promise<QuestionResult> {
+  // sub-0 = pilihan (radio), sub-1 = alasan (text)
+  const pilihan = (answers[`${qKey.number}-0`] ?? "").trim();
+  const alasan = (answers[`${qKey.number}-1`] ?? "").trim();
+
+  // Guard: jika tidak menjawab sama sekali, atau alasan kosong → otomatis salah
+  // (soal AI membutuhkan pilihan DAN alasan; alasan kosong tidak bisa dinilai)
+  if (pilihan === "" || alasan === "") {
+    return {
+      number: qKey.number,
+      correct: false,
+      details: [
+        { subIndex: 0, correct: pilihan !== "" },
+        { subIndex: 1, correct: false },
+      ],
+    };
+  }
+
   let soal = QUESTION_TEXTS[qKey.number] ?? `Soal nomor ${qKey.number}`;
 
   // Nomor 10 membandingkan dengan nomor 9 → kirim konteks soal 9 juga
   if (qKey.number === 10 && QUESTION_TEXTS[9]) {
     soal = `Soal nomor 9: ${QUESTION_TEXTS[9]}\n\nSoal nomor 10: ${soal}`;
   }
-
-  // sub-0 = pilihan (radio), sub-1 = alasan (text)
-  const pilihan = answers[`${qKey.number}-0`] ?? "";
-  const alasan = answers[`${qKey.number}-1`] ?? "";
 
   try {
     const aiResult = await AsesmenDiagnostikPrompt(soal, pilihan, alasan);
