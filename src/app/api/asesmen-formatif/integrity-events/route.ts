@@ -16,6 +16,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import { Prisma } from "@prisma/client";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,11 +70,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const { attempt_id, module_slug, events } = body;
+    const { attempt_id, module_slug, events: rawEvents } = body;
 
-    if (events.length === 0) {
+    if (rawEvents.length === 0) {
       return NextResponse.json({ inserted: 0 });
     }
+
+    // Type the events array
+    type IntegrityEventInput = {
+      event_type: string;
+      device_type: string;
+      metadata?: Record<string, unknown>;
+      created_at?: string;
+    };
+    const events = rawEvents as IntegrityEventInput[];
 
     // Validate each event shape
     for (const ev of events) {
@@ -127,7 +137,7 @@ export async function POST(req: Request) {
       attemptId: attempt_id,
       eventType: ev.event_type,
       deviceType: ev.device_type,
-      metadata: ev.metadata ?? null,
+      metadata: (ev.metadata ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       createdAt: ev.created_at ? new Date(ev.created_at) : undefined,
     }));
 
