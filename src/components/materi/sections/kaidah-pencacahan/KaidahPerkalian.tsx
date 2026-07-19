@@ -1840,12 +1840,19 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
 // ============================================================================
 
 /** Renders a completed section with a "Lihat jawabanku" button.
- *  When the section is completed and no jawaban data has been fetched yet,
+ *  When the section was already completed before the current session
+ *  (wasPreCompleted=true) and no jawaban data has been fetched yet,
  *  shows a collapsed view.  Once the user clicks "Lihat jawabanku", the
- *  on-demand endpoint is called and the full answer content is displayed. */
+ *  on-demand endpoint is called and the full answer content is displayed.
+ *
+ *  When the section was just completed in the current session
+ *  (wasPreCompleted=false), the content is shown expanded immediately
+ *  — no collapsible wrapper — so the student can see their feedback
+ *  right away. */
 function CollapsibleJawabanSection({
   sectionName,
   isCompleted,
+  wasPreCompleted,
   jawabanData,
   loadingJawaban,
   onFetchJawaban,
@@ -1854,6 +1861,8 @@ function CollapsibleJawabanSection({
 }: {
   sectionName: string;
   isCompleted: boolean;
+  /** True jika section ini SUDAH complete saat halaman pertama kali dimuat (dari DB). */
+  wasPreCompleted: boolean;
   jawabanData: Record<string, JawabanEntry[]>;
   loadingJawaban: Record<string, boolean>;
   onFetchJawaban: (sectionName: string) => void;
@@ -1869,7 +1878,14 @@ function CollapsibleJawabanSection({
     return <>{children(undefined)}</>;
   }
 
-  // Section is completed -- show collapsed view or fetched answers
+  // If the section was just completed in this session (not pre-completed),
+  // render children expanded directly — no collapsible wrapper.
+  // The student just saw their feedback and should not have it hidden.
+  if (!wasPreCompleted) {
+    return <>{children(undefined)}</>;
+  }
+
+  // Section was pre-completed -- show collapsed view or fetched answers
   if (hasJawaban) {
     // Jawaban already fetched -- derive savedData and render children with it
     const derived = entriesToSavedData(sectionName, entries);
@@ -2131,6 +2147,7 @@ export default function KaidahPerkalian({
         <CollapsibleJawabanSection
           sectionName="eksplorasi_kontekstual"
           isCompleted={isCompleted(0)}
+          wasPreCompleted={initialCompletedSections[0] === true}
           jawabanData={jawabanData}
           loadingJawaban={loadingJawaban}
           onFetchJawaban={fetchJawaban}
@@ -2151,6 +2168,7 @@ export default function KaidahPerkalian({
         <CollapsibleJawabanSection
           sectionName="aktivitas_deep_learning"
           isCompleted={isCompleted(1)}
+          wasPreCompleted={initialCompletedSections[1] === true}
           jawabanData={jawabanData}
           loadingJawaban={loadingJawaban}
           onFetchJawaban={fetchJawaban}
@@ -2179,6 +2197,7 @@ export default function KaidahPerkalian({
         <CollapsibleJawabanSection
           sectionName="contoh_soal"
           isCompleted={isCompleted(3)}
+          wasPreCompleted={initialCompletedSections[3] === true}
           jawabanData={jawabanData}
           loadingJawaban={loadingJawaban}
           onFetchJawaban={fetchJawaban}
@@ -2220,6 +2239,7 @@ export default function KaidahPerkalian({
         <CollapsibleJawabanSection
           sectionName="refleksi_mini"
           isCompleted={isCompleted(7)}
+          wasPreCompleted={initialCompletedSections[7] === true}
           jawabanData={jawabanData}
           loadingJawaban={loadingJawaban}
           onFetchJawaban={fetchJawaban}

@@ -6,7 +6,7 @@ import Link from "next/link";
 import SelectionToolbar from "@/components/materi/SelectionToolbar";
 import ChatbotShell from "@/components/materi/ChatbotShell";
 import AsesmenDiagnostik from "@/components/materi/sections/kaidah-pencacahan/AsesmenDiagnostik";
-import ApersepsiSection, { type ApersepsiSavedData } from "@/components/materi/sections/kaidah-pencacahan/ApersepsiPemantik";
+import ApersepsiSection from "@/components/materi/sections/kaidah-pencacahan/ApersepsiPemantik";
 import KaidahPenjumlahan from "@/components/materi/sections/kaidah-pencacahan/KaidahPenjumlahan";
 import KaidahPerkalian from "@/components/materi/sections/kaidah-pencacahan/KaidahPerkalian";
 
@@ -51,10 +51,9 @@ interface DiagnosticStatusResponse {
   lastTotalQuestions: number | null;
 }
 
-/** Status respons dari /api/apersepsi-pemantik/status */
+/** Status respons dari /api/apersepsi-pemantik/status (REFACTORED) */
 interface ApersepsiStatusResponse {
-  completedSteps: Record<number, boolean>;
-  savedData?: Record<string, { responseData: unknown; feedback: string | null; isCorrect: boolean | null }>;
+  sections: Record<string, "locked" | "unlocked" | "completed">;
 }
 
 /** Status respons dari /api/kaidah-penjumlahan/status (REFACTORED) */
@@ -86,8 +85,6 @@ export default function MateriDetailPage({
   // Granular completion data dari backend
   const [apersepsiCompletedSteps, setApersepsiCompletedSteps] =
     useState<Record<number, boolean>>({});
-  const [apersepsiSavedData, setApersepsiSavedData] =
-    useState<ApersepsiSavedData | undefined>(undefined);
   const [penjumlahanCompletedSections, setPenjumlahanCompletedSections] =
     useState<Record<number, boolean>>({});
   const [perkalianCompletedSections, setPerkalianCompletedSections] =
@@ -136,16 +133,36 @@ export default function MateriDetailPage({
           }
         }
 
-        // ── Apersepsi & Pemantik ────────────────────────────────
+        // ── Apersepsi & Pemantik (REFACTORED: sections map, not completedSteps+savedData) ─
         if (
           apersepsiRes.status === "fulfilled" &&
           apersepsiRes.value.ok
         ) {
           const data: ApersepsiStatusResponse = await apersepsiRes.value.json();
-          setApersepsiCompletedSteps(data.completedSteps ?? {});
-          setApersepsiSavedData(data.savedData as ApersepsiSavedData | undefined);
-          // Jika semua 8 step selesai, anggap section ini complete
-          const allDone = Object.keys(data.completedSteps ?? {}).length >= 8;
+
+          // Convert section-name-based status to step-index-based for compatibility
+          // Step index mapping (ApersepsiPemantik component uses 0-7):
+          //   0-2 = apersepsi (kendaraan, outfit, pengurus)
+          //   3-5 = pemantik (password_kapasitas, tim_sama_beda, rute_kurir)
+          //   6-7 = refleksi_sebelum_mulai (refleksi_sebelum_mulai_1, refleksi_sebelum_mulai_2)
+          const cs: Record<number, boolean> = {};
+          if (data.sections["apersepsi"] === "completed") {
+            cs[0] = true; cs[1] = true; cs[2] = true;
+          }
+          if (data.sections["pemantik"] === "completed") {
+            cs[3] = true; cs[4] = true; cs[5] = true;
+          }
+          if (data.sections["refleksi_sebelum_mulai"] === "completed") {
+            cs[6] = true; cs[7] = true;
+          }
+
+          setApersepsiCompletedSteps(cs);
+
+          // Jika semua 3 section selesai → semua 8 step complete
+          const allDone =
+            data.sections["apersepsi"] === "completed" &&
+            data.sections["pemantik"] === "completed" &&
+            data.sections["refleksi_sebelum_mulai"] === "completed";
           if (allDone) setPassApersepsi(true);
         }
 
@@ -353,7 +370,6 @@ export default function MateriDetailPage({
       >
         <ApersepsiSection
           initialCompletedSteps={apersepsiCompletedSteps}
-          savedData={apersepsiSavedData}
           onComplete={() => setPassApersepsi(true)}
         />
       </LockableSection>

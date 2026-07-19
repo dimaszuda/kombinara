@@ -360,6 +360,9 @@ export async function getAktivitasSiswaStatus(
  */
 const LAST_QUESTION_KEY_MAP: Record<string, Record<string, string>> = {
   kaidah_penjumlahan: {
+    apersepsi: "pengurus",
+    pemantik: "rute_kurir",
+    refleksi_sebelum_mulai: "refleksi_sebelum_mulai_2",
     eksplorasi_kontekstual: "operasi_matematika",
     contoh_soal: "penjumlahan_transport",
     refleksi_mini: "refleksi_penjumlahan_3",

@@ -61,6 +61,8 @@ model Student {
   apersepsiResponses      ApersepsiPemantikResponse[]
   drafts                  AsesmenFormatifDraft[]
   submissions             AsesmenFormatifSubmission[]
+  attempts                AsesmenFormatifAttempt[]
+  integrityEvents         IntegrityEvent[]
   eksplorasiKontekstual   EksplorasiKontekstual[]
   aktivitasDeepLearning   AktivitasDeepLearning[]
   refleksiMini            RefleksiMini[]
@@ -356,8 +358,10 @@ model Module {
   slug String @unique
   nama String
 
-  drafts      AsesmenFormatifDraft[]
-  submissions AsesmenFormatifSubmission[]
+  drafts            AsesmenFormatifDraft[]
+  submissions       AsesmenFormatifSubmission[]
+  attempts          AsesmenFormatifAttempt[]
+  integrityEvents   IntegrityEvent[]
 
   @@map("modules")
 }
@@ -380,20 +384,70 @@ model AsesmenFormatifDraft {
 }
 
 model AsesmenFormatifSubmission {
-  id           Int      @id @default(autoincrement()) @map("submission_id")
-  studentId    Int      @map("student_id")
-  moduleId     Int      @map("module_id")
-  conceptId    String?  @map("concept_id")
-  answers      Json     @map("answers")
-  submittedAt  DateTime @default(now()) @map("submitted_at")
+  id            Int        @id @default(autoincrement()) @map("submission_id")
+  studentId     Int        @map("student_id")
+  moduleId      Int        @map("module_id")
+  conceptId     String     @map("concept_id")
+  answers       Json       @map("answers")
+  totalScore    Float?     @map("total_score")
+  perQuestionResults Json? @map("per_question_results")
+  aiFeedback    String?    @map("ai_feedback")
+  evaluatedAt   DateTime?  @map("evaluated_at")
+  aiModel       String?    @map("ai_model")
+  submittedAt   DateTime   @default(now()) @map("submitted_at")
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  module  Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  student  Student                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  module   Module                     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  attempts AsesmenFormatifAttempt[]
 
-  @@unique([studentId, moduleId])
   @@index([studentId])
   @@index([moduleId])
   @@map("asesmen_formatif_submissions")
+}
+
+// ============================================================
+// PHASE 6.5 — Integrity Monitoring (Asesmen Attempts + Events)
+// ============================================================
+
+model AsesmenFormatifAttempt {
+  attemptId    Int       @id @default(autoincrement()) @map("attempt_id")
+  studentId    Int       @map("student_id")
+  moduleId     Int       @map("module_id")
+  deviceType   String    @map("device_type") // 'mobile' | 'tablet' | 'desktop'
+  status       String    @default("in_progress") // 'in_progress' | 'submitted' | 'timed_out' | 'abandoned'
+  startedAt    DateTime  @default(now()) @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+  submissionId Int?      @map("submission_id")
+
+  student     Student                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  module      Module                     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  submission  AsesmenFormatifSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  events      IntegrityEvent[]
+
+  @@index([studentId])
+  @@index([moduleId])
+  @@index([studentId, moduleId, completedAt])
+  @@map("asesmen_formatif_attempts")
+}
+
+model IntegrityEvent {
+  eventId    Int        @id @default(autoincrement()) @map("event_id")
+  studentId  Int        @map("student_id")
+  moduleId   Int        @map("module_id")
+  attemptId  Int        @map("attempt_id")
+  eventType  String     @map("event_type") // 'fullscreen_enter' | 'fullscreen_exit' | 'visibility_hidden' | 'visibility_visible' | 'paste' | 'resize'
+  deviceType String     @map("device_type") // 'mobile' | 'tablet' | 'desktop'
+  metadata   Json?      @map("metadata")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  student Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  module  Module                  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  attempt AsesmenFormatifAttempt  @relation(fields: [attemptId], references: [attemptId], onDelete: Cascade)
+
+  @@index([attemptId, createdAt])
+  @@index([studentId])
+  @@index([attemptId, eventType])
+  @@map("integrity_events")
 }
 
 // ============================================================

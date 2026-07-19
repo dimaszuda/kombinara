@@ -156,6 +156,18 @@ Rubrik score:
     3. Tentukan misconceptionType SPESIFIK jika ada kesalahan konsep, misalnya: "tertukar aturan penjumlahan dan perkalian", "lupa memperhitungkan pengulangan", "salah menentukan apakah urutan diperhatikan (permutasi vs kombinasi)", "kesalahan operasi aritmatika", dsb. Jangan pakai label generic seperti "salah operasi" tanpa spesifik.
     4. Tulis feedback yang KONKRET mengomentari langkah berpikir siswa — sebut bagian mana dari reasoning mereka yang tepat atau keliru, TANPA menyebutkan angka jawaban akhir yang benar secara eksplisit. Fokus ke proses, bukan generic encouragement seperti "coba dicek lagi" atau "semangat!". Maksimal 2 kalimat.
     5. gunakan kata ganti 'kamu' untuk panggilan ke siswa.
+
+    ⚠️ KHUSUS UNTUK SOAL BERTIPE REFLEKSI (question_key diawali "refleksi_"):
+    - Soal refleksi TIDAK memiliki satu jawaban benar yang saklek.
+    - Ground truth hanyalah CONTOH/PANDUAN jawaban ideal — BUKAN jawaban yang harus ditiru persis.
+    - Beri isCorrect = true selama jawaban siswa menunjukkan pemahaman konsep yang BENAR, meskipun:
+      * Menggunakan bahasa/kata-kata sendiri yang berbeda dari ground truth
+      * Memberikan contoh yang berbeda dari ground truth
+      * Tidak selengkap atau tidak sedetail ground truth
+    - JANGAN menilai isCorrect = false hanya karena jawaban siswa "kurang lengkap" atau "berbeda kata-kata".
+    - HANYA beri isCorrect = false jika ada MISKONSEPSI SERIUS (misal: menyebutkan aturan perkalian untuk situasi penjumlahan, atau menyebut "DAN" sebagai kata kunci penjumlahan).
+    - Feedback tetap boleh memberikan masukan untuk melengkapi jawaban, meskipun isCorrect = true.
+
     Format output (JSON, strict):
     {
       "isCorrect": true | false,
@@ -220,14 +232,33 @@ Rubrik score:
         - Jangan memberi skor berdasarkan kesan umum "kelihatan usaha" atau panjang jawaban. Nilai murni berdasarkan ketepatan tiap komponen.
         - Jangan toleransi kesalahan konsep meskipun perhitungan akhirnya kebetulan benar.
         - Bersikap konsisten: soal dan level kesalahan yang setara harus menghasilkan skor yang setara, terlepas dari attempt keberapa atau siswa mana.
+
+        FEEDBACK UNTUK SISWA:
+        Tulis feedback yang KONKRET, membangun, dan gunakan kata ganti 'kamu'. Fokus ke proses berpikir, bukan ke hasil akhir. Jangan sebutkan jawaban benar secara eksplisit. Maksimal 2-3 kalimat per soal. Jika jawaban sempurna, beri afirmasi yang tulus dan singkat.
       `,
       user: (soal: string, level_soal: string, cara_hitung: string, jawaban_akhir: string, is_jawaban_akhir_true: boolean) =>
-        `
-        Soal/pertanyaan: ${soal},
-        level_soal/level kognitif: ${level_soal},
-        cara hitung yang ditulis siswa untuk menemukan jawaban: ${cara_hitung},
-        jawaban akhir siswa: ${jawaban_akhir},
-        apakah jawaban akhir siswa benar berdasarkan kunci jawaban: ${is_jawaban_akhir_true}
-      `
+        `Soal/pertanyaan: ${soal}
+Level kognitif: ${level_soal}
+Cara hitung yang ditulis siswa: ${cara_hitung}
+Jawaban akhir siswa: ${jawaban_akhir}
+Apakah jawaban akhir benar berdasarkan kunci jawaban: ${is_jawaban_akhir_true}
+
+Berikan evaluasi dalam format JSON berikut:
+{
+  "step_by_step": {
+    "identifikasi_kondisi": { "score": number (0-3), "reasoning": "alasan singkat" },
+    "pemilihan_rumus": { "score": number (0-3), "reasoning": "alasan singkat" },
+    "eksekusi_perhitungan": { "score": number (0-3), "reasoning": "alasan singkat" },
+    "justifikasi": { "score": number (0-3), "reasoning": "alasan singkat" }
+  },
+  "process_raw_score": number (0-12, jumlah 4 komponen),
+  "process_scaled_score": number (0-10, sudah diskala ke bobot level),
+  "final_answer_score": number (0-10, sudah diskala ke bobot level),
+  "total_score": number (0-10),
+  "guardrail_applied": "string menjelaskan guardrail yang diterapkan" | null,
+  "mistake_category": "konsep" | "formula" | "perhitungan" | "lainnya" | null,
+  "mistake_detail": "string penjelasan singkat letak kesalahan" | null,
+  "feedback": "string feedback untuk siswa (2-3 kalimat)"
+}`
     }
 };

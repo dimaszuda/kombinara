@@ -13,14 +13,28 @@ import CourierRouteExplorer from "./CourierRouteExplorer";
 // ── Types ──────────────────────────────────────────────────────────
 type ToggleValue = "yes" | "no" | null;
 
-// ── Saved data type dari backend ───────────────────────────────────
-export interface ApersepsiSavedData {
-  [questionKey: string]: {
-    responseData: Record<string, unknown>;
-    feedback: string | null;
-    isCorrect: boolean | null;
-  };
+// ── Jawaban entry from on-demand endpoint ──────────────────────────
+interface JawabanEntry {
+  questionKey: string;
+  answer: unknown;
+  feedback: string | null;
+  isCorrect: boolean | null;
+  submittedAt: string | null;
 }
+
+interface JawabanResponse {
+  section: string;
+  conceptId: string;
+  entries: JawabanEntry[];
+}
+
+// ── Section-group → step indices mapping ───────────────────────────
+// Steps 0-2 = apersepsi, 3-5 = pemantik, 6-7 = refleksi_sebelum_mulai
+const STEP_TO_SECTION: Record<number, string> = {
+  0: "apersepsi", 1: "apersepsi", 2: "apersepsi",
+  3: "pemantik", 4: "pemantik", 5: "pemantik",
+  6: "refleksi_sebelum_mulai", 7: "refleksi_sebelum_mulai",
+};
 
 type StepType =
   | "apersepsi-vehicles"
@@ -241,21 +255,112 @@ function ProgressIndicator({
   );
 }
 
+// ══════════════════════════════════════════════════════════════════
+// Collapsible "Lihat Jawabanku" Wrapper per step (standalone)
+// ══════════════════════════════════════════════════════════════════
+
+/** Renders a completed step with a "Lihat jawabanku" button.
+ *  When the step was already completed before the current session
+ *  (wasPreCompleted=true) and its section-group jawaban hasn't been
+ *  fetched yet, shows a collapsed view.  Once the user clicks "Lihat
+ *  jawabanku", the on-demand endpoint is called and the full step
+ *  content is displayed in read-only mode.
+ *
+ *  When the step was just completed in the current session
+ *  (wasPreCompleted=false), the content is shown expanded immediately
+ *  — no collapsible wrapper — so the student can see their feedback
+ *  right away.
+ *
+ *  IMPORTANT: Defined outside the parent component to avoid React
+ *  treating it as a new component type on every render (which would
+ *  cause inputs to lose focus). */
+function CollapsibleStepWrapper({
+  stepIndex,
+  isCompleted,
+  wasPreCompleted,
+  jawabanData,
+  loadingJawaban,
+  onFetchJawaban,
+  children,
+}: {
+  stepIndex: number;
+  isCompleted: boolean;
+  /** True jika step ini SUDAH complete saat halaman pertama kali dimuat (dari DB). */
+  wasPreCompleted: boolean;
+  jawabanData: Record<string, JawabanEntry[]>;
+  loadingJawaban: Record<string, boolean>;
+  onFetchJawaban: (sectionName: string) => void;
+  children: React.ReactNode;
+}) {
+  // If the step is NOT completed, render children normally
+  if (!isCompleted) {
+    return <>{children}</>;
+  }
+
+  // If the step was just completed in this session (not pre-completed),
+  // render children expanded directly — no collapsible wrapper.
+  // The student just saw their feedback and should not have it hidden.
+  if (!wasPreCompleted) {
+    return <>{children}</>;
+  }
+
+  const sectionName = STEP_TO_SECTION[stepIndex];
+  const sectionEntries = jawabanData[sectionName];
+  const isLoading = loadingJawaban[sectionName] ?? false;
+  const hasJawaban = sectionEntries !== undefined && sectionEntries.length > 0;
+
+  // Step was pre-completed and jawaban already fetched — show full content
+  if (hasJawaban) {
+    return <>{children}</>;
+  }
+
+  // Step was pre-completed but jawaban not yet fetched — show collapsed view
+  return (
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
+            ✓
+          </div>
+          <span className="text-sm font-medium text-[#2C2C2A]">
+            Langkah ini sudah selesai
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onFetchJawaban(sectionName)}
+          disabled={isLoading}
+          className="flex items-center gap-2 rounded-full border border-[#346739] px-5 py-2 text-sm font-medium text-[#346739] transition-colors hover:bg-[#34673908] disabled:opacity-50"
+        >
+          {isLoading ? (
+            <>
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Memuat...
+            </>
+          ) : (
+            "Lihat jawabanku"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Component ─────────────────────────────────────────────────
 export default function ApersepsiSection({
   onComplete,
   initialCompletedSteps = {},
-  savedData,
 }: {
   onComplete?: () => void;
-  /** Step indices (0–7) yang sudah benar dari backend */
+  /** Step indices (0–7) yang sudah benar dari backend (dari student_section_status) */
   initialCompletedSteps?: Record<number, boolean>;
-  /** Data jawaban & feedback yang sudah tersimpan di DB */
-  savedData?: ApersepsiSavedData;
 }) {
   const onCompleteCalled = useRef(false);
 
-  // ── Build initial state dari data backend ──────────────────────
+  // ── Build initial state dari data backend (completion only, no jawaban) ──
   function buildInitialState(): {
     currentStep: number;
     feedbackMap: Record<number, StepFeedback>;
@@ -264,11 +369,8 @@ export default function ApersepsiSection({
 
     for (let i = 0; i < TOTAL_STEPS; i++) {
       if (initialCompletedSteps[i]) {
-        // Use actual saved feedback, or fallback
-        const key = STEPS[i].questionKey;
-        const sd = savedData?.[key];
         fb[i] = {
-          text: sd?.feedback ?? "Jawaban benar! 🎉",
+          text: "Jawaban benar! 🎉",
           isCorrect: true,
         };
       }
@@ -302,60 +404,119 @@ export default function ApersepsiSection({
   // ── Apersepsi answer states (per item by questionKey) ───────────
   const [answers, setAnswers] = useState<
     Record<string, { perkiraan: string; caraHitung: string }>
-  >(() => {
-    const init: Record<string, { perkiraan: string; caraHitung: string }> = {};
-    const apersepsiKeys = ["kendaraan", "outfit", "pengurus"];
-    for (const key of apersepsiKeys) {
-      const sd = savedData?.[key];
-      if (sd?.responseData) {
-        init[key] = {
-          perkiraan: (sd.responseData as Record<string, string>).estimated_answer ?? "",
-          caraHitung: (sd.responseData as Record<string, string>).reasoning ?? "",
-        };
-      }
-    }
-    return init;
-  });
+  >({});
 
   // ── Pemantik answer states ──────────────────────────────────────
-  const [passwordGuess, setPasswordGuess] = useState(
-    () => (savedData?.["password_kapasitas"]?.responseData as Record<string, string>)?.estimated_answer ?? ""
-  );
-  const [passwordReasoning, setPasswordReasoning] = useState(
-    () => (savedData?.["password_kapasitas"]?.responseData as Record<string, string>)?.reasoning ?? ""
-  );
+  const [passwordGuess, setPasswordGuess] = useState("");
+  const [passwordReasoning, setPasswordReasoning] = useState("");
 
-  const [teamChoice, setTeamChoice] = useState<ToggleValue>(() => {
-    const choice = (savedData?.["tim_sama_beda"]?.responseData as Record<string, string>)?.choice;
-    return choice === "sama" ? "yes" : choice === "beda" ? "no" : null;
-  });
-  const [teamReasoning, setTeamReasoning] = useState(
-    () => (savedData?.["tim_sama_beda"]?.responseData as Record<string, string>)?.reasoning ?? ""
-  );
+  const [teamChoice, setTeamChoice] = useState<ToggleValue>(null);
+  const [teamReasoning, setTeamReasoning] = useState("");
 
-  const [courierChoice, setCourierChoice] = useState<ToggleValue>(() => {
-    const choice = (savedData?.["rute_kurir"]?.responseData as Record<string, string>)?.choice;
-    return choice === "perlu" ? "yes" : choice === "nggak_perlu" ? "no" : null;
-  });
-  const [courierReasoning, setCourierReasoning] = useState(
-    () => (savedData?.["rute_kurir"]?.responseData as Record<string, string>)?.reasoning ?? ""
-  );
-  const [courierCalc, setCourierCalc] = useState(
-    () => (savedData?.["rute_kurir"]?.responseData as Record<string, string>)?.calculation ?? ""
-  );
+  const [courierChoice, setCourierChoice] = useState<ToggleValue>(null);
+  const [courierReasoning, setCourierReasoning] = useState("");
+  const [courierCalc, setCourierCalc] = useState("");
 
   // ── Refleksi answer states ──────────────────────────────────────
-  const [refleksiAnswers, setRefleksiAnswers] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {};
-    const refleksiKeys = ["refleksi_sebelum_mulai_1", "refleksi_sebelum_mulai_2"];
-    for (const key of refleksiKeys) {
-      const sd = savedData?.[key];
-      if (sd?.responseData) {
-        init[key] = (sd.responseData as Record<string, string>).jawaban ?? "";
+  const [refleksiAnswers, setRefleksiAnswers] = useState<Record<string, string>>({});
+
+  // ── On-demand "Lihat Jawabanku" fetch states ──────────────────
+  const [jawabanData, setJawabanData] = useState<Record<string, JawabanEntry[]>>({});
+  const [loadingJawaban, setLoadingJawaban] = useState<Record<string, boolean>>({});
+
+  /** Fetch jawaban+feedback untuk satu section group dari on-demand endpoint */
+  async function fetchJawaban(sectionName: string) {
+    if (loadingJawaban[sectionName] || jawabanData[sectionName]) return;
+
+    setLoadingJawaban((prev) => ({ ...prev, [sectionName]: true }));
+    try {
+      const res = await fetch(
+        `/api/student-section-status/jawaban?concept_id=kaidah_penjumlahan&section=${sectionName}`
+      );
+      if (!res.ok) {
+        console.error("[fetchJawaban] Failed:", res.status);
+        return;
+      }
+      const data: JawabanResponse = await res.json();
+      setJawabanData((prev) => ({ ...prev, [sectionName]: data.entries }));
+    } catch (err) {
+      console.error("[fetchJawaban] Error:", err);
+    } finally {
+      setLoadingJawaban((prev) => ({ ...prev, [sectionName]: false }));
+    }
+  }
+
+  // ── Sync jawabanData into local answer + feedback state ────────
+  const didSyncJawaban = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const sectionName of Object.keys(jawabanData)) {
+      if (didSyncJawaban.current.has(sectionName)) continue;
+      const entries = jawabanData[sectionName];
+      if (!entries || entries.length === 0) continue;
+
+      didSyncJawaban.current.add(sectionName);
+
+      // Sync answers based on questionKey
+      for (const entry of entries) {
+        const raw = entry.answer as Record<string, string> | undefined;
+
+        switch (entry.questionKey) {
+          case "kendaraan":
+          case "outfit":
+          case "pengurus":
+            setAnswers((prev) => ({
+              ...prev,
+              [entry.questionKey]: {
+                perkiraan: raw?.estimated_answer ?? "",
+                caraHitung: raw?.reasoning ?? "",
+              },
+            }));
+            break;
+          case "password_kapasitas":
+            setPasswordGuess(raw?.estimated_answer ?? "");
+            setPasswordReasoning(raw?.reasoning ?? "");
+            break;
+          case "tim_sama_beda": {
+            const choice = raw?.choice;
+            setTeamChoice(choice === "sama" ? "yes" : choice === "beda" ? "no" : null);
+            setTeamReasoning(raw?.reasoning ?? "");
+            break;
+          }
+          case "rute_kurir": {
+            const choice = raw?.choice;
+            setCourierChoice(choice === "perlu" ? "yes" : choice === "nggak_perlu" ? "no" : null);
+            setCourierReasoning(raw?.reasoning ?? "");
+            setCourierCalc(raw?.calculation ?? "");
+            break;
+          }
+          case "refleksi_sebelum_mulai_1":
+          case "refleksi_sebelum_mulai_2":
+            setRefleksiAnswers((prev) => ({
+              ...prev,
+              [entry.questionKey]: raw?.jawaban ?? "",
+            }));
+            break;
+        }
+      }
+
+      // Sync feedbackMap with actual feedback text
+      const newFb: Record<number, StepFeedback> = {};
+      for (let i = 0; i < TOTAL_STEPS; i++) {
+        const matchingEntry = entries.find(
+          (e) => e.questionKey === STEPS[i].questionKey
+        );
+        if (matchingEntry?.isCorrect === true) {
+          newFb[i] = {
+            text: matchingEntry.feedback ?? "Jawaban benar! 🎉",
+            isCorrect: true,
+          };
+        }
+      }
+      if (Object.keys(newFb).length > 0) {
+        setFeedbackMap((prev) => ({ ...prev, ...newFb }));
       }
     }
-    return init;
-  });
+  }, [jawabanData]);
 
   // ── Helpers ─────────────────────────────────────────────────────
   const currentStepConfig = STEPS[currentStep];
@@ -555,77 +716,6 @@ export default function ApersepsiSection({
       onComplete();
     }
   }, [allComplete, onComplete]);
-
-  // ── Sync state from savedData (timing fix) ──────────────────────
-  // If savedData arrives after first mount, restore answers & feedback
-  const didRestoreFromSaved = useRef(false);
-  useEffect(() => {
-    if (didRestoreFromSaved.current) return;
-    if (!savedData || Object.keys(savedData).length === 0) return;
-
-    // Restore apersepsi answers
-    const apersepsiKeys = ["kendaraan", "outfit", "pengurus"];
-    const newAnswers: Record<string, { perkiraan: string; caraHitung: string }> = {};
-    let hasApersepsiData = false;
-    for (const key of apersepsiKeys) {
-      const sd = savedData[key];
-      if (sd?.responseData) {
-        newAnswers[key] = {
-          perkiraan: (sd.responseData as Record<string, string>).estimated_answer ?? "",
-          caraHitung: (sd.responseData as Record<string, string>).reasoning ?? "",
-        };
-        hasApersepsiData = true;
-      }
-    }
-    if (hasApersepsiData) setAnswers(newAnswers);
-
-    // Restore pemantik answers
-    const pwd = savedData["password_kapasitas"]?.responseData as Record<string, string> | undefined;
-    if (pwd) {
-      setPasswordGuess(pwd.estimated_answer ?? "");
-      setPasswordReasoning(pwd.reasoning ?? "");
-    }
-
-    const team = savedData["tim_sama_beda"]?.responseData as Record<string, string> | undefined;
-    if (team) {
-      const choice = team.choice;
-      setTeamChoice(choice === "sama" ? "yes" : choice === "beda" ? "no" : null);
-      setTeamReasoning(team.reasoning ?? "");
-    }
-
-    const courier = savedData["rute_kurir"]?.responseData as Record<string, string> | undefined;
-    if (courier) {
-      const choice = courier.choice;
-      setCourierChoice(choice === "perlu" ? "yes" : choice === "nggak_perlu" ? "no" : null);
-      setCourierReasoning(courier.reasoning ?? "");
-      setCourierCalc(courier.calculation ?? "");
-    }
-
-    // Restore refleksi answers
-    const refleksiKeys = ["refleksi_sebelum_mulai_1", "refleksi_sebelum_mulai_2"];
-    const newRefleksi: Record<string, string> = {};
-    let hasRefleksiData = false;
-    for (const key of refleksiKeys) {
-      const sd = savedData[key];
-      if (sd?.responseData) {
-        newRefleksi[key] = (sd.responseData as Record<string, string>).jawaban ?? "";
-        hasRefleksiData = true;
-      }
-    }
-    if (hasRefleksiData) setRefleksiAnswers(newRefleksi);
-
-    // Restore feedbackMap with actual feedback text
-    const newFb: Record<number, StepFeedback> = {};
-    for (let i = 0; i < TOTAL_STEPS; i++) {
-      const sd = savedData[STEPS[i].questionKey];
-      if (sd?.isCorrect === true) {
-        newFb[i] = { text: sd.feedback ?? "Jawaban benar! 🎉", isCorrect: true };
-      }
-    }
-    if (Object.keys(newFb).length > 0) setFeedbackMap((prev) => ({ ...prev, ...newFb }));
-
-    didRestoreFromSaved.current = true;
-  }, [savedData]);
 
   // ══════════════════════════════════════════════════════════════════
   // Render helpers per step type (accept stepIndex + readOnly)
@@ -985,7 +1075,16 @@ export default function ApersepsiSection({
 
       elements.push(
         <div key={`step-${i}`} className={i > 0 ? "mt-4" : "mt-5"}>
-          {renderStep(i, readOnly)}
+          <CollapsibleStepWrapper
+            stepIndex={i}
+            isCompleted={isCompleted}
+            wasPreCompleted={initialCompletedSteps[i] === true}
+            jawabanData={jawabanData}
+            loadingJawaban={loadingJawaban}
+            onFetchJawaban={fetchJawaban}
+          >
+            {renderStep(i, readOnly)}
+          </CollapsibleStepWrapper>
         </div>
       );
     }

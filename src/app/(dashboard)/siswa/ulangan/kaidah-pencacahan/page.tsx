@@ -10,16 +10,23 @@ import {
 import { useAssesmentLock } from "@/components/dashboard/assesment-lock-context";
 import { useDraftSaver } from "@/hooks/useDraftSaver";
 import type { AnswerPair as DraftAnswerPair } from "@/hooks/useDraftSaver";
+import { useIntegrityMonitor } from "@/hooks/useIntegrityMonitor";
+import type { UseIntegrityMonitorReturn } from "@/hooks/useIntegrityMonitor";
+import { getDeviceType } from "@/lib/device";
+import type { DeviceType } from "@/lib/device";
+import IntegrityToast from "@/components/activity/IntegrityToast";
+import IntegrityBlockingModal from "@/components/activity/IntegrityBlockingModal";
 
 // ── Config ─────────────────────────────────────────────────────────────────────────────────
-const DURASI_DETIK = 120 * 60; // 120 menit
+const DURASI_DETIK = 2 * 60; // 2 menit (testing)
+const COOLDOWN_DETIK = 5 * 60; // 5 menit cooldown antar attempt
 
 const PETUNJUK = [
   "Baca setiap soal dengan teliti sebelum menjawab.",
   'Tuliskan langkah-langkah cara perhitungan secara lengkap pada kolom "Cara Hitung".',
   'Tuliskan hasil akhir jawaban pada kolom "Jawaban Akhir".',
   "Pastikan semua soal telah dijawab sebelum menekan tombol Submit.",
-  "Asesmen ini hanya dapat dikerjakan satu kali dan tidak dapat dibatalkan setelah di-submit.",
+  "Asesmen ini dapat dikerjakan lebih dari satu kali dengan jeda 5 menit",
 ];
 
 const BOLEH = ["Menggunakan coretan / kertas buram", "Menghitung secara manual"];
@@ -30,8 +37,29 @@ const TIDAK_BOLEH = [
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────────────────
-type Phase = "intro" | "active" | "submitted";
+type Phase = "intro" | "active" | "submitted" | "evaluating" | "results";
 type AnswerPair = { cara_hitung: string; jawaban_akhir: string };
+
+/** Evaluation result per question from the API */
+interface PerQuestionResult {
+  question_number: number;
+  total_score: number;
+  feedback: string;
+  mistake_category: string | null;
+  step_by_step?: {
+    identifikasi_kondisi: { score: number; reasoning: string };
+    pemilihan_rumus: { score: number; reasoning: string };
+    eksekusi_perhitungan: { score: number; reasoning: string };
+    justifikasi: { score: number; reasoning: string };
+  };
+}
+
+/** Evaluation result from the evaluate API */
+interface EvaluationResult {
+  total_score: number;
+  per_question: PerQuestionResult[];
+  ai_feedback: string;
+}
 
 /** Response shape from GET /api/asesmen-formatif/check-access */
 interface AccessCheckResponse {
@@ -87,6 +115,18 @@ export default function AsesmenKaidahPencacahanPage() {
   const hasSubmittedRef = useRef(false);
   const handleSubmitRef = useRef<() => void>(() => {});
   const { setLocked } = useAssesmentLock();
+
+  // ── Integrity monitoring state ──────────────────────────────────────────────
+  const [attemptId, setAttemptId] = useState<number | null>(null);
+  const [deviceType, setDeviceType] = useState<DeviceType | null>(null);
+  const [attemptError, setAttemptError] = useState<string | null>(null);
+
+  // ── Evaluation state ────────────────────────────────────────────────────────
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
+  const [evalError, setEvalError] = useState<string | null>(null);
+
+  // ── Cooldown state ──────────────────────────────────────────────────────────
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
 
   // ── Access check state ────────────────────────────────────────────────────
   const [accessAllowed, setAccessAllowed] = useState<boolean | null>(null);
@@ -169,7 +209,57 @@ export default function AsesmenKaidahPencacahanPage() {
     };
   }, [phase]);
 
-  function handleStart() { setPhase("active"); }
+  async function handleStart() {
+    // Detect device type ONCE at attempt start
+    const dt = getDeviceType();
+    setDeviceType(dt);
+
+    try {
+      const res = await fetch("/api/asesmen-formatif/start-attempt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          module_slug: "kaidah-pencacahan",
+          device_type: dt,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Unknown error" }));
+
+        // Handle cooldown (429)
+        if (res.status === 429 && err.cooldown_remaining_seconds) {
+          setCooldownSeconds(err.cooldown_remaining_seconds);
+          setAttemptError(err.message ?? "Silakan tunggu sebelum memulai asesmen kembali.");
+          return;
+        }
+
+        setAttemptError(
+          err.error ?? "Gagal memulai asesmen. Silakan coba lagi."
+        );
+        return;
+      }
+
+      const data = await res.json();
+      setAttemptId(data.attempt_id);
+      setCooldownSeconds(null); // Clear cooldown on success
+
+      // Request fullscreen — graceful fallback if denied
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch {
+        // Browser may deny fullscreen without user gesture or in iframe.
+        // This is non-blocking — the assessment continues regardless.
+      }
+
+      setPhase("active");
+    } catch (e) {
+      console.error("[handleStart] Failed to create attempt:", e);
+      setAttemptError(
+        "Gagal memulai asesmen. Periksa koneksi internet dan coba lagi."
+      );
+    }
+  }
 
   async function handleSubmit() {
     // Prevent double-submit
@@ -196,6 +286,7 @@ export default function AsesmenKaidahPencacahanPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           module_slug: "kaidah-pencacahan",
+          concept_id: "kaidah-pencacahan",
           answers: answersPayload,
         }),
       });
@@ -205,11 +296,57 @@ export default function AsesmenKaidahPencacahanPage() {
         throw new Error(err.error ?? "Gagal menyimpan jawaban");
       }
 
-      setPhase("submitted");
+      const submissionData = await res.json();
+
+      // Update attempt status to 'submitted' (or 'timed_out' if triggered by timer)
+      if (attemptId !== null) {
+        const isTimedOut = timeLeft <= 0;
+        fetch("/api/asesmen-formatif/start-attempt", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            attempt_id: attemptId,
+            status: isTimedOut ? "timed_out" : "submitted",
+            submission_id: submissionData.submission_id ?? undefined,
+          }),
+        }).catch(() => {
+          // Non-critical — attempt status update failure should not block UX
+        });
+      }
+
+      // ── Trigger AI Evaluation ───────────────────────────────────────────
+      setPhase("evaluating");
+      setEvalError(null);
+
+      try {
+        const evalRes = await fetch("/api/asesmen-formatif/evaluate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            submission_id: submissionData.submission_id,
+            module_slug: "kaidah-pencacahan",
+          }),
+        });
+
+        if (!evalRes.ok) {
+          const evalErr = await evalRes.json().catch(() => ({ error: "Unknown error" }));
+          throw new Error(evalErr.error ?? "Gagal mengevaluasi jawaban");
+        }
+
+        const evalData: EvaluationResult = await evalRes.json();
+        setEvaluationResult(evalData);
+        setPhase("results");
+      } catch (evalErr: unknown) {
+        const message = evalErr instanceof Error ? evalErr.message : "Gagal mengevaluasi jawaban";
+        setEvalError(message);
+        setPhase("submitted"); // Fallback to submitted screen
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Gagal menyimpan jawaban. Silakan coba lagi.";
       setSubmitError(message);
       hasSubmittedRef.current = false;
+      setIsSubmitting(false);
+      return;
     } finally {
       setIsSubmitting(false);
     }
@@ -219,6 +356,22 @@ export default function AsesmenKaidahPencacahanPage() {
   useEffect(() => {
     handleSubmitRef.current = handleSubmit;
   });
+
+  // ── Cooldown countdown timer ──────────────────────────────────────────────
+  useEffect(() => {
+    if (cooldownSeconds === null || cooldownSeconds <= 0) return;
+    const interval = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          setAttemptError(null);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownSeconds]);
 
   function updateAnswer(idx: number, field: keyof AnswerPair, value: string) {
     setAnswers((prev) =>
@@ -253,9 +406,27 @@ export default function AsesmenKaidahPencacahanPage() {
         </div>
       );
     }
-    return <IntroScreen onStart={handleStart} />;
+    return (
+      <>
+        {attemptError && (
+          <div style={{ maxWidth: 700, margin: "0 auto", padding: "12px 24px 0" }}>
+            <div style={{ backgroundColor: "#fff5f5", borderRadius: 10, border: "1.5px solid #fecaca", padding: "12px 16px", textAlign: "center" }}>
+              <p style={{ fontSize: 13, color: "#b91c1c", margin: 0 }}>{attemptError}</p>
+              {cooldownSeconds !== null && cooldownSeconds > 0 && (
+                <p style={{ fontSize: 12, color: "#9a7b5c", margin: "6px 0 0" }}>
+                  ⏳ {formatTime(cooldownSeconds)} hingga dapat memulai kembali
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+        <IntroScreen onStart={handleStart} isOnCooldown={cooldownSeconds !== null && cooldownSeconds > 0} cooldownSeconds={cooldownSeconds} />
+      </>
+    );
   }
   if (phase === "submitted") return <SubmittedScreen answers={answers} />;
+  if (phase === "evaluating") return <EvaluatingScreen />;
+  if (phase === "results") return <ResultsScreen evaluationResult={evaluationResult} answers={answers} evalError={evalError} onRetry={() => setPhase("submitted")} />;
   return (
     <ActiveScreen
       answers={answers}
@@ -264,6 +435,9 @@ export default function AsesmenKaidahPencacahanPage() {
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
       submitError={submitError}
+      onDismissSubmitError={() => { setSubmitError(null); hasSubmittedRef.current = false; }}
+      attemptId={attemptId!}
+      deviceType={deviceType!}
     />
   );
 }
@@ -542,7 +716,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
 }
 
 // ── Intro Screen ────────────────────────────────────────────────────────────────────────────
-function IntroScreen({ onStart }: { onStart: () => void }) {
+function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () => void; isOnCooldown?: boolean; cooldownSeconds?: number | null }) {
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "36px 24px" }}>
       <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#346739", opacity: 0.7, margin: "0 0 6px" }}>
@@ -557,7 +731,7 @@ function IntroScreen({ onStart }: { onStart: () => void }) {
           { icon: "⏱", label: "Durasi", value: "120 Menit", color: "#346739", bg: "#DBFFD5" },
           { icon: "📄", label: "Jumlah Soal", value: "10 Soal", color: "#346739", bg: "#DBFFD5" },
           { icon: "✍️", label: "Jenis", value: "Uraian", color: "#663362", bg: "#f3e8f2" },
-          { icon: "🔒", label: "Pengerjaan", value: "Sekali", color: "#663362", bg: "#f3e8f2" },
+          { icon: "🔒", label: "Pengerjaan", value: "Dapat diulang", color: "#663362", bg: "#f3e8f2" },
         ].map((info) => (
           <div key={info.label} style={{ backgroundColor: info.bg, borderRadius: 12, padding: "14px 16px" }}>
             <div style={{ fontSize: 22, marginBottom: 6 }}>{info.icon}</div>
@@ -583,14 +757,35 @@ function IntroScreen({ onStart }: { onStart: () => void }) {
         <RuleBox title="Yang Tidak Diperbolehkan" items={TIDAK_BOLEH} type="forbidden" />
       </div>
 
+      {/* Cooldown notice */}
+      {isOnCooldown && cooldownSeconds != null && cooldownSeconds > 0 && (
+        <div style={{ textAlign: "center", marginBottom: 16, backgroundColor: "#fff5f0", borderRadius: 10, border: "1.5px solid #fde68a", padding: "12px 16px" }}>
+          <p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>
+            ⏳ Silakan tunggu <strong>{formatTime(cooldownSeconds)}</strong> sebelum dapat memulai asesmen kembali.
+          </p>
+        </div>
+      )}
+
       <div style={{ textAlign: "center" }}>
-        <button onClick={onStart} style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 40px", backgroundColor: "#346739", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer" }}>
+        <button
+          onClick={onStart}
+          disabled={isOnCooldown}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 40px",
+            backgroundColor: isOnCooldown ? "#9aada0" : "#346739", color: "#fff",
+            borderRadius: 12, fontSize: 15, fontWeight: 700, border: "none",
+            cursor: isOnCooldown ? "not-allowed" : "pointer",
+            opacity: isOnCooldown ? 0.7 : 1,
+          }}
+        >
           Siap, Mulai Asesmen
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
-        <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>Timer akan mulai berjalan setelah kamu klik tombol di atas.</p>
+        <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>
+          {isOnCooldown ? "Timer cooldown sedang berjalan..." : "Timer akan mulai berjalan setelah kamu klik tombol di atas."}
+        </p>
       </div>
     </div>
   );
@@ -624,16 +819,72 @@ interface ActiveScreenProps {
   onSubmit: () => void;
   isSubmitting: boolean;
   submitError: string | null;
+  onDismissSubmitError: () => void;
+  attemptId: number;
+  deviceType: DeviceType;
 }
 
-function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmitting, submitError }: ActiveScreenProps) {
+function ActiveScreen({
+  answers,
+  timeLeft,
+  onUpdateAnswer,
+  onSubmit,
+  isSubmitting,
+  submitError,
+  onDismissSubmitError,
+  attemptId,
+  deviceType,
+}: ActiveScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const color = timerColor(timeLeft);
   const pct = (timeLeft / DURASI_DETIK) * 100;
   const answeredCount = answers.filter(isAnswered).length;
 
+  // ── Integrity monitor ─────────────────────────────────────────────────────
+  const integrity = useIntegrityMonitor({
+    attemptId,
+    moduleSlug: "kaidah-pencacahan",
+    deviceType,
+  });
+
+  // Ref callback to register paste targets for each question's textarea/input
+  const pasteTargetRefs = useRef<Map<number, { cara: HTMLTextAreaElement | null; jawaban: HTMLInputElement | null }>>(new Map());
+
+  // Register paste targets callback
+  const registerPasteForQuestion = useCallback(
+    (idx: number, caraEl: HTMLTextAreaElement | null, jawabanEl: HTMLInputElement | null) => {
+      const prev = pasteTargetRefs.current.get(idx);
+      if (prev) {
+        integrity.registerPasteTarget(`cara_hitung_${idx + 1}`, null);
+        integrity.registerPasteTarget(`jawaban_akhir_${idx + 1}`, null);
+      }
+      pasteTargetRefs.current.set(idx, { cara: caraEl, jawaban: jawabanEl });
+      integrity.registerPasteTarget(`cara_hitung_${idx + 1}`, caraEl);
+      integrity.registerPasteTarget(`jawaban_akhir_${idx + 1}`, jawabanEl);
+    },
+    [integrity]
+  );
+
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "0 24px 48px" }}>
+      {/* Integrity Toast (non-blocking) */}
+      {integrity.activeToast && (
+        <IntegrityToast
+          toast={integrity.activeToast}
+          onDismiss={() => {
+            // Toast auto-dismisses; this is the cleanup callback after animation
+          }}
+        />
+      )}
+
+      {/* Integrity Blocking Modal (paste) */}
+      {integrity.activeBlockingModal && (
+        <IntegrityBlockingModal
+          modal={integrity.activeBlockingModal}
+          onDismiss={integrity.dismissBlockingModal}
+        />
+      )}
+
       {/* Sticky Timer */}
       <div style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#fff", borderBottom: "1.5px solid #e2ede2", paddingTop: 10, marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 8 }}>
@@ -679,7 +930,16 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
       </div>
 
       {/* Questions */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+          pointerEvents: integrity.isBlocking ? "none" : "auto",
+          opacity: integrity.isBlocking ? 0.5 : 1,
+          transition: "opacity 0.2s ease",
+        }}
+      >
         {SOAL_DATA.map((soal, i) => {
           const answered = isAnswered(answers[i]);
           const lm = LEVEL_META[soal.level];
@@ -700,6 +960,10 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
                   <label htmlFor={`cara-hitung-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Cara Hitung</label>
                   <textarea
                     id={`cara-hitung-${i}`}
+                    ref={(el) => {
+                      const prev = pasteTargetRefs.current.get(i);
+                      registerPasteForQuestion(i, el, prev?.jawaban ?? null);
+                    }}
                     value={answers[i].cara_hitung}
                     onChange={(e) => onUpdateAnswer(i, "cara_hitung", e.target.value)}
                     placeholder="Tuliskan langkah-langkah perhitunganmu di sini..."
@@ -712,6 +976,10 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
                   <label htmlFor={`jawaban-akhir-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#663362", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Jawaban Akhir</label>
                   <input
                     id={`jawaban-akhir-${i}`}
+                    ref={(el) => {
+                      const prev = pasteTargetRefs.current.get(i);
+                      registerPasteForQuestion(i, prev?.cara ?? null, el);
+                    }}
                     type="text"
                     value={answers[i].jawaban_akhir}
                     onChange={(e) => onUpdateAnswer(i, "jawaban_akhir", e.target.value)}
@@ -728,14 +996,25 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
 
       {/* Submit */}
       <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1.5px solid #e2ede2" }}>
+        {submitError && (
+          <div style={{ backgroundColor: "#fff5f5", borderRadius: 10, border: "1.5px solid #fecaca", padding: "12px 16px", marginBottom: 16, textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "#b91c1c", margin: 0 }}>{submitError}</p>
+            <button
+              onClick={onDismissSubmitError}
+              style={{ marginTop: 10, padding: "8px 20px", borderRadius: 8, border: "1.5px solid #fecaca", backgroundColor: "#fff", fontSize: 13, fontWeight: 600, color: "#b91c1c", cursor: "pointer" }}
+            >
+              Coba Lagi
+            </button>
+          </div>
+        )}
         {!showConfirm ? (
           <div style={{ textAlign: "center" }}>
-            <p style={{ fontSize: 13, color: "#6b8f6d", marginBottom: 12 }}>Sudah yakin dengan jawabanmu? Asesmen hanya bisa dikerjakan satu kali.</p>
-            <button onClick={() => setShowConfirm(true)} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 32px", backgroundColor: "#346739", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer" }}>
+            <p style={{ fontSize: 13, color: "#6b8f6d", marginBottom: 12 }}>Sudah yakin dengan jawabanmu? Setelah submit, jawaban akan langsung dievaluasi.</p>
+            <button onClick={() => setShowConfirm(true)} disabled={isSubmitting} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 32px", backgroundColor: isSubmitting ? "#9aada0" : "#346739", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, border: "none", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
               </svg>
-              Submit Jawaban
+              {isSubmitting ? "Mengevaluasi..." : "Submit Jawaban"}
             </button>
           </div>
         ) : (
@@ -744,9 +1023,6 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
             <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 16px" }}>
               Kamu telah menjawab <strong style={{ color: "#1a3d1c" }}>{answeredCount}</strong> dari <strong>{SOAL_DATA.length}</strong> soal. Setelah di-submit, jawaban tidak dapat diubah.
             </p>
-            {submitError && (
-              <p style={{ fontSize: 12, color: "#b91c1c", margin: "0 0 12px", backgroundColor: "#fff2f0", padding: "8px 12px", borderRadius: 8 }}>{submitError}</p>
-            )}
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
               <button onClick={() => setShowConfirm(false)} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #d1d5db", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#6b7280", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.6 : 1 }}>Batal</button>
               <button onClick={onSubmit} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "none", backgroundColor: "#b91c1c", fontSize: 14, fontWeight: 700, color: "#fff", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
@@ -827,6 +1103,200 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
       </div>
 
       <div style={{ marginTop: 32, textAlign: "center" }}>
+        <Link href="/siswa/ulangan" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", backgroundColor: "#346739", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
+          ← Kembali ke Daftar Asesmen
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ── Evaluating Screen ──────────────────────────────────────────────────────────────────────
+
+function EvaluatingScreen() {
+  return (
+    <div style={{ maxWidth: 680, margin: "0 auto", padding: "60px 24px 48px", textAlign: "center" }}>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <div style={{ width: 80, height: 80, borderRadius: "50%", backgroundColor: "#f3e8f2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", position: "relative" }}>
+        <svg
+          width="36"
+          height="36"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#663362"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ animation: "spin 1.5s linear infinite" }}
+        >
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+        </svg>
+      </div>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1a3d1c", margin: "0 0 10px" }}>
+        Mengevaluasi Jawaban
+      </h1>
+      <p style={{ fontSize: 14, color: "#5a7d5c", margin: 0, lineHeight: 1.7 }}>
+        Kombi sedang memeriksa jawabanmu menggunakan AI. Proses ini memakan waktu beberapa detik.
+      </p>
+      <div style={{ marginTop: 24, backgroundColor: "#f8fdf8", borderRadius: 10, border: "1px solid #d4e8d4", padding: "14px 18px" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#346739" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+          </svg>
+          <div style={{ textAlign: "left" }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>AI Evaluation in progress</p>
+            <p style={{ fontSize: 11, color: "#6b8f6d", margin: 0, lineHeight: 1.6 }}>
+              Setiap jawaban dinilai berdasarkan rubrik: proses pengerjaan (identifikasi kondisi, pemilihan rumus, eksekusi perhitungan) dan jawaban akhir.
+            </p>
+          </div>
+        </div>
+      </div>
+      <p style={{ marginTop: 20, fontSize: 12, color: "#9aada0" }}>Mohon jangan menutup halaman ini.</p>
+    </div>
+  );
+}
+
+// ── Results Screen ──────────────────────────────────────────────────────────────────────────
+
+interface ResultsScreenProps {
+  evaluationResult: EvaluationResult | null;
+  answers: AnswerPair[];
+  evalError: string | null;
+  onRetry: () => void;
+}
+
+function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: ResultsScreenProps) {
+  if (evalError) {
+    return (
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "60px 24px 48px", textAlign: "center" }}>
+        <div style={{ width: 80, height: 80, borderRadius: "50%", backgroundColor: "#fff5f5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        </div>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#b91c1c", margin: "0 0 8px" }}>Evaluasi Gagal</h1>
+        <p style={{ fontSize: 14, color: "#6b7280", margin: "0 0 20px" }}>{evalError}</p>
+        <button onClick={onRetry} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #d4e8d4", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#346739", cursor: "pointer" }}>
+          Lihat Ringkasan Jawaban
+        </button>
+      </div>
+    );
+  }
+
+  if (!evaluationResult) return null;
+
+  const { total_score, per_question, ai_feedback } = evaluationResult;
+  const scoreColor = total_score >= 75 ? "#346739" : total_score >= 50 ? "#d97706" : "#b91c1c";
+  const scoreBg = total_score >= 75 ? "#DBFFD5" : total_score >= 50 ? "#FFF3CD" : "#fff5f5";
+  const scoreBorder = total_score >= 75 ? "#c3e6c3" : total_score >= 50 ? "#fde68a" : "#fecaca";
+
+  return (
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 24px 48px" }}>
+      {/* Score Card */}
+      <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div
+          style={{
+            width: 120,
+            height: 120,
+            borderRadius: "50%",
+            backgroundColor: scoreBg,
+            border: `3px solid ${scoreBorder}`,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 16px",
+          }}
+        >
+          <span style={{ fontSize: 36, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>{total_score}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: scoreColor, opacity: 0.7 }}>dari 100</span>
+        </div>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1a3d1c", margin: "0 0 6px" }}>
+          {total_score >= 90 ? "Luar Biasa! 🎉" : total_score >= 75 ? "Kerja Bagus! 👏" : total_score >= 50 ? "Lumayan! 💪" : "Tetap Semangat! 📚"}
+        </h1>
+        <p style={{ fontSize: 13, color: "#5a7d5c", margin: 0, lineHeight: 1.6, maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>
+          {ai_feedback}
+        </p>
+      </div>
+
+      {/* Cooldown Notice */}
+      <div style={{ marginBottom: 24, backgroundColor: "#fff5f0", borderRadius: 10, border: "1.5px solid #fde68a", padding: "12px 16px", textAlign: "center" }}>
+        <p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>
+          ⏳ Kamu dapat memulai asesmen kembali dalam <strong>5 menit</strong>. Gunakan waktu ini untuk mempelajari feedback dan memperbaiki pemahamanmu.
+        </p>
+      </div>
+
+      {/* Per-Question Results */}
+      <h2 style={{ fontSize: 13, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>
+        Detail Per Soal
+      </h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
+        {per_question.map((pq) => {
+          const soalRef = SOAL_DATA.find((s) => s.question_number === pq.question_number);
+          const userAnswer = answers[pq.question_number - 1];
+          const isUnanswered = pq.mistake_category === "tidak_diisi";
+          const hasMistake = pq.mistake_category !== null && pq.mistake_category !== "tidak_diisi";
+          const itemColor = isUnanswered ? "#d97706" : hasMistake ? "#b91c1c" : "#346739";
+          const itemBg = isUnanswered ? "#fff5f0" : hasMistake ? "#fff5f5" : "#f0faf0";
+          const itemBorder = isUnanswered ? "#fde68a" : hasMistake ? "#fecaca" : "#c3e6c3";
+
+          return (
+            <div
+              key={pq.question_number}
+              style={{
+                backgroundColor: itemBg,
+                borderRadius: 12,
+                border: `1.5px solid ${itemBorder}`,
+                padding: "16px 18px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 26, height: 26, borderRadius: "50%", backgroundColor: itemColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                    {pq.question_number}
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: itemColor }}>
+                    Skor: {pq.total_score.toFixed(1)}/10
+                  </span>
+                </div>
+                {soalRef && (
+                  <span style={{ fontSize: 10, fontWeight: 600, backgroundColor: LEVEL_META[soalRef.level].bg, color: LEVEL_META[soalRef.level].text, padding: "2px 8px", borderRadius: 99 }}>
+                    {LEVEL_META[soalRef.level].label}
+                  </span>
+                )}
+              </div>
+
+              {/* User's answer summary */}
+              {userAnswer && (
+                <div style={{ marginBottom: 8, fontSize: 12, color: "#5a7d5c", lineHeight: 1.5 }}>
+                  <span style={{ fontWeight: 600 }}>Jawabanmu: </span>
+                  {userAnswer.jawaban_akhir || "(tidak diisi)"}
+                </div>
+              )}
+
+              {/* AI Feedback */}
+              <p style={{ fontSize: 13, color: "#3b5e3d", margin: "0 0 8px", lineHeight: 1.6, fontStyle: "italic" }}>
+                💬 {pq.feedback}
+              </p>
+
+              {/* Mistake / Unanswered info */}
+              {isUnanswered && (
+                <div style={{ fontSize: 11, color: "#92400e", backgroundColor: "#fffbeb", borderRadius: 6, padding: "6px 10px" }}>
+                  ⚠️ <strong>Tidak diisi</strong> — soal ini dikosongkan, skor otomatis 0.
+                </div>
+              )}
+              {hasMistake && (
+                <div style={{ fontSize: 11, color: "#b91c1c", backgroundColor: "#fff", borderRadius: 6, padding: "6px 10px" }}>
+                  <strong>Kesalahan:</strong> {pq.mistake_category === "konsep" ? "Konsep" : pq.mistake_category === "formula" ? "Formula/Rumus" : pq.mistake_category === "perhitungan" ? "Perhitungan" : "Lainnya"}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Action Buttons */}
+      <div style={{ textAlign: "center", display: "flex", gap: 12, justifyContent: "center" }}>
         <Link href="/siswa/ulangan" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", backgroundColor: "#346739", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
           ← Kembali ke Daftar Asesmen
         </Link>

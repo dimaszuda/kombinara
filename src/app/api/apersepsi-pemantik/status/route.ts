@@ -1,36 +1,28 @@
 /**
- * Apersepsi & Pemantik — Status API
+ * Apersepsi & Pemantik — Status API (REFACTORED)
  *
  * GET /api/apersepsi-pemantik/status
- *   → Mengecek per-step mana yang sudah diselesaikan siswa
- *     + mengembalikan data jawaban & feedback yang sudah disimpan.
+ *   Returns section-by-section status from student_section_status ONLY.
+ *   No longer queries apersepsi_pemantik_responses — jawaban & feedback
+ *   are moved to the on-demand "Lihat jawabanku" endpoint.
  *
  * Response:
  * {
- *   completedSteps: Record<number, boolean>,
- *   savedData: Record<questionKey, { responseData, feedback, isCorrect }>
+ *   sections: Record<string, "locked" | "unlocked" | "completed">
  * }
  *
- * Step indices sesuai urutan STEPS di komponen:
- *   0 = kendaraan, 1 = outfit, 2 = pengurus,
- *   3 = password_kapasitas, 4 = tim_sama_beda, 5 = rute_kurir,
- *   6 = refleksi_sebelum_mulai_1, 7 = refleksi_sebelum_mulai_2
+ * Section keys:
+ *   apersepsi              → steps 0-2 (kendaraan, outfit, pengurus)
+ *   pemantik                → steps 3-5 (password_kapasitas, tim_sama_beda, rute_kurir)
+ *   refleksi_sebelum_mulai  → steps 6-7 (refleksi_sebelum_mulai_1, refleksi_sebelum_mulai_2)
  */
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 
-// ── Semua question_key sesuai urutan STEPS ─────────────────────────
-const REQUIRED_QUESTION_KEYS = [
-  "kendaraan",
-  "outfit",
-  "pengurus",
-  "password_kapasitas",
-  "tim_sama_beda",
-  "rute_kurir",
-  "refleksi_sebelum_mulai_1",
-  "refleksi_sebelum_mulai_2",
-];
+const CONCEPT_ID = "kaidah_penjumlahan";
+
+const SECTION_KEYS = ["apersepsi", "pemantik", "refleksi_sebelum_mulai"] as const;
 
 // ─── GET ────────────────────────────────────────────────────────────
 
@@ -54,40 +46,26 @@ export async function GET() {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // ── Ambil semua response, diurutkan dari terbaru ──────────────
-    const allResponses = await prisma.apersepsiPemantikResponse.findMany({
-      where: { studentId: student.id },
-      orderBy: [{ questionKey: "asc" }, { submittedAt: "desc" }],
-      select: { questionKey: true, responseData: true, feedback: true, isCorrect: true },
+    // Query student_section_status ONLY — no answer tables
+    const rows = await prisma.studentSectionStatus.findMany({
+      where: {
+        studentId: student.id,
+        conceptId: CONCEPT_ID,
+        section: { in: [...SECTION_KEYS] },
+      },
+      select: {
+        section: true,
+        status: true,
+      },
     });
 
-    // ── Ambil yang terbaru per question_key ───────────────────────
-    const latestByKey = new Map<string, { responseData: unknown; feedback: string | null; isCorrect: boolean | null }>();
-    for (const r of allResponses) {
-      if (!latestByKey.has(r.questionKey)) {
-        latestByKey.set(r.questionKey, {
-          responseData: r.responseData,
-          feedback: r.feedback,
-          isCorrect: r.isCorrect,
-        });
-      }
+    // Build map: section -> status
+    const sections: Record<string, string> = {};
+    for (const row of rows) {
+      sections[row.section] = row.status;
     }
 
-    // ── Build completedSteps by index ─────────────────────────────
-    const completedSteps: Record<number, boolean> = {};
-    REQUIRED_QUESTION_KEYS.forEach((key, index) => {
-      if (latestByKey.get(key)?.isCorrect === true) {
-        completedSteps[index] = true;
-      }
-    });
-
-    // ── Build savedData ───────────────────────────────────────────
-    const savedData: Record<string, { responseData: unknown; feedback: string | null; isCorrect: boolean | null }> = {};
-    for (const [key, val] of latestByKey) {
-      savedData[key] = val;
-    }
-
-    return NextResponse.json({ completedSteps, savedData });
+    return NextResponse.json({ sections });
   } catch (error) {
     console.error("[GET /api/apersepsi-pemantik/status] Error:", error);
     return NextResponse.json(

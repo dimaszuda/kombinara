@@ -163,6 +163,83 @@ export const AnswerClassificationPrompt = async (
 };
 
 // ---------------------------------------------------------------------------
+// Asesmen Formatif — per-question evaluation
+// ---------------------------------------------------------------------------
+
+const StepByStepItemSchema = z.object({
+  score: z.number().min(0).max(3),
+  reasoning: z.string(),
+});
+
+const AsesmenFormatifItemSchema = z.object({
+  step_by_step: z.object({
+    identifikasi_kondisi: StepByStepItemSchema,
+    pemilihan_rumus: StepByStepItemSchema,
+    eksekusi_perhitungan: StepByStepItemSchema,
+    justifikasi: StepByStepItemSchema,
+  }),
+  process_raw_score: z.number(),
+  process_scaled_score: z.number(),
+  final_answer_score: z.number(),
+  total_score: z.number(),
+  guardrail_applied: z.string().nullable(),
+  mistake_category: z
+    .enum(["konsep", "formula", "perhitungan", "lainnya"])
+    .nullable(),
+  mistake_detail: z.string().nullable(),
+  feedback: z.string(),
+});
+
+export type AsesmenFormatifItemResult = z.infer<typeof AsesmenFormatifItemSchema>;
+
+export const AsesmenFormatifEvaluatePrompt = async (
+  soal: string,
+  levelSoal: string,
+  caraHitung: string,
+  jawabanAkhir: string,
+  isJawabanAkhirTrue: boolean
+): Promise<AsesmenFormatifItemResult> => {
+  const response = await client.responses.parse({
+    model: "gpt-4o",
+    input: [
+      { role: "system", content: PROMPTS.AsesmenFormatif.system },
+      {
+        role: "user",
+        content: PROMPTS.AsesmenFormatif.user(
+          soal,
+          levelSoal,
+          caraHitung,
+          jawabanAkhir,
+          isJawabanAkhirTrue
+        ),
+      },
+    ],
+    text: {
+      format: zodTextFormat(AsesmenFormatifItemSchema, "asesmen_formatif_eval"),
+    },
+  });
+
+  return (
+    response.output_parsed ?? {
+      step_by_step: {
+        identifikasi_kondisi: { score: 0, reasoning: "Evaluasi gagal" },
+        pemilihan_rumus: { score: 0, reasoning: "Evaluasi gagal" },
+        eksekusi_perhitungan: { score: 0, reasoning: "Evaluasi gagal" },
+        justifikasi: { score: 0, reasoning: "Evaluasi gagal" },
+      },
+      process_raw_score: 0,
+      process_scaled_score: 0,
+      final_answer_score: 0,
+      total_score: 0,
+      guardrail_applied: null,
+      mistake_category: null,
+      mistake_detail: "Gagal mengevaluasi jawaban.",
+      feedback: "Maaf, ada kendala saat mengevaluasi jawabanmu. Coba lagi nanti ya!",
+    }
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Chat — Panel chatbot (dengan / tanpa konteks seleksi teks)
 // Sliding window: history 5 percakapan terakhir untuk menjaga konteks.
 // ---------------------------------------------------------------------------

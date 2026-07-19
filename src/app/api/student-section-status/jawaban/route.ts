@@ -36,8 +36,8 @@ import { prisma } from "@/lib/prisma/client";
 // ── Section-to-table question_key mapping ─────────────────────────
 // For sections that span multiple question_keys in apersepsi_pemantik_responses
 const APERSEPSI_PEMANTIK_QUESTION_KEYS: Record<string, string[]> = {
-  apersepsi: ["kendaraan"],
-  pemantik: ["outfit", "pengurus", "password_kapasitas", "tim_sama_beda", "rute_kurir"],
+  apersepsi: ["kendaraan", "outfit", "pengurus"],
+  pemantik: ["password_kapasitas", "tim_sama_beda", "rute_kurir"],
   refleksi_sebelum_mulai: ["refleksi_sebelum_mulai_1", "refleksi_sebelum_mulai_2"],
 };
 

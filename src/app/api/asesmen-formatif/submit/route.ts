@@ -2,16 +2,17 @@
  * Asesmen Formatif — Submit API
  *
  * POST /api/asesmen-formatif/submit
- *   → Final one-shot submission. Creates a submission record and deletes drafts.
+ *   → Saves a submission record (multiple allowed) and deletes drafts.
  *   → Body: {
  *       module_slug: string,
- *       concept_id?: string,  // optional sub-topic tag
+ *       concept_id: string,  // REQUIRED — derived from the module being assessed
  *       answers: Array<{ question_number: number, cara_mengerjakan: string, jawaban_akhir: string }>
  *     }
+ *   → Response: { success: true, submission_id: number }
  *
  * GET /api/asesmen-formatif/submit?module_slug=...
- *   → Check if the student has already submitted for this module.
- *   → Response: { submitted: boolean, submission?: { submitted_at, answers } }
+ *   → Get all submissions for this student + module.
+ *   → Response: { submissions: Array<{ id, submitted_at, total_score, evaluated_at }> }
  */
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -49,12 +50,13 @@ async function getModuleId(slug: string) {
 const VALID_CONCEPT_IDS = [
   "kaidah_penjumlahan",
   "kaidah_perkalian",
+  "kaidah-pencacahan",
   "faktorial",
   "permutasi",
   "kombinasi",
 ];
 
-// ─── POST — final submission ───────────────────────────────────────────────────
+// ─── POST — submission ────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
   try {
@@ -66,15 +68,19 @@ export async function POST(req: Request) {
     if (
       !body ||
       typeof body.module_slug !== "string" ||
+      typeof body.concept_id !== "string" ||
       !Array.isArray(body.answers)
     ) {
-      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid request body. Required: module_slug, concept_id, answers[]" },
+        { status: 400 }
+      );
     }
 
     const { module_slug, concept_id, answers } = body;
 
-    // Validate concept_id if provided
-    if (concept_id !== undefined && concept_id !== null && !VALID_CONCEPT_IDS.includes(concept_id)) {
+    // Validate concept_id
+    if (!VALID_CONCEPT_IDS.includes(concept_id)) {
       return NextResponse.json(
         { error: `Invalid concept_id. Must be one of: ${VALID_CONCEPT_IDS.join(", ")}` },
         { status: 400 }
@@ -104,34 +110,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Module not found" }, { status: 404 });
     }
 
-    // Check if already submitted (UNIQUE constraint: student_id + module_id)
-    const existing = await prisma.asesmenFormatifSubmission.findUnique({
-      where: {
-        studentId_moduleId: { studentId, moduleId },
-      },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { error: "Anda sudah mengirimkan jawaban untuk asesmen ini." },
-        { status: 409 }
-      );
-    }
-
     // Build the JSONB answers array
-    const answersJson = answers.map((a: { question_number: number; cara_mengerjakan?: string; jawaban_akhir?: string }) => ({
-      question_number: a.question_number,
-      cara_mengerjakan: a.cara_mengerjakan ?? "",
-      jawaban_akhir: a.jawaban_akhir ?? "",
-    }));
+    const answersJson = answers.map(
+      (a: { question_number: number; cara_mengerjakan?: string; jawaban_akhir?: string }) => ({
+        question_number: a.question_number,
+        cara_mengerjakan: a.cara_mengerjakan ?? "",
+        jawaban_akhir: a.jawaban_akhir ?? "",
+      })
+    );
 
     // Create submission and delete drafts in a transaction
-    await prisma.$transaction([
+    const [submission] = await prisma.$transaction([
       prisma.asesmenFormatifSubmission.create({
         data: {
           studentId,
           moduleId,
-          conceptId: concept_id ?? null,
+          conceptId: concept_id,
           answers: answersJson as unknown as object,
           submittedAt: gmt7Now(),
         },
@@ -143,8 +137,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message:
-        "Jawaban sudah tersimpan dan sedang dilakukan proses koreksi. Kembali lagi ke menu asesmen setelah beberapa jam untuk mendapatkan nilai hasil asesmen.",
+      submission_id: submission.id,
     });
   } catch (err) {
     console.error("[POST /api/asesmen-formatif/submit] Error:", err);
@@ -155,7 +148,7 @@ export async function POST(req: Request) {
   }
 }
 
-// ─── GET — check submission status ─────────────────────────────────────────────
+// ─── GET — list submissions ───────────────────────────────────────────────────
 
 export async function GET(req: Request) {
   try {
@@ -175,15 +168,19 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Module not found" }, { status: 404 });
     }
 
-    const submission = await prisma.asesmenFormatifSubmission.findUnique({
-      where: { studentId_moduleId: { studentId, moduleId } },
-      select: { submittedAt: true, answers: true },
+    const submissions = await prisma.asesmenFormatifSubmission.findMany({
+      where: { studentId, moduleId },
+      select: {
+        id: true,
+        submittedAt: true,
+        totalScore: true,
+        evaluatedAt: true,
+        aiFeedback: true,
+      },
+      orderBy: { submittedAt: "desc" },
     });
 
-    return NextResponse.json({
-      submitted: submission !== null,
-      submission: submission ?? undefined,
-    });
+    return NextResponse.json({ submissions });
   } catch (err) {
     console.error("[GET /api/asesmen-formatif/submit] Error:", err);
     return NextResponse.json({ error: "Gagal memeriksa status submission" }, { status: 500 });

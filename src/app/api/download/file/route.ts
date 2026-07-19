@@ -56,12 +56,12 @@ const ALL_CONCEPT_IDS = [
 ];
 
 const FILE_PATHS: Record<string, string> = {
-  pendahuluan: "Pendahuluan Modul.pdf",
-  "kaidah-pencacahan": "Kaidah Pencacahan.pdf",
-  faktorial: "Faktorial.pdf",
-  permutasi: "Permutasi.pdf",
-  kombinasi: "Kombinasi.pdf",
-  "bagian-akhir": "Bagian Akhir Modul.pdf",
+  pendahuluan: "1. Pendahuluan Modul.pdf",
+  "kaidah-pencacahan": "2. Kaidah Pencacahan.pdf",
+  faktorial: "3. Faktorial.pdf",
+  permutasi: "4. Permutasi.pdf",
+  kombinasi: "5. Kombinasi.pdf",
+  "bagian-akhir": "6. Bagian Akhir Modul.pdf",
 };
 
 const SIGNED_URL_EXPIRY = 300; // 5 menit

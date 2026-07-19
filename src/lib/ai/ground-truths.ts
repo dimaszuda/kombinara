@@ -34,19 +34,19 @@ export const APERSEPSI_PEMANTIK_GROUND_TRUTH: Record<string, string> = {
 
   // ── Refleksi Mini — Kaidah Penjumlahan ─────────────────────────
   refleksi_penjumlahan_1:
-    "Aturan penjumlahan digunakan ketika memilih salah satu dari beberapa pilihan yang saling lepas (tidak bisa dipilih bersamaan). Contoh: memilih kendaraan (cuma bisa pakai satu).",
+    "Aturan penjumlahan digunakan ketika memilih salah satu dari beberapa pilihan yang saling lepas (tidak bisa dipilih bersamaan). Intinya: hanya bisa pilih SATU, bukan kombinasi.",
   refleksi_penjumlahan_2:
-    "Total pilihan = jumlah semua pilihan di tiap kelompok. Kalau ada 3 sepeda, 2 motor, 1 mobil → total = 3+2+1 = 6 pilihan kendaraan.",
+    "Kata kunci: 'ATAU', 'pilih salah satu', 'alternatif', 'saling lepas', 'cuma bisa satu'. BUKAN kata kunci seperti 'DAN', 'sekaligus', atau 'bersamaan' (itu ciri perkalian).",
   refleksi_penjumlahan_3:
-    "Contoh sehari-hari: memilih menu makan siang (cuma bisa pilih satu: nasi goreng ATAU mie ayam ATAU soto), memilih rute berangkat sekolah (cuma bisa lewat satu jalan).",
+    "Contoh di sekolah: memilih menu kantin (nasi goreng ATAU mie ayam), memilih ekskul (basket ATAU futsal ATAU pramuka), memilih rute berangkat (jalan A ATAU jalan B). Semua situasi di mana kamu hanya bisa mengambil SATU pilihan.",
 
   // ── Refleksi Mini — Kaidah Perkalian ───────────────────────────
   refleksi_perkalian_1:
-    "Aturan perkalian digunakan ketika ada beberapa tahap keputusan yang dilakukan berurutan dan setiap tahap punya beberapa pilihan independen.",
+    "Aturan perkalian digunakan ketika ada beberapa tahap keputusan yang dilakukan berurutan dan setiap tahap punya beberapa pilihan independen. Intinya: memilih kombinasi dari beberapa kelompok secara bersamaan.",
   refleksi_perkalian_2:
-    "Total cara = hasil kali jumlah pilihan di setiap tahap. Kalau 4 baju dan 3 celana → total = 4×3 = 12 outfit berbeda.",
+    "Kata kunci: 'DAN', 'sekaligus', 'bersamaan', 'berurutan', 'tahap demi tahap', 'kombinasi'. BUKAN kata kunci seperti 'ATAU' atau 'pilih salah satu' (itu ciri penjumlahan).",
   refleksi_perkalian_3:
-    "Contoh sehari-hari: menyusun outfit (baju DAN celana DAN sepatu), membuat password (digit 1 DAN digit 2 DAN digit 3), memilih menu lengkap (makanan DAN minuman DAN dessert).",
+    "Contoh sehari-hari: menyusun outfit (baju DAN celana DAN sepatu), membuat password (digit 1 DAN digit 2 DAN digit 3), memilih menu lengkap (makanan DAN minuman DAN dessert). Semua situasi di mana kamu memilih dari BEBERAPA kelompok sekaligus.",
 };
 
 /** Deep Learning — keyed by concept_id */

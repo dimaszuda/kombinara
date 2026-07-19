@@ -29,6 +29,10 @@ import { prisma } from "@/lib/prisma/client";
 import { AnswerClassificationPrompt } from "@/lib/ai/client";
 import { APERSEPSI_PEMANTIK_GROUND_TRUTH } from "@/lib/ai/ground-truths";
 import { gmt7Now } from "@/lib/date";
+import {
+  completeSectionAndUnlockNext,
+  isLastQuestionInSection,
+} from "@/lib/data/student-section-status";
 
 type ResponseItem = {
   question_key: string;
@@ -153,6 +157,34 @@ export async function POST(req: Request) {
         { isCorrect, misconceptionType, feedback: fb },
       ])
     );
+
+    // ── 6. Section completion check (Trigger 1) ────────────────
+    // Map the API section name to student_section_status section name.
+    // The API uses "refleksi" but the DB table uses "refleksi_sebelum_mulai".
+    const SECTION_TO_DB: Record<string, string> = {
+      apersepsi: "apersepsi",
+      pemantik: "pemantik",
+      refleksi: "refleksi_sebelum_mulai",
+    };
+    const dbSection = SECTION_TO_DB[body.section] ?? body.section;
+
+    // These sections are only part of kaidah_penjumlahan concept.
+    const CONCEPT_ID = "kaidah_penjumlahan";
+
+    // Check if any response was the last question in the section AND correct.
+    for (const result of results) {
+      if (
+        result.isCorrect === true &&
+        isLastQuestionInSection(CONCEPT_ID, dbSection, result.question_key)
+      ) {
+        await completeSectionAndUnlockNext(
+          student.id,
+          CONCEPT_ID,
+          dbSection
+        );
+        break; // Only need to complete the section once
+      }
+    }
 
     return NextResponse.json({ feedback });
   } catch (error) {
