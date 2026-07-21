@@ -74,6 +74,16 @@ export default function CompleteProfilPage() {
       return;
     }
 
+    if (!/^(X|XI|XII)$/.test(kelas.trim())) {
+      setError("Kelas hanya boleh X, XI, atau XII");
+      return;
+    }
+
+    if (!/^[A-Z]$/.test(groupKelas.trim())) {
+      setError("Group kelas hanya boleh satu huruf A-Z");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
@@ -227,9 +237,9 @@ export default function CompleteProfilPage() {
               <input
                 type="text"
                 value={kelas}
-                onChange={(e) => setKelas(e.target.value)}
+                onChange={(e) => setKelas(e.target.value.toUpperCase())}
                 className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
-                placeholder="Contoh: XI"
+                placeholder="X / XI / XII"
               />
             </div>
             <div>
@@ -237,9 +247,10 @@ export default function CompleteProfilPage() {
               <input
                 type="text"
                 value={groupKelas}
-                onChange={(e) => setGroupKelas(e.target.value)}
+                maxLength={1}
+                onChange={(e) => setGroupKelas(e.target.value.toUpperCase())}
                 className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
-                placeholder="Contoh: MIPA 1"
+                placeholder="A-Z"
               />
             </div>
           </div>

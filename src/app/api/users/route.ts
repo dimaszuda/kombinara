@@ -64,8 +64,14 @@ export async function POST(request: NextRequest) {
   if (!kelas) {
     return NextResponse.json({ error: "Kelas wajib diisi" }, { status: 400 });
   }
+  if (!/^(X|XI|XII)$/.test(kelas)) {
+    return NextResponse.json({ error: "Kelas hanya boleh X, XI, atau XII" }, { status: 400 });
+  }
   if (!groupKelas) {
     return NextResponse.json({ error: "Group kelas wajib diisi" }, { status: 400 });
+  }
+  if (!/^[A-Z]$/.test(groupKelas)) {
+    return NextResponse.json({ error: "Group kelas hanya boleh satu huruf A-Z" }, { status: 400 });
   }
   if (!gender) {
     return NextResponse.json({ error: "Gender wajib diisi" }, { status: 400 });
@@ -95,13 +101,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 3. Cek apakah nomorAbsen sudah dipakai user LAIN
-    const existingByNumber = await prisma.student.findUnique({
-      where: { studentNumber: nomorAbsen },
+    // 3. Cek apakah nomorAbsen sudah dipakai user LAIN di kelas yang SAMA
+    const existingByNumber = await prisma.student.findFirst({
+      where: {
+        studentNumber: nomorAbsen,
+        classId: dbClass.id,
+        userId: { not: user.id },
+      },
     });
-    if (existingByNumber && existingByNumber.userId !== user.id) {
+    if (existingByNumber) {
       return NextResponse.json(
-        { error: `Nomor absen ${nomorAbsen} sudah digunakan oleh siswa lain. Silakan gunakan nomor absen yang berbeda.` },
+        { error: `Nomor absen ${nomorAbsen} sudah digunakan oleh siswa lain di kelas ${kelas} ${groupKelas}. Silakan gunakan nomor absen yang berbeda.` },
         { status: 409 }
       );
     }

@@ -273,7 +273,7 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
               borderBottom: "1px solid #346739",
             }}
           />
-          <div style={{ paddingTop: "14px", paddingLeft: "12px", paddingRight: "12px", paddingBottom: "20px" }}>
+          <div style={{ paddingTop: "20px", paddingLeft: "24px", paddingRight: "24px", paddingBottom: "20px" }}>
             {children}
           </div>
         </main>

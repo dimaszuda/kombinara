@@ -83,22 +83,15 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    // Role guard — siswa tidak bisa akses /guru dan sebaliknya
+    // Role guard — siswa tidak bisa akses /guru
+    // Guru bisa akses semua halaman (guru = admin)
     if (pathname.startsWith("/guru") && role !== "guru") {
-      logger.warn("auth:middleware", "Role violation - siswa attempted to access /guru", {
+      logger.warn("auth:middleware", "Role violation - non-guru attempted to access /guru", {
         userId: user.id,
         role,
         pathname,
       });
       return NextResponse.redirect(new URL("/siswa", request.url));
-    }
-    if (pathname.startsWith("/siswa") && role !== "siswa") {
-      logger.warn("auth:middleware", "Role violation - guru attempted to access /siswa", {
-        userId: user.id,
-        role,
-        pathname,
-      });
-      return NextResponse.redirect(new URL("/guru", request.url));
     }
   }
 

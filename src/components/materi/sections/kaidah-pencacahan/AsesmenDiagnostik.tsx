@@ -440,7 +440,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                 </RichText>
                                 <input
                                     type="text"
-                                    placeholder="Contoh: {}, {a}, {b}, {a,b}"
+                                    placeholder="Tulis jawabanmu disini..."
                                     name="q5-1"
                                     value={getAnswer(5, 1)}
                                     onChange={(e) => setAnswer(5, 1, e.target.value)}

@@ -1565,17 +1565,17 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
     setCheckingStep(stepIndex);
 
     try {
-      // ── AI classification ──────────────────────────────────
-      const res = await fetch("/api/ai/apersepsi-pemantik", {
+      // ── AI classification + save to refleksi_mini ──────────
+      const res = await fetch("/api/refleksi-mini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          section: "refleksi",
-          responses: [
+          concept_id: "kaidah_perkalian",
+          rows: [
             {
               question_key: q.key,
               soal: q.soal,
-              response_data: { jawaban: answer },
+              answer,
             },
           ],
         }),
@@ -1591,23 +1591,6 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
       };
 
       setFeedbackMap((prev) => ({ ...prev, [stepIndex]: fb }));
-
-      // ── Save to DB per question ────────────────────────────
-      fetch("/api/refleksi-mini", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          concept_id: "kaidah_perkalian",
-          rows: [
-            {
-              question_key: q.key,
-              answer,
-              feedback: fb.text,
-              is_correct: fb.isCorrect,
-            },
-          ],
-        }),
-      }).catch((err) => console.error("[refleksi-mini] DB save error:", err));
 
       // Advance if correct
       if (fb.isCorrect && stepIndex < TOTAL_REFLEKSI_PERKALIAN - 1) {

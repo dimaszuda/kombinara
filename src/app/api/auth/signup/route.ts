@@ -29,6 +29,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Semua field wajib diisi" }, { status: 400 });
   }
 
+  // Validasi kelas & groupKelas
+  if (!/^(X|XI|XII)$/.test(kelas.trim())) {
+    return NextResponse.json({ error: "Kelas hanya boleh X, XI, atau XII" }, { status: 400 });
+  }
+  if (!/^[A-Z]$/.test(groupKelas.trim())) {
+    return NextResponse.json({ error: "Group kelas hanya boleh satu huruf A-Z" }, { status: 400 });
+  }
+
   logger.info("auth:signup", "Signup request received", {
     email: maskEmail(email),
     kelas,

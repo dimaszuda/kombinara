@@ -1,13 +1,20 @@
 /**
- * Refleksi Mini — Save to DB
+ * Refleksi Mini — AI classification + Save to DB
  *
  * POST /api/refleksi-mini
  * Body: {
  *   concept_id: string,
- *   rows: Array<{ question_key: string; answer: string; feedback: string | null; is_correct?: boolean | null }>
+ *   rows: Array<{ question_key: string; soal: string; answer: string }>
  * }
- * Inserts one row per question (1 soal = 1 row).
- * Response: { success: true }
+ *
+ * For each row:
+ *   1. Classify the answer via AI (AnswerClassificationPrompt)
+ *   2. INSERT into refleksi_mini with the AI feedback
+ *   3. Return per-question feedback to the client
+ *
+ * Response: {
+ *   feedback: Record<question_key, { isCorrect: boolean; feedback: string }>
+ * }
  *
  * Trigger 1: When the LAST refleksi question is answered correctly AND all
  * required refleksi questions for the concept are correct, marks
@@ -18,6 +25,8 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { toGMT7SQL } from "@/lib/date";
+import { AnswerClassificationPrompt } from "@/lib/ai/client";
+import { APERSEPSI_PEMANTIK_GROUND_TRUTH } from "@/lib/ai/ground-truths";
 import {
   completeSectionAndUnlockNext,
   isLastQuestionInSection,
@@ -63,23 +72,67 @@ export async function POST(req: Request) {
 
     const { concept_id, rows } = body as {
       concept_id: string;
-      rows: { question_key: string; answer: string; feedback: string | null; is_correct?: boolean | null }[];
+      rows: { question_key: string; soal: string; answer: string }[];
     };
 
+    // Validate each row has required fields
     for (const row of rows) {
       if (
         typeof row.question_key !== "string" ||
+        typeof row.soal !== "string" ||
+        !row.soal.trim() ||
         typeof row.answer !== "string"
       ) {
-        return NextResponse.json({ error: "Invalid row structure" }, { status: 400 });
+        return NextResponse.json({ error: "Invalid row structure — required: question_key, soal, answer" }, { status: 400 });
       }
     }
 
-    // Wrap inserts + conditional section completion in a single transaction.
+    // ── AI classification for each row ──────────────────────────
+    const classifiedRows: {
+      question_key: string;
+      answer: string;
+      feedback: string;
+      isCorrect: boolean;
+    }[] = [];
+
+    const feedbackMap: Record<string, { isCorrect: boolean; feedback: string }> = {};
+
+    for (const row of rows) {
+      const groundTruth = APERSEPSI_PEMANTIK_GROUND_TRUTH[row.question_key] ?? "";
+      try {
+        const llmResult = await AnswerClassificationPrompt(row.soal, groundTruth, row.answer);
+        classifiedRows.push({
+          question_key: row.question_key,
+          answer: row.answer,
+          feedback: llmResult.feedback,
+          isCorrect: llmResult.isCorrect,
+        });
+        feedbackMap[row.question_key] = {
+          isCorrect: llmResult.isCorrect,
+          feedback: llmResult.feedback,
+        };
+      } catch (aiErr) {
+        console.error(`[refleksi-mini] AI error for ${row.question_key}:`, aiErr);
+        // Fallback: mark as not correct with a generic feedback
+        const fallbackFeedback = "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!";
+        classifiedRows.push({
+          question_key: row.question_key,
+          answer: row.answer,
+          feedback: fallbackFeedback,
+          isCorrect: false,
+        });
+        feedbackMap[row.question_key] = {
+          isCorrect: false,
+          feedback: fallbackFeedback,
+        };
+      }
+    }
+
+    // ── DB insert + section completion in a single transaction ───
     await prisma.$transaction(async (tx) => {
       // Insert each question as a separate row (allow multiple attempts)
       await Promise.all(
-        rows.map((row) =>
+        classifiedRows.map((row) =>
           tx.$executeRaw`
             INSERT INTO refleksi_mini (student_id, concept_id, question_key, answer, feedback, is_correct, created_at)
             VALUES (
@@ -87,8 +140,8 @@ export async function POST(req: Request) {
               ${concept_id},
               ${row.question_key},
               ${row.answer},
-              ${row.feedback ?? null},
-              ${row.is_correct ?? null},
+              ${row.feedback},
+              ${row.isCorrect},
               ${toGMT7SQL()}::timestamptz
             )
           `
@@ -96,18 +149,15 @@ export async function POST(req: Request) {
       );
 
       // Check if any submitted row triggers section completion.
-      // Completion requires: (a) the last question is answered correctly, AND
-      // (b) ALL required refleksi questions for this concept have a correct answer.
-      const hasLastQuestionCorrect = rows.some(
+      const hasLastQuestionCorrect = classifiedRows.some(
         (row) =>
-          row.is_correct === true &&
+          row.isCorrect === true &&
           isLastQuestionInSection(concept_id, "refleksi_mini", row.question_key)
       );
 
       if (hasLastQuestionCorrect) {
         const requiredKeys = getRefleksiAllQuestionKeys(concept_id);
 
-        // Count distinct question_keys with at least one correct answer.
         const correctCountResult = await tx.$queryRaw<[{ count: bigint }]>`
           SELECT COUNT(DISTINCT question_key) as count
           FROM refleksi_mini
@@ -130,7 +180,7 @@ export async function POST(req: Request) {
       }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ feedback: feedbackMap });
   } catch (err) {
     console.error("[POST /api/refleksi-mini] Error:", err);
     return NextResponse.json(
