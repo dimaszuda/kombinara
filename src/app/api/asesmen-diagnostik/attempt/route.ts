@@ -110,7 +110,7 @@ export async function GET() {
 
   const { data: newAttempt, error: insertError } = await supabase
     .from("diagnostic_attempts")
-    .insert({ student_id: studentId, attempt_number: nextNumber, status: "in_progress", correct_count: 0, feedback: "" })
+    .insert({ student_id: studentId, attempt_number: nextNumber, status: "in_progress", correct_count: 0, feedback: "", started_at: toGMT7ISO() })
     .select("attempt_id")
     .single();
 

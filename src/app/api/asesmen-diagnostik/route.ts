@@ -130,7 +130,7 @@ async function persistAttempt(
 
     const { data: newAttempt, error } = await supabase
       .from("diagnostic_attempts")
-      .insert({ student_id: studentId, attempt_number: attemptNumber, ...finalFields })
+      .insert({ student_id: studentId, attempt_number: attemptNumber, started_at: toGMT7ISO(), ...finalFields })
       .select("attempt_id")
       .single();
 

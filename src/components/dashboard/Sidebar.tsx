@@ -6,12 +6,47 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import DownloadModulButton from "./DownloadModulButton";
+import type { UserRole } from "@/types";
 
-const NAV_ITEMS = [
+interface NavItemDef {
+  label: string;
+  href: string;
+  icon: string;
+}
+
+const NAV_ITEMS_SISWA: NavItemDef[] = [
   {
     label: "Dashboard",
     href: "/siswa",
     icon: "/icons/dashboard icon.png",
+  },
+  {
+    label: "Materi",
+    href: "/siswa/materi",
+    icon: "/icons/materi.png",
+  },
+  {
+    label: "Aktivitas Siswa",
+    href: "/siswa/activity",
+    icon: "/icons/activity.png"
+  },
+  {
+    label: "Assesmen Formatif",
+    href: "/siswa/ulangan",
+    icon: "/icons/test.png",
+  },
+];
+
+const NAV_ITEMS_GURU: NavItemDef[] = [
+  {
+    label: "Dashboard",
+    href: "/siswa",
+    icon: "/icons/dashboard icon.png",
+  },
+  {
+    label: "Learning Analytics Dashboard",
+    href: "/guru/dashboard",
+    icon: "/icons/data-analytics.png",
   },
   {
     label: "Materi",
@@ -35,6 +70,7 @@ interface SidebarProps {
   onToggle: (val: boolean) => void;
   mobileOpen: boolean;
   onMobileToggle: (val: boolean) => void;
+  role?: UserRole | null;
 }
 
 function PortalTooltip({ label, anchorRef, offset = 10 }: { 
@@ -80,7 +116,7 @@ function PortalTooltip({ label, anchorRef, offset = 10 }: {
 }
 
 interface NavItemProps {
-  item: { label: string; href: string; icon: string };
+  item: NavItemDef;
   isActive: boolean;
   expanded: boolean;
 }
@@ -269,8 +305,10 @@ function LogoutButton({ expanded, onClick }: LogoutButtonProps) {
   );
 }
 
-export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle }: SidebarProps) {
+export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle, role }: SidebarProps) {
   const pathname = usePathname();
+  const isGuru = role === "guru";
+  const NAV_ITEMS = isGuru ? NAV_ITEMS_GURU : NAV_ITEMS_SISWA;
 
   const desktopNav = (
     <div

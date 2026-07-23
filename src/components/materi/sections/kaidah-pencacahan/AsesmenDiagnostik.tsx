@@ -178,7 +178,8 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                 for (const [key, val] of fd.entries()) {
                     const match = key.match(/^q(\d+)-(\d+)$/);
                     if (match && typeof val === "string" && val.trim() !== "") {
-                        merged[key] = val;
+                        // Normalisasi: buang prefix "q" → "1-0", bukan "q1-0"
+                        merged[`${match[1]}-${match[2]}`] = val;
                     }
                 }
             }

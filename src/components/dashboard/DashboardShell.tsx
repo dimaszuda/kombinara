@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Sidebar from "@/components/dashboard/Sidebar";
-import { UserProfile } from "@/types";
+import { UserProfile, UserRole } from "@/types";
 import { AssesmentLockProvider, useAssesmentLock } from "@/components/dashboard/assesment-lock-context";
 
 // Tooltip styles injected once as a global <style> tag via a small component
@@ -169,6 +169,7 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
           onToggle={setExpanded}
           mobileOpen={mobileSidebarOpen}
           onMobileToggle={setMobileSidebarOpen}
+          role={profile?.role as UserRole | undefined}
         />
         <main className="min-w-0 flex-1 overflow-y-auto px-4 py-4" style={mainStyle}>
           {children}
@@ -213,6 +214,7 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
             onToggle={setExpanded}
             mobileOpen={mobileSidebarOpen}
             onMobileToggle={setMobileSidebarOpen}
+            role={profile?.role as UserRole | undefined}
           />
         </div>
 

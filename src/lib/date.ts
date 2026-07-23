@@ -76,3 +76,21 @@ export function toGMT7SQL(): string {
   const seconds = String(gmt7Time.getUTCSeconds()).padStart(2, "0");
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}+07:00`;
 }
+
+/**
+ * Format Date ke "DD Month YYYY" (Bahasa Indonesia).
+ * Mirip dengan PostgreSQL TO_CHAR(date, 'DD FMMonth YYYY').
+ *
+ * @example formatTanggal(new Date("2026-07-15")) → "15 Juli 2026"
+ */
+export function formatTanggal(date: Date): string {
+  const MONTHS_ID = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+  ];
+  const d = new Date(date);
+  const day = d.getDate();
+  const month = MONTHS_ID[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+}
