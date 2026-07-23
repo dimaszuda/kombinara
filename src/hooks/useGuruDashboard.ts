@@ -101,12 +101,12 @@ export interface MateriJourneyItem {
   studentId: number;
   nama: string;
   conceptId: string;
-  diagnostic: string;
-  materi: string;
+  aktivitasDeepLearning: string;
   aktivitasSiswa: string;
-  latihan: string;
-  evaluasi: string;
-  refleksi: string;
+  contohSoal: string;
+  eksplorasiKontekstual: string;
+  penjelasanKonsep: string;
+  refleksiMini: string;
 }
 
 export interface JourneyAnalyticsData {

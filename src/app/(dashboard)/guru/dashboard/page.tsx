@@ -158,10 +158,17 @@ const JOURNEY_MATERI_COLS: Column<Record<string, unknown>>[] = [
       return <>{conceptLabel}</>;
     },
   },
-  ...(["diagnostic", "materi", "aktivitasSiswa", "latihan", "evaluasi", "refleksi"] as const).map(
+  ...(["eksplorasiKontekstual", "aktivitasDeepLearning", "penjelasanKonsep", "contohSoal", "aktivitasSiswa", "refleksiMini"] as const).map(
     (key): Column<Record<string, unknown>> => ({
       key,
-      label: key === "aktivitasSiswa" ? "Aktivitas" : key.charAt(0).toUpperCase() + key.slice(1),
+      label: (
+        key === "eksplorasiKontekstual" ? "Eksplorasi" :
+        key === "aktivitasDeepLearning" ? "Deep Learning" :
+        key === "penjelasanKonsep" ? "Penjelasan" :
+        key === "contohSoal" ? "Contoh Soal" :
+        key === "aktivitasSiswa" ? "Aktivitas" :
+        "Refleksi"
+      ),
       align: "center",
       sortable: false,
       render: (row) => (

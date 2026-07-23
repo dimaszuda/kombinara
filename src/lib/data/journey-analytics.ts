@@ -26,12 +26,12 @@ export interface MateriJourneyItem {
   studentId: number;
   nama: string;
   conceptId: string;
-  diagnostic: string;
-  materi: string;
+  aktivitasDeepLearning: string;
   aktivitasSiswa: string;
-  latihan: string;
-  evaluasi: string;
-  refleksi: string;
+  contohSoal: string;
+  eksplorasiKontekstual: string;
+  penjelasanKonsep: string;
+  refleksiMini: string;
 }
 
 export interface JourneyAnalyticsData {
@@ -131,12 +131,12 @@ export async function getMateriJourney(
     student_id: number;
     name: string;
     concept_id: string;
-    diagnostic: string;
-    materi: string;
+    aktivitas_deep_learning: string;
     aktivitas_siswa: string;
-    latihan: string;
-    evaluasi: string;
-    refleksi: string;
+    contoh_soal: string;
+    eksplorasi_kontekstual: string;
+    penjelasan_konsep: string;
+    refleksi_mini: string;
   }>>`
     WITH all_combinations AS (
       SELECT
@@ -202,33 +202,32 @@ export async function getMateriJourney(
     )
 
     SELECT
-      student_id,
       name,
       concept_id,
       COALESCE(
-        MAX(CASE WHEN section = 'diagnostic' THEN status END),
+        MAX(CASE WHEN section = 'aktivitas_deep_learning' THEN status END),
         'not completed'
-      ) AS diagnostic,
-      COALESCE(
-        MAX(CASE WHEN section = 'materi' THEN status END),
-        'not completed'
-      ) AS materi,
+      ) AS aktivitas_deep_learning,
       COALESCE(
         MAX(CASE WHEN section = 'aktivitas siswa' THEN status END),
         'not completed'
       ) AS aktivitas_siswa,
       COALESCE(
-        MAX(CASE WHEN section = 'latihan' THEN status END),
+        MAX(CASE WHEN section = 'contoh_soal' THEN status END),
         'not completed'
-      ) AS latihan,
+      ) AS contoh_soal,
       COALESCE(
-        MAX(CASE WHEN section = 'evaluasi' THEN status END),
+        MAX(CASE WHEN section = 'eksplorasi_kontekstual' THEN status END),
         'not completed'
-      ) AS evaluasi,
+      ) AS eksplorasi_kontekstual,
       COALESCE(
-        MAX(CASE WHEN section = 'refleksi' THEN status END),
+        MAX(CASE WHEN section = 'penjelasan_konsep' THEN status END),
         'not completed'
-      ) AS refleksi
+      ) AS penjelasan_konsep,
+      COALESCE(
+        MAX(CASE WHEN section = 'refleksi_mini' THEN status END),
+        'not completed'
+      ) AS refleksi_mini
     FROM all_status
     GROUP BY student_id, name, concept_id
     ORDER BY name, concept_id
@@ -238,12 +237,12 @@ export async function getMateriJourney(
     studentId: r.student_id,
     nama: r.name,
     conceptId: r.concept_id,
-    diagnostic: r.diagnostic,
-    materi: r.materi,
+    aktivitasDeepLearning: r.aktivitas_deep_learning,
     aktivitasSiswa: r.aktivitas_siswa,
-    latihan: r.latihan,
-    evaluasi: r.evaluasi,
-    refleksi: r.refleksi,
+    contohSoal: r.contoh_soal,
+    eksplorasiKontekstual: r.eksplorasi_kontekstual,
+    penjelasanKonsep: r.penjelasan_konsep,
+    refleksiMini: r.refleksi_mini,
   }));
 }
 
