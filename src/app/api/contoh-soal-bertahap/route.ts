@@ -22,7 +22,7 @@ import { prisma } from "@/lib/prisma/client";
 import { toGMT7SQL } from "@/lib/date";
 import { completeSectionAndUnlockNext, isLastQuestionInSection } from "@/lib/data/student-section-status";
 
-const VALID_CONCEPTS = ["kaidah_penjumlahan", "kaidah_perkalian", "permutasi", "kombinasi"] as const;
+const VALID_CONCEPTS = ["kaidah_penjumlahan", "kaidah_perkalian", "faktorial", "permutasi", "kombinasi"] as const;
 const VALID_DIFFICULTIES = ["mudah", "sedang", "hots"] as const;
 
 export async function POST(req: Request) {

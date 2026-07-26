@@ -159,25 +159,89 @@ export async function GET(req: Request) {
     }
     // --- aktivitas_deep_learning ---
     else if (section === "aktivitas_deep_learning") {
-      const row = await prisma.aktivitasDeepLearning.findFirst({
+      // Return ALL rows for this student+concept (table answers + Q1/Q2/Q3 answers)
+      // Each save creates a new row; we need all of them to reconstruct the full state.
+      const rows = await prisma.aktivitasDeepLearning.findMany({
         where: { studentId, conceptId: concept_id },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: "asc" },
         select: { answer: true, feedback: true, isCorrect: true, createdAt: true },
       });
 
-      if (row) {
-        entries.push({
-          questionKey: "deep_learning",
-          answer: row.answer,
-          feedback: row.feedback,
-          isCorrect: row.isCorrect,
-          submittedAt: row.createdAt?.toISOString() ?? null,
-        });
+      // Separate table entry from question entries based on answer structure
+      // Table entry: answer contains table answer keys (val5, sym6, etc.)
+      // Q entries:   answer contains { question_key: "eks1", jawaban: "..." }
+      
+      for (const r of rows) {
+        const ans = r.answer as Record<string, unknown> | null;
+        if (!ans) continue;
+        
+        // Determine entry type from answer keys
+        if (ans.question_key && typeof ans.question_key === "string") {
+          // This is a question entry (eks1, eks2, eks3)
+          entries.push({
+            questionKey: ans.question_key,
+            answer: r.answer,
+            feedback: r.feedback,
+            isCorrect: r.isCorrect,
+            submittedAt: r.createdAt?.toISOString() ?? null,
+          });
+        } else {
+          // This is a table answer entry (has numeric answer keys)
+          // Keep the latest table entry only
+          const existingTableIdx = entries.findIndex(e => e.questionKey === "deep_learning_table");
+          if (existingTableIdx >= 0) {
+            entries[existingTableIdx] = {
+              questionKey: "deep_learning_table",
+              answer: r.answer,
+              feedback: r.feedback,
+              isCorrect: r.isCorrect,
+              submittedAt: r.createdAt?.toISOString() ?? null,
+            };
+          } else {
+            entries.push({
+              questionKey: "deep_learning_table",
+              answer: r.answer,
+              feedback: r.feedback,
+              isCorrect: r.isCorrect,
+              submittedAt: r.createdAt?.toISOString() ?? null,
+            });
+          }
+        }
       }
     }
     // --- penjelasan_konsep (read-only, no answers) ---
     else if (section === "penjelasan_konsep") {
       entries = [];
+    }
+    // --- mengapa_corner (stored in eksplorasi_kontekstual table, faktorial only) ---
+    else if (section === "mengapa_corner") {
+      const rows = await prisma.$queryRaw<
+        Array<{
+          question_key: string;
+          answer: unknown;
+          feedback: string | null;
+          is_correct: boolean | null;
+          created_at: string;
+        }>
+      >`
+        SELECT question_key, answer, feedback, is_correct, created_at
+        FROM eksplorasi_kontekstual
+        WHERE student_id = ${studentId}
+          AND concept_id = ${concept_id}::concept_type
+          AND question_key = 'mengapa_corner'
+        ORDER BY created_at DESC
+        LIMIT 1
+      `;
+
+      for (const r of rows) {
+        entries.push({
+          questionKey: r.question_key,
+          answer: r.answer,
+          feedback: r.feedback,
+          isCorrect: r.is_correct,
+          submittedAt: r.created_at,
+        });
+      }
     }
     // --- contoh_soal ---
     else if (section === "contoh_soal") {

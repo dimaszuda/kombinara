@@ -262,17 +262,21 @@ function TocItem({
 function TocList({
   activeKey,
   completedKeys,
+  tocSections,
+  totalItems,
 }: {
   activeKey: string | null;
   completedKeys: Set<string>;
+  tocSections: TocSection[];
+  totalItems: number;
 }) {
-  const completedCount = countCompleted(TOC_SECTIONS, completedKeys);
-  const pct = TOTAL_ITEMS > 0 ? Math.round((completedCount / TOTAL_ITEMS) * 100) : 0;
+  const completedCount = countCompleted(tocSections, completedKeys);
+  const pct = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
 
   // Flatten sections dengan display number: 1, 2, 2.1, 2.2, 2.3, 3, 3.1, ...
   const flatItems: Array<{ section: TocSection; isSubItem: boolean; displayNumber: string }> = [];
   let mainNum = 0;
-  for (const s of TOC_SECTIONS) {
+  for (const s of tocSections) {
     mainNum++;
     flatItems.push({ section: s, isSubItem: false, displayNumber: String(mainNum) });
     if (s.children) {
@@ -373,7 +377,7 @@ function TocList({
             Progress belajar
           </span>
           <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 11.5, fontWeight: 500 }}>
-            {completedCount} / {TOTAL_ITEMS}
+            {completedCount} / {totalItems}
           </span>
         </div>
         <div
@@ -410,6 +414,8 @@ interface TableContentProps {
   activeKey?: string | null;
   /** Set of section keys yang sudah completed */
   completedKeys?: Set<string>;
+  /** Custom TOC sections (falls back to TOC_SECTIONS if not provided) */
+  sections?: TocSection[];
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -420,7 +426,11 @@ export default function TableContent({
   otherPanelOpen,
   activeKey = null,
   completedKeys = new Set(),
+  sections,
 }: TableContentProps) {
+  const tocSections = sections ?? TOC_SECTIONS;
+  const totalItems = sections ? countAllItems(sections) : TOTAL_ITEMS;
+  const completedCount = countCompleted(tocSections, completedKeys);
   const [hovered, setHovered] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
@@ -650,7 +660,7 @@ export default function TableContent({
         </div>
 
         <div style={{ height: 12, flexShrink: 0 }} />
-        <TocList activeKey={activeKey} completedKeys={completedKeys} />
+        <TocList activeKey={activeKey} completedKeys={completedKeys} tocSections={tocSections} totalItems={totalItems} />
         <div style={{ height: 20, flexShrink: 0 }} />
       </div>
 
@@ -675,7 +685,7 @@ export default function TableContent({
       >
         {headerContent}
         <div style={{ height: 12, flexShrink: 0 }} />
-        <TocList activeKey={activeKey} completedKeys={completedKeys} />
+        <TocList activeKey={activeKey} completedKeys={completedKeys} tocSections={tocSections} totalItems={totalItems} />
         <div style={{ height: 16, flexShrink: 0 }} />
       </div>
     </>

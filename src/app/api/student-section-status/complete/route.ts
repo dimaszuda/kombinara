@@ -18,7 +18,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import { completeSectionAndUnlockNext } from "@/lib/data/student-section-status";
 
-const ALLOWED_SECTIONS = ["penjelasan_konsep"] as const;
+const ALLOWED_SECTIONS = ["penjelasan_konsep", "mengapa_corner"] as const;
 
 export async function POST(req: Request) {
   try {

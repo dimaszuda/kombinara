@@ -47,6 +47,16 @@ export const APERSEPSI_PEMANTIK_GROUND_TRUTH: Record<string, string> = {
     "Kata kunci: 'DAN', 'sekaligus', 'bersamaan', 'berurutan', 'tahap demi tahap', 'kombinasi'. BUKAN kata kunci seperti 'ATAU' atau 'pilih salah satu' (itu ciri penjumlahan).",
   refleksi_perkalian_3:
     "Contoh sehari-hari: menyusun outfit (baju DAN celana DAN sepatu), membuat password (digit 1 DAN digit 2 DAN digit 3), memilih menu lengkap (makanan DAN minuman DAN dessert). Semua situasi di mana kamu memilih dari BEBERAPA kelompok sekaligus.",
+
+  // ── Refleksi Mini — Faktorial ─────────────────────────────────
+  refleksi_faktorial_1:
+    "Faktorial adalah notasi matematika untuk perkalian bilangan bulat positif menurun hingga 1. Contoh: 5! = 5×4×3×2×1 = 120. Faktorial digunakan untuk menghitung banyaknya susunan/urutan dari sejumlah objek.",
+  refleksi_faktorial_2:
+    "Faktorial diperlukan karena kaidah perkalian menghasilkan bentuk perkalian menurun seperti 4×3×2×1 yang bisa ditulis ringkas sebagai 4!. Jadi faktorial adalah cara singkat menuliskan hasil kaidah perkalian untuk kasus penyusunan semua objek.",
+  refleksi_faktorial_3:
+    "Cara menyederhanakan n!/(n-2)! adalah dengan menjabarkan n! = n×(n-1)×(n-2)!, lalu coret (n-2)! di pembilang dan penyebut, sehingga tersisa n×(n-1). Tidak perlu menghitung nilai faktorial secara penuh.",
+  refleksi_faktorial_4:
+    "Jawaban bersifat dugaan — siswa diharapkan menyadari bahwa faktorial muncul dalam rumus permutasi dan kombinasi karena kedua rumus tersebut melibatkan perkalian menurun (seperti 5×4×3) yang merupakan bentuk faktorial yang disederhanakan. Contoh: P(n,r) = n!/(n-r)! menggunakan faktorial untuk menghitung banyaknya susunan.",
 };
 
 /** Deep Learning — keyed by concept_id */
@@ -56,6 +66,9 @@ export const DEEP_LEARNING_GROUND_TRUTH: Record<string, string> = {
 
   kaidah_perkalian:
     "Pengisian tempat: kotak 1=5, kotak 2=4, kotak 3=3 (karena tanpa pengulangan, setiap digit yang sudah dipakai tidak bisa dipakai lagi). Total PIN yang mungkin = 5×4×3 = 60. Diagram pohon: 2 makanan × 3 minuman = 6 kombinasi menu. Simpulan: kaidah perkalian digunakan untuk kejadian bertahap/berurutan, berbeda dengan penjumlahan yang digunakan untuk pilihan alternatif/saling lepas.",
+
+  faktorial:
+    "Tabel faktorial: 5!=120, 6!=720, 7!=5040, 8!=40320, 9!=362880, 10!=3628800. Pola rekursif: n!=n×(n-1)!. 0!=1 (bukan 0). Sifat rekursif n!=n×(n-1)! selalu berlaku untuk n≥1. Faktorial digunakan untuk menghitung banyaknya cara menyusun n objek berbeda dalam urutan.",
 };
 
 /**

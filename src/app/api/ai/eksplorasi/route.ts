@@ -30,9 +30,9 @@ export async function POST(req: Request) {
 
     const { soal, jawaban, alasan } = body;
 
-    if (!soal.trim() || !jawaban.trim() || !alasan.trim()) {
+    if (!soal.trim() || !jawaban.trim()) {
       return new Response(
-        JSON.stringify({ error: "All fields must be non-empty" }),
+        JSON.stringify({ error: "soal and jawaban must be non-empty" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }

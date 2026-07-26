@@ -35,7 +35,7 @@ import type { createSupabaseServerClient } from "@/lib/supabase/server";
  * NOTE: aktivitas_siswa is NOT in this array -- its status is read directly
  * from tabel aktivitas_siswa_entries, not from student_section_status.
  */
-export const KAIDAH_PENCACAHAN_SECTIONS = [
+export const MATERI_SECTIONS = [
   // ── kaidah_penjumlahan (8 sections) ──
   { conceptId: "kaidah_penjumlahan", section: "apersepsi" },                    // 0
   { conceptId: "kaidah_penjumlahan", section: "pemantik" },                     // 1
@@ -52,9 +52,17 @@ export const KAIDAH_PENCACAHAN_SECTIONS = [
   { conceptId: "kaidah_perkalian", section: "penjelasan_konsep" },               // 10
   { conceptId: "kaidah_perkalian", section: "contoh_soal" },                    // 11
   { conceptId: "kaidah_perkalian", section: "refleksi_mini" },                   // 12 -- section terakhir
+
+  // ── faktorial (6 sections) ──
+  { conceptId: "faktorial", section: "eksplorasi_kontekstual" },                // 13
+  { conceptId: "faktorial", section: "aktivitas_deep_learning" },               // 14
+  { conceptId: "faktorial", section: "penjelasan_konsep" },                      // 15
+  { conceptId: "faktorial", section: "contoh_soal" },                           // 16
+  { conceptId: "faktorial", section: "mengapa_corner" },                        // 17  -- only in faktorial
+  { conceptId: "faktorial", section: "refleksi_mini" },                          // 18 -- section terakhir faktorial
 ] as const;
 
-export const KAIDAH_PENCACAHAN_CONCEPT_IDS = ["kaidah_penjumlahan", "kaidah_perkalian"] as const;
+export const MATERI_CONCEPT_IDS = ["kaidah_penjumlahan", "kaidah_perkalian", "faktorial"] as const;
 
 /**
  * Section yang validasi concept_id+section-nya harus dilakukan di application
@@ -99,55 +107,72 @@ export async function seedStudentSectionStatus(
   studentId: number,
   supabaseClient: Awaited<ReturnType<typeof createSupabaseServerClient>>
 ): Promise<SeedResult> {
-  // ── Step 1: Check if already seeded ──────────────────────────
-  const existingCount = await prisma.studentSectionStatus.count({
-    where: {
-      studentId,
-      conceptId: { in: [...KAIDAH_PENCACAHAN_CONCEPT_IDS] },
-    },
-  });
+  // ── Step 1: Check which concepts need seeding ────────────────
+  // Query counts per concept instead of a single aggregate.
+  const existingCounts = await Promise.all(
+    [...MATERI_CONCEPT_IDS].map((cid) =>
+      prisma.studentSectionStatus.count({
+        where: { studentId, conceptId: cid },
+      }).then((count) => ({ conceptId: cid, count }))
+    )
+  );
 
-  if (existingCount > 0) {
-    return { seeded: false, existingCount };
+  const totalExisting = existingCounts.reduce((sum, c) => sum + c.count, 0);
+  const conceptsToSeed = existingCounts
+    .filter((c) => c.count === 0)
+    .map((c) => c.conceptId);
+
+  // If all concepts already have rows, nothing to do.
+  if (conceptsToSeed.length === 0) {
+    return { seeded: false, existingCount: totalExisting };
   }
 
-  // ── Step 2: Check diagnostic_attempts for passing status ─────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: passedAttempt } = await (supabaseClient as any)
-    .from("diagnostic_attempts")
-    .select("attempt_id")
-    .eq("student_id", studentId)
-    .eq("status", "passed")
-    .limit(1)
-    .maybeSingle();
+  // ── Step 2: Determine initial unlock status ─────────────────
+  const firstConcept = conceptsToSeed[0];
+  let hasPassedDiagnostic = false;
 
-  const hasPassedDiagnostic = !!passedAttempt;
+  // Only check diagnostic if kaidah_penjumlahan is being seeded
+  if (conceptsToSeed.includes("kaidah_penjumlahan")) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: passedAttempt } = await (supabaseClient as any)
+      .from("diagnostic_attempts")
+      .select("attempt_id")
+      .eq("student_id", studentId)
+      .eq("status", "passed")
+      .limit(1)
+      .maybeSingle();
 
-  // ── Step 3: Build 13 rows with correct initial status ────────
-  const rows = KAIDAH_PENCACAHAN_SECTIONS.map((item, index) => ({
-    studentId,
-    conceptId: item.conceptId,
-    section: item.section,
-    // Section pertama (index 0) unlocked jika sudah lulus diagnostik.
-    // Semua section lain selalu locked saat seeding.
-    status: index === 0 && hasPassedDiagnostic ? "unlocked" : "locked",
-    completedAt: null,
-  }));
+    hasPassedDiagnostic = !!passedAttempt;
+  }
+
+  // ── Step 3: Build rows only for concepts that need seeding ──
+  const sectionsToSeed = MATERI_SECTIONS.filter((item) =>
+    conceptsToSeed.includes(item.conceptId)
+  );
+
+  const rows = sectionsToSeed.map((item, index) => {
+    // Determine if this is the FIRST section of its concept
+    const isFirstInConcept = sectionsToSeed.findIndex(
+      (s) => s.conceptId === item.conceptId
+    ) === index;
+    // First section of a concept is unlocked if:
+    // - For kaidah_penjumlahan: only if diagnostic passed
+    // - For other concepts: always unlocked (they start after previous concept done)
+    const shouldUnlock = isFirstInConcept && (
+      item.conceptId !== "kaidah_penjumlahan" || hasPassedDiagnostic
+    );
+
+    return {
+      studentId,
+      conceptId: item.conceptId,
+      section: item.section,
+      status: shouldUnlock ? "unlocked" : "locked",
+      completedAt: null,
+    };
+  });
 
   // ── Step 4: Bulk insert with race-condition protection ───────
-  // Wrapped in a transaction so that the COUNT check + INSERT are atomic
-  // together with the ON CONFLICT DO NOTHING safety net.
   await prisma.$transaction(async (tx) => {
-    // Re-check inside transaction (belt-and-suspenders with ON CONFLICT)
-    const recheck = await tx.studentSectionStatus.count({
-      where: {
-        studentId,
-        conceptId: { in: [...KAIDAH_PENCACAHAN_CONCEPT_IDS] },
-      },
-    });
-
-    if (recheck > 0) return; // Another request beat us to it
-
     await tx.studentSectionStatus.createMany({
       data: rows as Array<{
         studentId: number;
@@ -156,11 +181,11 @@ export async function seedStudentSectionStatus(
         status: string;
         completedAt: null;
       }>,
-      skipDuplicates: true, // ON CONFLICT DO NOTHING
+      skipDuplicates: true,
     });
   });
 
-  return { seeded: true, existingCount: 0 };
+  return { seeded: true, existingCount: totalExisting };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -210,7 +235,7 @@ export async function completeSectionAndUnlockNext(
   const db: PrismaClient = tx ?? prisma;
 
   // ── Find current index in the ordered array ──────────────────
-  const currentIndex = KAIDAH_PENCACAHAN_SECTIONS.findIndex(
+  const currentIndex = MATERI_SECTIONS.findIndex(
     (entry) => entry.conceptId === conceptId && entry.section === section
   );
 
@@ -241,12 +266,12 @@ export async function completeSectionAndUnlockNext(
 
   // ── 2. Look up the next step ─────────────────────────────────
   const nextIndex = currentIndex + 1;
-  if (nextIndex >= KAIDAH_PENCACAHAN_SECTIONS.length) {
+  if (nextIndex >= MATERI_SECTIONS.length) {
     // Current section is the last one -- nothing to unlock.
     return;
   }
 
-  const nextEntry = KAIDAH_PENCACAHAN_SECTIONS[nextIndex];
+  const nextEntry = MATERI_SECTIONS[nextIndex];
 
   // ── 3. Special case: aktivitas_siswa gate for refleksi_mini ──
   // When completing kaidah_perkalian.contoh_soal (index 11), the next
@@ -372,6 +397,11 @@ const LAST_QUESTION_KEY_MAP: Record<string, Record<string, string>> = {
     contoh_soal: "perkalian_bilangan",
     refleksi_mini: "refleksi_perkalian_3",
   },
+  faktorial: {
+    eksplorasi_kontekstual: "faktorialNotasi",
+    contoh_soal: "penjumlahan_transport",
+    refleksi_mini: "refleksi_faktorial_4",
+  },
 };
 
 /**
@@ -389,6 +419,12 @@ const REFLEKSI_ALL_QUESTION_KEYS: Record<string, string[]> = {
     "refleksi_perkalian_1",
     "refleksi_perkalian_2",
     "refleksi_perkalian_3",
+  ],
+  faktorial: [
+    "refleksi_faktorial_1",
+    "refleksi_faktorial_2",
+    "refleksi_faktorial_3",
+    "refleksi_faktorial_4",
   ],
 };
 

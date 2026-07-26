@@ -15,6 +15,7 @@
  * }
  */
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 
@@ -82,6 +83,24 @@ export async function GET() {
       moduleName: mod.nama,
     });
   } catch (error) {
+    // Handle Prisma P2032: schema says non-nullable Int, but DB has NULL
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2032"
+    ) {
+      const field = (error.meta as { field?: string })?.field ?? "unknown";
+      console.error(
+        `[GET /api/aktivitas-kelas] Data integrity error: field "${field}" is NULL in DB but non-nullable in schema. ` +
+          `Run: npx ts-node scripts/fix-null-class-id.ts --check`
+      );
+      return NextResponse.json(
+        {
+          error: `Data integrity issue: field "${field}" is missing. Please contact admin to fix student data.`,
+        },
+        { status: 500 }
+      );
+    }
+
     console.error("[GET /api/aktivitas-kelas] Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

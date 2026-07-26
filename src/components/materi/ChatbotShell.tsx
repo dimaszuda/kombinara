@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 import Chatbot from "@/components/materi/Chatbot";
-import TableContent from "./TableContent";
+import TableContent, { type TocSection } from "./TableContent";
 import { ChatContext } from "./ChatContext";
 import type { SelectionContext } from "@/lib/ai/context";
 
@@ -15,12 +15,15 @@ interface ChatbotShellProps {
   activeKey?: string | null;
   /** Set of section keys yang sudah completed */
   completedKeys?: Set<string>;
+  /** Custom TOC sections (for pages with different TOC structure) */
+  tocSections?: TocSection[];
 }
 
 export default function ChatbotShell({
   children,
   activeKey = null,
   completedKeys = new Set(),
+  tocSections,
 }: ChatbotShellProps) {
   const [activePanel, setActivePanel] = useState<PanelKind>(null);
   const [selectionContext, setSelectionContext] = useState<SelectionContext | null>(null);
@@ -59,6 +62,7 @@ export default function ChatbotShell({
         otherPanelOpen={activePanel !== null && activePanel !== "tablecontent"}
         activeKey={activeKey}
         completedKeys={completedKeys}
+        sections={tocSections}
       />
     </ChatContext.Provider>
   );

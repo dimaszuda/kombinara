@@ -14,7 +14,6 @@ interface AktivitasItem {
   judul: string;
   titleNote: string | null;
   durasi: string;
-  indikator: string[];
   pilar: PilarKey[];
 }
 
@@ -49,7 +48,6 @@ const aktivitas: AktivitasItem[] = [
     judul: "“Aku Setektif Pilihan”",
     titleNote: "(Mindful)",
     durasi: "15 menit",
-    indikator: ["IK-1.1", "IK-3.1"],
     pilar: ["mindful"],
   },
   {
@@ -59,7 +57,6 @@ const aktivitas: AktivitasItem[] = [
     judul: "“Sortir Kasus”",
     titleNote: null,
     durasi: "20 menit",
-    indikator: ["IK-1.1", "IK-3.1", "IK-4.2"],
     pilar: ["joyful", "mindful"],
   },
   {
@@ -69,7 +66,6 @@ const aktivitas: AktivitasItem[] = [
     judul: "“Rancang Sistemmu Sendiri”",
     titleNote: null,
     durasi: "30 menit",
-    indikator: ["IK-1.1", "IK-3.1", "IK-4.1", "IK-4.2", "IK-5.4"],
     pilar: ["joyful", "meaningful", "mindful"],
   },
 ];
@@ -128,15 +124,6 @@ function ActivityCard({ data }: ActivityCardProps) {
           <IconClock />
           {data.durasi}
         </span>
-        {data.indikator.map((ind: string) => (
-          <span
-            key={ind}
-            className="rounded-md px-2.5 py-1 text-xs font-semibold border"
-            style={{ borderColor: C.green, color: C.green }}
-          >
-            {ind}
-          </span>
-        ))}
       </div>
 
       {/* Pilar */}

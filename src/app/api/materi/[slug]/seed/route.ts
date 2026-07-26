@@ -19,7 +19,7 @@ import { prisma } from "@/lib/prisma/client";
 import { seedStudentSectionStatus } from "@/lib/data/student-section-status";
 
 /** Slugs that trigger Kaidah Pencacahan seeding. */
-const SEEDABLE_SLUGS = new Set(["kaidah-pencacahan"]);
+const SEEDABLE_SLUGS = new Set(["kaidah-pencacahan", "faktorial"]);
 
 // ─── GET ────────────────────────────────────────────────────────────
 

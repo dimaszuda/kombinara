@@ -20,8 +20,8 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
 import {
-  KAIDAH_PENCACAHAN_SECTIONS,
-  KAIDAH_PENCACAHAN_CONCEPT_IDS,
+  MATERI_SECTIONS,
+  MATERI_CONCEPT_IDS,
 } from "@/lib/data/student-section-status";
 
 export async function GET() {
@@ -48,7 +48,7 @@ export async function GET() {
     const rows = await prisma.studentSectionStatus.findMany({
       where: {
         studentId: student.id,
-        conceptId: { in: [...KAIDAH_PENCACAHAN_CONCEPT_IDS] },
+        conceptId: { in: [...MATERI_CONCEPT_IDS] },
       },
       select: {
         conceptId: true,
@@ -70,8 +70,8 @@ export async function GET() {
 
     const concepts: Record<string, { total: number; completed: number; unlocked: number; locked: number; percentage: number }> = {};
 
-    for (const conceptId of KAIDAH_PENCACAHAN_CONCEPT_IDS) {
-      const conceptSections = KAIDAH_PENCACAHAN_SECTIONS.filter((s) => s.conceptId === conceptId);
+    for (const conceptId of MATERI_CONCEPT_IDS) {
+      const conceptSections = MATERI_SECTIONS.filter((s) => s.conceptId === conceptId);
       const conceptTotal = conceptSections.length;
       let completed = 0;
       let unlocked = 0;
@@ -97,7 +97,7 @@ export async function GET() {
       };
     }
 
-    const total = KAIDAH_PENCACAHAN_SECTIONS.length;
+    const total = MATERI_SECTIONS.length;
     const percentage = total > 0 ? Math.round((totalCompleted / total) * 1000) / 10 : 0;
 
     return NextResponse.json({
