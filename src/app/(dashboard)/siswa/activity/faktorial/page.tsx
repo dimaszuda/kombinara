@@ -43,30 +43,12 @@ const GROUP_ICON: Record<GroupingType, React.FC> = {
 const aktivitas: AktivitasItem[] = [
   {
     nomor: 1,
-    grouping: "INDIVIDU",
+    grouping: "INDIVIDU & PASANGAN",
     groupingType: "individu",
-    judul: "“Aku Setektif Pilihan”",
-    titleNote: "(Mindful)",
-    durasi: "15 menit",
-    pilar: ["mindful"],
-  },
-  {
-    nomor: 2,
-    grouping: "PASANGAN",
-    groupingType: "pasangan",
-    judul: "“Sortir Kasus”",
+    judul: "“Membangun Pemahaman dari Pola”",
     titleNote: null,
-    durasi: "20 menit",
+    durasi: "35 menit",
     pilar: ["joyful", "mindful"],
-  },
-  {
-    nomor: 3,
-    grouping: "KELOMPOK KECIL (4 Orang)",
-    groupingType: "kelompok",
-    judul: "“Rancang Sistemmu Sendiri”",
-    titleNote: null,
-    durasi: "30 menit",
-    pilar: ["joyful", "meaningful", "mindful"],
   },
 ];
 
@@ -146,7 +128,7 @@ function ActivityCard({ data }: ActivityCardProps) {
 
       {/* Kerjakan button */}
       <Link
-        href={`/siswa/activity/kaidah-pencacahan/${data.nomor}`}
+        href={`/siswa/activity/faktorial/${data.nomor}`}
         className="mt-4 block text-center rounded-xl py-2.5 text-sm font-bold transition-opacity hover:opacity-80"
         style={{ backgroundColor: C.green, color: C.white }}
       >
@@ -158,7 +140,7 @@ function ActivityCard({ data }: ActivityCardProps) {
 
 export default function AktivitasSiswa() {
   return (
-    <AktivitasSiswaAccessGate conceptId="kaidah_perkalian">
+    <AktivitasSiswaAccessGate conceptId="faktorial" materialSlug="faktorial">
       <div className="min-h-screen py-8 px-4" style={{ backgroundColor: C.white }}>
         <div className="max-w-[1400px] mx-auto">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3 pb-4">

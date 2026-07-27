@@ -32,6 +32,7 @@ interface GateRule {
 /** Concept_ids that have an aktivitas_siswa access gate and their prerequisites. */
 const GATE_RULES: GateRule[] = [
   { conceptId: "kaidah_perkalian", requiredSection: "contoh_soal" },
+  { conceptId: "faktorial", requiredSection: "contoh_soal" },
 ];
 
 const SUPPORTED_CONCEPT_IDS = GATE_RULES.map((r) => r.conceptId);

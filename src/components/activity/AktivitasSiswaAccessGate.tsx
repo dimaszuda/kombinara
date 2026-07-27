@@ -29,6 +29,13 @@ const C = {
   bg: "#f8fafc",
 };
 
+// ── Concept display names ─────────────────────────────────────────────────
+
+const CONCEPT_NAMES: Record<string, string> = {
+  kaidah_perkalian: "Kaidah Perkalian",
+  faktorial: "Faktorial",
+};
+
 // ── Spinner ─────────────────────────────────────────────────────────────────
 
 function Spinner() {
@@ -166,8 +173,9 @@ export default function AktivitasSiswaAccessGate({
               Selesaikan Materi Terlebih Dahulu
             </h1>
             <p style={{ fontSize: 14, color: "#9a7b5c", margin: 0, lineHeight: 1.7 }}>
-              Kamu harus menyelesaikan section Contoh Soal pada materi Kaidah
-              Perkalian sebelum dapat mengakses halaman Aktivitas Siswa ini.
+              Kamu harus menyelesaikan section Contoh Soal pada materi{" "}
+              {CONCEPT_NAMES[conceptId] ?? conceptId} sebelum dapat mengakses
+              halaman Aktivitas Siswa ini.
             </p>
           </div>
 
@@ -236,7 +244,7 @@ export default function AktivitasSiswaAccessGate({
                         flexShrink: 0,
                       }}
                     />
-                    Kaidah Perkalian &mdash; Contoh Soal
+                    {CONCEPT_NAMES[conceptId] ?? conceptId} &mdash; Contoh Soal
                   </li>
                 </ul>
               </div>

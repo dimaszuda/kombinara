@@ -18,7 +18,7 @@ import IntegrityToast from "@/components/activity/IntegrityToast";
 import IntegrityBlockingModal from "@/components/activity/IntegrityBlockingModal";
 
 // ── Config ─────────────────────────────────────────────────────────────────────────────────
-const DURASI_DETIK = 2 * 60; // 2 menit (testing)
+const DURASI_DETIK = 120 * 60; // 120 menit (prod)
 const COOLDOWN_DETIK = 5 * 60; // 5 menit cooldown antar attempt
 
 const PETUNJUK = [

@@ -131,7 +131,15 @@ export async function POST(req: Request) {
       soal,
       jawaban,
       alasan = "",
+      rule_based,
     } = body;
+
+    // Optional rule_based override for deterministic grading (no LLM)
+    const hasRuleBased =
+      rule_based &&
+      typeof rule_based === "object" &&
+      typeof rule_based.isCorrect === "boolean" &&
+      typeof rule_based.feedback === "string";
 
     if (
       typeof concept_id !== "string" ||
@@ -173,17 +181,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // ── 4. Call LLM for evaluation ─────────────────────────────
+    // ── 4. Evaluation: rule_based override or LLM ──────────────
     let llmResult: { isCorrect: boolean; feedback: string };
 
-    try {
-      llmResult = await EskplorasiPrompt(soal, jawaban, alasan);
-    } catch (llmError) {
-      console.error("[aktivitas-siswa] LLM error:", llmError);
+    if (hasRuleBased) {
+      // Skip LLM — use pre-determined rule-based grading
       llmResult = {
-        isCorrect: false,
-        feedback: "Maaf, ada kendala saat memeriksa jawabanmu. Coba lagi ya!",
+        isCorrect: rule_based.isCorrect,
+        feedback: rule_based.feedback,
       };
+    } else {
+      try {
+        llmResult = await EskplorasiPrompt(soal, jawaban, alasan);
+      } catch (llmError) {
+        console.error("[aktivitas-siswa] LLM error:", llmError);
+        llmResult = {
+          isCorrect: false,
+          feedback: "Maaf, ada kendala saat memeriksa jawabanmu. Coba lagi ya!",
+        };
+      }
     }
 
     // ── 5. Save to database ────────────────────────────────────
