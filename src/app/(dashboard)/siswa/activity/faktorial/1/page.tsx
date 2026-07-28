@@ -76,11 +76,13 @@ function checkPolaNMinus2(input: string): boolean {
 }
 
 function checkPolaNMinus1(input: string): boolean {
-  const n = normPat(input);
-  const parts = n.split("=");
-  return parts.some((part) => {
-    const c = part.replace(/^(pola[:=]?\s*|=\s*)/, "");
-    return c === "n";
+  const raw = normPat(input);
+  // Split by common delimiters and check each token for standalone "n"
+  // IMPORTANT: do NOT strip "!" — "n!" is factorial, not the correct answer "n"
+  const tokens = raw.split(/[=:,\s]+/).filter(Boolean);
+  return tokens.some((t) => {
+    const cleaned = t.replace(/^[\"'`()\[\]{}]+|[\"'`().,;?\[\]{}]+$/g, "");
+    return cleaned === "n";
   });
 }
 
@@ -201,26 +203,21 @@ export default function AktivitasFaktorial1() {
   const [diskB, setDiskB] = useState("");
   const [diskC, setDiskC] = useState("");
 
-  // Load existing
+  // Load existing — lightweight check only
   const [isLoadingExisting, setIsLoadingExisting] = useState(true);
   const [hasExistingSubmissions, setHasExistingSubmissions] = useState(false);
+  const [revealedSteps, setRevealedSteps] = useState<Record<number, boolean>>({});
+  const [loadingAnswer, setLoadingAnswer] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch("/api/aktivitas-siswa?concept_id=faktorial&activity_key=aktivitas_1");
+        const res = await fetch("/api/aktivitas-siswa?concept_id=faktorial&activity_key=aktivitas_1&mode=exists");
         if (!res.ok || cancelled) return;
         const data = await res.json();
-        if (data.hasSubmissions && data.submissions) {
+        if (data.hasSubmissions) {
           setHasExistingSubmissions(true);
-          const fb: Record<number, { text: string; isCorrect: boolean }> = {};
-          for (const step of STEPS) {
-            const sub = data.submissions[step.questionKey];
-            if (sub) fb[step.index] = { text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`, isCorrect: sub.isCorrect };
-          }
-          setFeedbackMap(fb);
-          setCurrentStep(TOTAL_STEPS - 1);
         }
       } catch { /* silent */ }
       finally { if (!cancelled) setIsLoadingExisting(false); }
@@ -229,6 +226,67 @@ export default function AktivitasFaktorial1() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Parse stored answer back into form state ──────────────────
+  function applyAnswerToState(idx: number, answer: string) {
+    switch (idx) {
+      case 0: setQ1(answer); break;
+      case 1: setQ2(answer); break;
+      case 2: setQ3(answer); break;
+      case 3: setPola(answer); break;
+      case 4: setQ4(answer); break;
+      case 5: setQ5(answer); break;
+      case 6: setQ6(answer); break;
+      case 7: {
+        const nMatch = answer.match(/n=(\d+)/);
+        const langkahMatch = answer.match(/Langkah:\s*(.+)/);
+        if (nMatch) setQ7n(nMatch[1]);
+        if (langkahMatch) setQ7langkah(langkahMatch[1]);
+        else setQ7langkah(answer);
+        break;
+      }
+      case 8: {
+        const nMatch = answer.match(/n=(\d+)/);
+        const langkahMatch = answer.match(/Langkah:\s*(.+)/);
+        if (nMatch) setQ8n(nMatch[1]);
+        if (langkahMatch) setQ8langkah(langkahMatch[1]);
+        else setQ8langkah(answer);
+        break;
+      }
+      case 9: setDiskA(answer); break;
+      case 10: setDiskB(answer); break;
+      case 11: setDiskC(answer); break;
+    }
+  }
+
+  // ── Reveal answer for a specific question ─────────────────────
+  const handleRevealAnswer = useCallback(async (idx: number) => {
+    if (revealedSteps[idx]) return; // already revealed
+    setLoadingAnswer((p) => ({ ...p, [idx]: true }));
+    try {
+      const step = STEPS[idx];
+      const res = await fetch(
+        `/api/aktivitas-siswa?concept_id=faktorial&activity_key=aktivitas_1&question_key=${encodeURIComponent(step.questionKey)}`
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.submission) {
+        // Populate form fields with stored answer
+        applyAnswerToState(idx, data.submission.answer);
+        // Set feedback
+        setFeedbackMap((p) => ({
+          ...p,
+          [idx]: {
+            text: `📝 Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            isCorrect: data.submission.isCorrect,
+          },
+        }));
+        setRevealedSteps((p) => ({ ...p, [idx]: true }));
+      }
+    } catch { /* silent */ }
+    finally { setLoadingAnswer((p) => ({ ...p, [idx]: false })); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealedSteps]);
 
   const allComplete = currentStep >= TOTAL_STEPS - 1 && feedbackMap[TOTAL_STEPS - 1]?.isCorrect === true;
 
@@ -342,30 +400,30 @@ export default function AktivitasFaktorial1() {
     );
 
     switch (idx) {
-      case 0: return renderNum(1, "(1) 8!/6! =", q1, setQ1, "Tulis jawabanmu (misal: 56 atau 8×7)...");
-      case 1: return renderNum(2, "(2) 9!/7! =", q2, setQ2, "Tulis jawabanmu (misal: 72 atau 9×8)...");
-      case 2: return renderNum(3, "(3) 10!/8! =", q3, setQ3, "Tulis jawabanmu (misal: 90 atau 10×9)...");
+      case 0: return renderNum(1, "(1) 8!/6! =", q1, setQ1, "Tulis jawabanmu di sini...");
+      case 1: return renderNum(2, "(2) 9!/7! =", q2, setQ2, "Tulis jawabanmu di sini...");
+      case 2: return renderNum(3, "(3) 10!/8! =", q3, setQ3, "Tulis jawabanmu di sini...");
 
       case 3: return (
         <div>
           <NumBadge n={4} isCompleted={readOnly} />
           <div className="rounded-xl p-4 space-y-3" style={{ background: readOnly ? "#F5F5F0" : C.bg, border: `1px solid ${C.greenLight}` }}>
             <p className="text-sm font-semibold" style={{ color: C.green }}>Dari ketiga soal di atas, temukan polanya:</p>
-            <TextInput label="n!/(n-2)! =" value={pola} onChange={setPola} placeholder="Tulis polanya, misal: n×(n-1)..." readOnly={readOnly} />
+            <TextInput label="n!/(n-2)! =" value={pola} onChange={setPola} placeholder="Tulis polanya di sini..." readOnly={readOnly} />
           </div>
           {fb && <FeedbackBox text={fb.text} isCorrect={fb.isCorrect} />}
           {showSubmit && <SubmitButton isChecking={checkingStep === idx} isCorrect={fb?.isCorrect ?? null} onClick={handleStepSubmit} />}
         </div>
       );
 
-      case 4: return renderNum(5, "(4) 7!/(3!·4!) =", q4, setQ4, "Tulis jawabanmu...");
-      case 5: return renderNum(6, "(5) 10!/(2!·8!) =", q5, setQ5, "Tulis jawabanmu...");
+      case 4: return renderNum(5, "(4) 7!/(3!·4!) =", q4, setQ4, "Tulis jawabanmu di sini...");
+      case 5: return renderNum(6, "(5) 10!/(2!·8!) =", q5, setQ5, "Tulis jawabanmu di sini...");
 
       case 6: return (
         <div>
           <NumBadge n={7} isCompleted={readOnly} />
           <div className="rounded-xl p-4 space-y-3" style={{ background: readOnly ? "#F5F5F0" : C.bg, border: `1px solid ${C.greenLight}` }}>
-            <TextInput label="(6) n!/(n-1)! = … (dalam bentuk n)" value={q6} onChange={setQ6} placeholder="Tulis dalam bentuk n..." readOnly={readOnly} />
+            <TextInput label="(6) n!/(n-1)! = … (dalam bentuk n)" value={q6} onChange={setQ6} placeholder="Tulis jawabanmu di sini..." readOnly={readOnly} />
           </div>
           {fb && <FeedbackBox text={fb.text} isCorrect={fb.isCorrect} />}
           {showSubmit && <SubmitButton isChecking={checkingStep === idx} isCorrect={fb?.isCorrect ?? null} onClick={handleStepSubmit} />}
@@ -375,13 +433,9 @@ export default function AktivitasFaktorial1() {
       case 7: return (
         <div>
           <NumBadge n={8} isCompleted={readOnly} />
-          <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: C.greenLight }}>
-            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">💡 AI akan memberi feedback proses berpikirmu</p>
-            <p className="text-sm text-slate-700">Tulis langkah berpikirmu selengkap mungkin — AI akan mengoreksi dan memberi masukan.</p>
-          </div>
           <div className="rounded-xl p-4 space-y-3" style={{ background: readOnly ? "#F5F5F0" : C.bg, border: `1px solid ${C.greenLight}` }}>
             <p className="text-sm font-semibold" style={{ color: C.green }}>(7) Jika n!/(n-2)! = 42, maka n = …</p>
-            <TextInput label="Nilai n:" value={q7n} onChange={setQ7n} placeholder="n = ..." readOnly={readOnly} />
+            <TextInput label="Nilai n:" value={q7n} onChange={setQ7n} placeholder="Tulis jawabanmu di sini..." readOnly={readOnly} />
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-slate-500">Langkah berpikirku:</label>
               <textarea className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
@@ -396,13 +450,9 @@ export default function AktivitasFaktorial1() {
       case 8: return (
         <div>
           <NumBadge n={9} isCompleted={readOnly} />
-          <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: C.greenLight }}>
-            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">💡 AI akan memberi feedback proses berpikirmu</p>
-            <p className="text-sm text-slate-700">Tulis langkah berpikirmu selengkap mungkin.</p>
-          </div>
           <div className="rounded-xl p-4 space-y-3" style={{ background: readOnly ? "#F5F5F0" : C.bg, border: `1px solid ${C.greenLight}` }}>
             <p className="text-sm font-semibold" style={{ color: C.green }}>(8) Jika n!/(n-3)! = 60, maka n = …</p>
-            <TextInput label="Nilai n:" value={q8n} onChange={setQ8n} placeholder="n = ..." readOnly={readOnly} />
+            <TextInput label="Nilai n:" value={q8n} onChange={setQ8n} placeholder="Tulis jawabanmu di sini..." readOnly={readOnly} />
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-slate-500">Langkah berpikirku:</label>
               <textarea className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
@@ -429,7 +479,7 @@ export default function AktivitasFaktorial1() {
             <NumBadge n={idx + 1} isCompleted={readOnly} />
             <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: C.greenLight }}>
               <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">👥 Diskusi Pasangan — Bagian D</p>
-              <p className="text-sm text-slate-700">AI akan memberikan feedback terhadap hasil diskusi kalian.</p>
+              <p className="text-sm text-slate-700">Tulis hasil diskusi kalian dengan jelas dan lengkap.</p>
             </div>
             <div>
               <label className="text-sm font-medium text-slate-700 block mb-2">{labels[d]}</label>
@@ -479,6 +529,9 @@ export default function AktivitasFaktorial1() {
             <p className="text-sm text-slate-700">Setelah menyelesaikan aktivitas ini, kamu mampu menjelaskan konsep faktorial sebagai notasi matematis yang muncul secara alami dari Kaidah Perkalian, menghitung nilainya secara efisien, dan memahami alasan 0! = 1 — bukan sekadar menghafalnya.</p>
           </div>
 
+          {/* PROGRESS */}
+          {!hasExistingSubmissions && <ProgressIndicator currentStep={currentStep} feedbackMap={feedbackMap} />}
+
           {/* CONTOH */}
           <div className="rounded-xl p-4" style={{ backgroundColor: C.greenLight }}>
             <p className="text-sm font-bold mb-2" style={{ color: C.green }}>📖 Contoh</p>
@@ -486,18 +539,59 @@ export default function AktivitasFaktorial1() {
             <p className="text-xs text-slate-500 mt-1">Tanpa menghitung 6! dan 4! secara penuh, hasilnya langsung diperoleh dengan mencoret faktor yang sama.</p>
           </div>
 
-          {/* PROGRESS */}
-          <ProgressIndicator currentStep={currentStep} feedbackMap={feedbackMap} />
-
           {/* LOADING */}
           {isLoadingExisting && <div className="flex items-center justify-center py-12"><Spinner /><span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span></div>}
 
-          {/* ALREADY COMPLETED */}
+          {/* ALREADY COMPLETED — Review Mode */}
           {!isLoadingExisting && hasExistingSubmissions && (
-            <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
-              <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
-              <p className="text-sm text-slate-600 mt-1">Berikut jawaban dan feedback dari AI. Tidak perlu menjawab ulang.</p>
-            </div>
+            <>
+              <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
+                <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
+                <p className="text-sm text-slate-600 mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
+              </div>
+              {/* Question review cards */}
+              <div className="space-y-4">
+                {STEPS.map((step) => {
+                  const isRevealed = revealedSteps[step.index] === true;
+                  const isLoading = loadingAnswer[step.index] === true;
+                  const fb = feedbackMap[step.index];
+                  return (
+                    <div key={step.index} className="rounded-xl border p-4" style={{ borderColor: isRevealed ? C.green : C.border, background: isRevealed ? C.white : C.bg }}>
+                      {/* Question header */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white flex-shrink-0"
+                            style={{ backgroundColor: isRevealed ? C.green : C.purple }}>
+                            {isRevealed ? "✓" : step.index + 1}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold" style={{ color: C.purple }}>{step.label}</p>
+                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{step.soalText}</p>
+                          </div>
+                        </div>
+                        {!isRevealed && (
+                          <button
+                            type="button"
+                            onClick={() => handleRevealAnswer(step.index)}
+                            disabled={isLoading}
+                            className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-50 flex-shrink-0"
+                            style={{ backgroundColor: C.green }}
+                          >
+                            {isLoading ? <><Spinner /> Memuat...</> : "Lihat jawabanku"}
+                          </button>
+                        )}
+                      </div>
+                      {/* Revealed answer content */}
+                      {isRevealed && (
+                        <div className="mt-4 pt-4 border-t" style={{ borderColor: C.greenLight }}>
+                          {renderStep(step.index, true, false)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
 
           {/* ALL COMPLETE */}
@@ -508,8 +602,8 @@ export default function AktivitasFaktorial1() {
             </div>
           )}
 
-          {/* SEQUENTIAL STEPS */}
-          {!isLoadingExisting && renderVisibleSteps()}
+          {/* SEQUENTIAL STEPS — for fresh attempts */}
+          {!isLoadingExisting && !hasExistingSubmissions && renderVisibleSteps()}
 
         </div>
       </div>

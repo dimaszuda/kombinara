@@ -404,7 +404,7 @@ export default function MateriDetailPage({
 
   // ── Bungkus dengan ChatbotShell hanya kalau sudah lulus asesmen ──────
   return passAssesmen ? (
-    <ChatbotShell activeKey={activeKey} completedKeys={completedKeys}>{pageContent}</ChatbotShell>
+    <ChatbotShell activeKey={activeKey} completedKeys={completedKeys} materiSlug={params.slug}>{pageContent}</ChatbotShell>
   ) : (
     pageContent
   );

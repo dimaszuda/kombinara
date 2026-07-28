@@ -42,11 +42,18 @@ const VALID_CONCEPT_IDS = new Set([
 ]);
 
 // ── GET: Check existing submissions for a student ──────────────
+// Query params:
+//   concept_id  (required) — e.g. "faktorial"
+//   activity_key (required) — e.g. "aktivitas_1"
+//   mode         (optional) — "exists" → lightweight check, only returns hasSubmissions
+//   question_key (optional) — fetch only a specific question's submission
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const concept_id = searchParams.get("concept_id");
     const activity_key = searchParams.get("activity_key");
+    const mode = searchParams.get("mode");
+    const question_key = searchParams.get("question_key");
 
     if (
       typeof concept_id !== "string" ||
@@ -73,6 +80,53 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
+    // ── Lightweight existence check ──────────────────────────
+    if (mode === "exists") {
+      const count = await prisma.aktivitasSiswaEntry.count({
+        where: {
+          studentId: student.id,
+          conceptId: concept_id,
+          activityKey: activity_key,
+        },
+      });
+      return NextResponse.json({ hasSubmissions: count > 0 });
+    }
+
+    // ── Single-question fetch ────────────────────────────────
+    if (typeof question_key === "string" && question_key.trim()) {
+      const entry = await prisma.aktivitasSiswaEntry.findFirst({
+        where: {
+          studentId: student.id,
+          conceptId: concept_id,
+          activityKey: activity_key,
+          questionKey: question_key,
+        },
+        orderBy: { submittedAt: "desc" },
+        select: {
+          questionKey: true,
+          answer: true,
+          isCorrect: true,
+          feedback: true,
+          submittedAt: true,
+        },
+      });
+
+      if (!entry) {
+        return NextResponse.json({ hasSubmissions: false, submission: null });
+      }
+
+      return NextResponse.json({
+        hasSubmissions: true,
+        submission: {
+          questionKey: entry.questionKey,
+          answer: entry.answer,
+          isCorrect: entry.isCorrect,
+          feedback: entry.feedback,
+        },
+      });
+    }
+
+    // ── Full fetch (all questions) ───────────────────────────
     // Query existing entries
     const entries = await prisma.aktivitasSiswaEntry.findMany({
       where: {

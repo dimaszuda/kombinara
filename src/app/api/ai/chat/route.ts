@@ -13,7 +13,7 @@
  * Response: { answer: string, cached?: boolean }
  *
  * Features:
- * - Sliding window memory (5 pasang percakapan terakhir)
+ * - Sliding window memory (10 pasang percakapan terakhir)
  * - Semantic cache via Upstash Vector + Redis
  * - Persist semua percakapan ke ai_messages (user + assistant)
  */
@@ -50,6 +50,9 @@ export async function POST(req: Request) {
       contextBefore,
       contextAfter,
       history,
+      activeSection,
+      completedSections,
+      materiSlug,
     } = body;
 
     // conversation_id wajib untuk persist ke DB
@@ -124,7 +127,10 @@ export async function POST(req: Request) {
       typeof selectedText === "string" ? selectedText : undefined,
       typeof contextBefore === "string" ? contextBefore : undefined,
       typeof contextAfter === "string" ? contextAfter : undefined,
-      parsedHistory
+      parsedHistory,
+      typeof activeSection === "string" ? activeSection : undefined,
+      Array.isArray(completedSections) ? completedSections.filter((s: unknown) => typeof s === "string") : undefined,
+      typeof materiSlug === "string" ? materiSlug : undefined
     );
 
     // ── 7. Simpan ke cache + DB (fire-and-forget) ──────────────

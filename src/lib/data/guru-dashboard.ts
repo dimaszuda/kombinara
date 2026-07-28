@@ -60,9 +60,19 @@ export interface GuruDashboardData {
 // Queries
 // ═══════════════════════════════════════════════════════════════
 
-/** Total Kelas — tidak terpengaruh filter */
-export async function getTotalKelas(): Promise<number> {
-  return prisma.class.count();
+/** Total Kelas — hanya kelas yang memiliki siswa, difilter oleh kelas */
+export async function getTotalKelas(classIds?: number[]): Promise<number> {
+  const hasFilter = classIds && classIds.length > 0;
+
+  const result = await prisma.student.groupBy({
+    by: ["classId"],
+    where: {
+      user: { role: "siswa" },
+      ...(hasFilter ? { classId: { in: classIds } } : {}),
+    },
+  });
+
+  return result.length;
 }
 
 /** Total Siswa — difilter oleh kelas */
@@ -284,7 +294,7 @@ export async function getGuruDashboardData(
 ): Promise<GuruDashboardData> {
   const [totalKelas, totalSiswa, genderBreakdown, kelasOptions, distribusiKelas, daftarSiswa, studentProgress] =
     await Promise.all([
-      getTotalKelas(),
+      getTotalKelas(classIds),
       getTotalSiswa(classIds),
       getSiswaGenderBreakdown(classIds),
       getKelasOptions(),

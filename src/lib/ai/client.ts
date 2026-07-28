@@ -249,18 +249,226 @@ interface ChatMessage {
   content: string;
 }
 
+/** Mapping section key → label yang mudah dibaca AI (hanya section MATERI) */
+const SECTION_LABELS: Record<string, string> = {
+  penjumlahan: "Kaidah Penjumlahan (Aturan Penjumlahan)",
+  "penjumlahan-1": "Eksplorasi Kontekstual — Penjumlahan",
+  "penjumlahan-2": "Aktivitas Deep Learning — Penjumlahan",
+  "penjumlahan-3": "Penjelasan Konsep — Penjumlahan",
+  "penjumlahan-4": "Contoh Soal Bertahap — Penjumlahan",
+  "penjumlahan-5": "Mengapa? Corner — Penjumlahan",
+  "penjumlahan-6": "Refleksi Mini — Penjumlahan",
+  perkalian: "Kaidah Perkalian (Aturan Perkalian)",
+  "perkalian-1": "Eksplorasi Kontekstual — Perkalian",
+  "perkalian-2": "Aktivitas Deep Learning — Perkalian",
+  "perkalian-3": "Penjelasan Konsep — Perkalian",
+  "perkalian-4": "Contoh Soal Bertahap — Perkalian",
+  "perkalian-5": "Mengapa? Corner — Perkalian",
+  "perkalian-6": "Aktivitas Siswa — Perkalian",
+  "perkalian-7": "Panduan Cepat — Perkalian",
+  "perkalian-8": "Refleksi Mini — Perkalian",
+  faktorial: "Faktorial",
+  "faktorial-1": "Eksplorasi Kontekstual — Faktorial",
+  "faktorial-2": "Aktivitas Deep Learning — Faktorial",
+  "faktorial-3": "Penjelasan Konsep — Faktorial",
+  "faktorial-4": "Contoh Soal Bertahap — Faktorial",
+  "faktorial-5": "Mengapa? Corner — Faktorial",
+  "faktorial-6": "Aktivitas Siswa — Faktorial",
+  "faktorial-7": "Refleksi Mini — Faktorial",
+  permutasi: "Permutasi",
+  "permutasi-1": "Eksplorasi Kontekstual — Permutasi",
+  "permutasi-2": "Aktivitas Deep Learning — Permutasi",
+  "permutasi-3": "Penjelasan Konsep — Permutasi",
+  "permutasi-4": "Contoh Soal Bertahap — Permutasi",
+  "permutasi-5": "Mengapa? Corner — Permutasi",
+  "permutasi-6": "Aktivitas Siswa — Permutasi",
+  "permutasi-7": "Refleksi Mini — Permutasi",
+  kombinasi: "Kombinasi",
+  "kombinasi-1": "Eksplorasi Kontekstual — Kombinasi",
+  "kombinasi-2": "Aktivitas Deep Learning — Kombinasi",
+  "kombinasi-3": "Penjelasan Konsep — Kombinasi",
+  "kombinasi-4": "Contoh Soal Bertahap — Kombinasi",
+  "kombinasi-5": "Mengapa? Corner — Kombinasi",
+  "kombinasi-6": "Aktivitas Siswa — Kombinasi",
+  "kombinasi-7": "Refleksi Mini — Kombinasi",
+};
+
+/** Mapping materiSlug → nama materi yang mudah dibaca AI */
+const MATERI_LABELS: Record<string, string> = {
+  "kaidah-pencacahan": "Kaidah Pencacahan (Aturan Penjumlahan + Aturan Perkalian)",
+  faktorial: "Faktorial",
+  permutasi: "Permutasi",
+  kombinasi: "Kombinasi",
+};
+
+/**
+ * Urutan section MATERI per halaman (flat, sesuai tampilan ke siswa).
+ * TIDAK termasuk section pre-materi seperti asesmen diagnostik,
+ * apersepsi, pemantik, dan refleksi sebelum mulai.
+ */
+const MATERI_SECTION_ORDER: Record<string, string[]> = {
+  "kaidah-pencacahan": [
+    "penjumlahan-1", "penjumlahan-2", "penjumlahan-3",
+    "penjumlahan-4", "penjumlahan-5", "penjumlahan-6",
+    "perkalian-1", "perkalian-2", "perkalian-3",
+    "perkalian-4", "perkalian-5", "perkalian-6",
+    "perkalian-7", "perkalian-8",
+  ],
+  faktorial: [
+    "faktorial-1", "faktorial-2", "faktorial-3",
+    "faktorial-4", "faktorial-5", "faktorial-6", "faktorial-7",
+  ],
+  permutasi: [
+    "permutasi-1", "permutasi-2", "permutasi-3",
+    "permutasi-4", "permutasi-5", "permutasi-6", "permutasi-7",
+  ],
+  kombinasi: [
+    "kombinasi-1", "kombinasi-2", "kombinasi-3",
+    "kombinasi-4", "kombinasi-5", "kombinasi-6", "kombinasi-7",
+  ],
+};
+
+/**
+ * Section key yang BUKAN materi inti — selalu di-exclude dari konteks AI.
+ * Hanya relevan di halaman kaidah-pencacahan.
+ */
+const PRE_MATERI_KEYS = new Set([
+  "asesmen", "apersepsi", "apersepsi-sub", "pemantik-sub", "refleksi-sub",
+]);
+
+function buildSectionContext(
+  activeSection?: string,
+  completedSections?: string[],
+  materiSlug?: string
+): string | null {
+  const order = materiSlug ? (MATERI_SECTION_ORDER[materiSlug] ?? []) : [];
+
+  // ── Filter: hanya section materi yang relevan ──
+  const materiCompleted = (completedSections ?? []).filter(
+    (key) => !PRE_MATERI_KEYS.has(key) && order.includes(key)
+  );
+  const completedSet = new Set(materiCompleted);
+
+  // Jika activeSection adalah pre-materi (asesmen, apersepsi), anggap belum
+  // ada section materi yang aktif — siswa masih di tahap awal.
+  const isActivePreMateri = !!activeSection && PRE_MATERI_KEYS.has(activeSection);
+  const effectiveActive = isActivePreMateri ? null : activeSection;
+
+  // ── 1. Tentukan batas "section terjauh yang bisa diakses" ──
+  let scopeEndIndex = order.length - 1;
+
+  if (effectiveActive && order.length > 0) {
+    const activeIdx = order.indexOf(effectiveActive);
+    if (activeIdx !== -1) {
+      scopeEndIndex = activeIdx;
+    } else {
+      // effectiveActive mungkin parent key (e.g., "penjumlahan"), cari child terakhir
+      for (let i = 0; i < order.length; i++) {
+        if (order[i].startsWith(effectiveActive + "-")) {
+          for (let j = i; j < order.length; j++) {
+            if (!order[j].startsWith(effectiveActive + "-")) break;
+            scopeEndIndex = j;
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  // ── 2. Tentukan activeKey yang sebenarnya (child pertama yg belum completed) ──
+  let activeKey: string | null = null;
+  if (effectiveActive && order.length > 0) {
+    const exactIdx = order.indexOf(effectiveActive);
+    if (exactIdx !== -1) {
+      activeKey = effectiveActive;
+    } else {
+      // Cari child pertama yang belum completed
+      for (const key of order) {
+        if (key.startsWith(effectiveActive + "-")) {
+          if (!completedSet.has(key)) { activeKey = key; break; }
+        }
+      }
+      if (!activeKey) {
+        for (const key of order) {
+          if (key.startsWith(effectiveActive + "-")) { activeKey = key; break; }
+        }
+      }
+    }
+  }
+
+  // ── 3. Bangun daftar section in-scope dengan status ──
+  const scopeSections: string[] = [];
+  for (let i = 0; i <= scopeEndIndex && i < order.length; i++) {
+    const key = order[i];
+    const label = SECTION_LABELS[key] ?? key;
+    if (activeKey && key === activeKey) {
+      scopeSections.push(`  ▶ ${label} ← SEDANG DIKERJAKAN`);
+    } else if (completedSet.has(key)) {
+      scopeSections.push(`  ✓ ${label} (selesai)`);
+    } else {
+      scopeSections.push(`  ○ ${label} (belum selesai)`);
+    }
+  }
+
+  // ── 4. Bangun output ──
+  const parts: string[] = [];
+
+  if (materiSlug) {
+    const materiLabel = MATERI_LABELS[materiSlug] ?? materiSlug;
+    parts.push(`Materi yang sedang dipelajari: ${materiLabel}`);
+  }
+
+  if (isActivePreMateri) {
+    parts.push("Siswa masih di tahap awal (asesmen / apersepsi) — belum masuk ke materi inti.");
+  } else if (scopeSections.length > 0) {
+    parts.push(`Urutan section materi (dari awal sampai section aktif):\n${scopeSections.join("\n")}`);
+  } else if (effectiveActive) {
+    // Fallback: ordered list kosong / tidak cocok
+    const activeLabel = SECTION_LABELS[effectiveActive] ?? effectiveActive;
+    parts.push(`Section yang sedang aktif: ${activeLabel}`);
+  }
+
+  if (parts.length === 0) return null;
+
+  return `-- Konteks pembelajaran siswa --
+${parts.join("\n")}
+
+Siswa TIDAK menyertakan teks yang dipilih (tidak melakukan highlight/seleksi teks). Gunakan konteks section di atas untuk memahami di mana posisi siswa dalam materi.
+- Section dengan tanda ✓ sudah selesai dikerjakan siswa.
+- Section dengan tanda ▶ sedang aktif (sedang dikerjakan).
+- Section dengan tanda ○ sudah terbuka tapi belum selesai.
+- Section yang TIDAK muncul dalam daftar di atas BELUM bisa diakses siswa (masih terkunci).
+- Jika siswa meminta rangkuman, rangkum hanya section yang SUDAH SELESAI (✓) saja — jangan membocorkan isi section yang sedang aktif (▶) atau yang belum selesai (○).`;
+}
+
 export const ChatPrompt = async (
   question: string,
   selectedText?: string,
   contextBefore?: string,
   contextAfter?: string,
-  history?: ChatMessage[]
+  history?: ChatMessage[],
+  activeSection?: string,
+  completedSections?: string[],
+  materiSlug?: string
 ): Promise<string> => {
-  const hasContext = selectedText && (contextBefore || contextAfter);
+  const hasSelectionContext = !!(selectedText && (contextBefore || contextAfter));
+  const sectionCtx = buildSectionContext(activeSection, completedSections, materiSlug);
 
-  const userMessage = hasContext
-    ? PROMPTS.chat.user(selectedText!, contextBefore ?? "", contextAfter ?? "", question)
-    : `Pertanyaan siswa: ${question}`;
+  let userMessage: string;
+
+  if (hasSelectionContext) {
+    userMessage = PROMPTS.chat.user(selectedText!, contextBefore ?? "", contextAfter ?? "", question);
+    // Jika ada section context juga, tambahkan sebagai informasi tambahan
+    if (sectionCtx) {
+      userMessage = `${sectionCtx}\n\n${userMessage}`;
+    }
+  } else if (sectionCtx) {
+    // Tidak ada seleksi teks, tapi ada konteks section — gunakan sebagai panduan AI
+    userMessage = `${sectionCtx}\n\nPertanyaan siswa: ${question}`;
+  } else {
+    // Tidak ada konteks sama sekali
+    userMessage = `Pertanyaan siswa: ${question}`;
+  }
 
   // Bangun messages array: system prompt + history + current question
   const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [

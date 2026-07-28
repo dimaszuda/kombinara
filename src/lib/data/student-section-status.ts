@@ -199,18 +199,17 @@ export async function seedStudentSectionStatus(
  * button-click completion for penjelasan_konsep).
  *
  * Rules:
- * 1. UPDATE current section: status = 'completed', completed_at = NOW().
- * 2. Look up the next step from KAIDAH_PENCACAHAN_SECTIONS (index + 1).
+ * 1. UPSERT current section: status = 'completed', completed_at = NOW().
+ *    If the row doesn't exist (e.g., seed hasn't run yet), it will be created.
+ * 2. Look up the next step from MATERI_SECTIONS (index + 1).
  * 3. If a next step exists, set its status to 'unlocked' ONLY if it is
  *    currently 'locked'. Never overwrite 'unlocked' or 'completed'.
- * 4. SPECIAL CASE: When kaidah_perkalian.contoh_soal (index 11) completes,
- *    the next section kaidah_perkalian.refleksi_mini (index 12) MUST NOT
+ *    If the row doesn't exist, create it with 'unlocked'.
+ * 4. SPECIAL CASE: When kaidah_perkalian.contoh_soal completes,
+ *    the next section kaidah_perkalian.refleksi_mini MUST NOT
  *    be unlocked unless ALL aktivitas_siswa_entries for concept_id
- *    'kaidah_perkalian' are also completed. If aktivitas_siswa is not
- *    yet fully done, refleksi_mini stays locked even though contoh_soal
- *    is completed.
- * 5. Cross-concept transition (index 7 -> 8) from kaidah_penjumlahan to
- *    kaidah_perkalian uses the SAME index+1 logic -- no special branching.
+ *    'kaidah_perkalian' are also completed.
+ * 5. Cross-concept transition uses the SAME index+1 logic -- no special branching.
  *
  * The function can operate standalone (creates its own transaction) or be
  * passed an existing transaction client via `tx` to participate in a larger
@@ -220,7 +219,7 @@ export async function seedStudentSectionStatus(
  * @param conceptId   - The concept_id of the section being completed.
  * @param section     - The section name being completed.
  * @param tx          - Optional Prisma transaction client for composability.
- * @throws Error if the current section row is not found (must be pre-seeded).
+ * @throws Error if the (conceptId, section) pair is not found in MATERI_SECTIONS.
  */
 export async function completeSectionAndUnlockNext(
   studentId: number,
@@ -245,24 +244,27 @@ export async function completeSectionAndUnlockNext(
     );
   }
 
-  // ── 1. Mark current section as completed ─────────────────────
-  const updateResult = await db.studentSectionStatus.updateMany({
+  // ── 1. Mark current section as completed (upsert — resilient to missing rows) ──
+  await db.studentSectionStatus.upsert({
     where: {
+      studentId_conceptId_section: {
+        studentId,
+        conceptId,
+        section,
+      },
+    },
+    create: {
       studentId,
       conceptId,
       section,
+      status: "completed",
+      completedAt: new Date(),
     },
-    data: {
+    update: {
       status: "completed",
       completedAt: new Date(),
     },
   });
-
-  if (updateResult.count === 0) {
-    throw new Error(
-      `[completeSectionAndUnlockNext] Row not found for student_id=${studentId}, concept_id=${conceptId}, section=${section}. Has seeding been performed?`
-    );
-  }
 
   // ── 2. Look up the next step ─────────────────────────────────
   const nextIndex = currentIndex + 1;
@@ -289,20 +291,20 @@ export async function completeSectionAndUnlockNext(
     }
   }
 
-  // ── 4. Unlock next section (only if currently 'locked') ──────
-  await db.studentSectionStatus.updateMany({
-    where: {
-      studentId,
-      conceptId: nextEntry.conceptId,
-      section: nextEntry.section,
-      status: "locked", // Only update if still locked
-    },
-    data: {
-      status: "unlocked",
-    },
-  });
-  // Note: updateMany with status='locked' in the where clause is a no-op
-  // if the row is already 'unlocked' or 'completed'. No error needed.
+  // ── 4. Unlock next section (upsert — resilient to missing rows) ──
+  // Uses ON CONFLICT ... DO UPDATE WHERE to only change status from 'locked' → 'unlocked'.
+  // If the row doesn't exist, creates it with 'unlocked'.
+  // If it exists as 'unlocked' or 'completed', leaves it unchanged.
+  await db.$executeRawUnsafe(
+    `INSERT INTO student_section_status (student_id, concept_id, section, status, completed_at)
+     VALUES ($1, $2, $3, 'unlocked', NULL)
+     ON CONFLICT (student_id, concept_id, section)
+     DO UPDATE SET status = 'unlocked'
+     WHERE student_section_status.status = 'locked'`,
+    studentId,
+    nextEntry.conceptId,
+    nextEntry.section
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════

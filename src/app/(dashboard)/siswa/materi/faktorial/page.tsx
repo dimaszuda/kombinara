@@ -33,26 +33,35 @@ const FAKTORIAL_TOC: TocSection[] = [
 export default function FaktorialPage() {
   const [completedSections, setCompletedSections] = useState<Record<number, boolean>>({});
   const [allDone, setAllDone] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Seed student_section_status rows for faktorial on first access
-  useEffect(() => {
-    fetch("/api/materi/faktorial/seed").catch(() => {});
-  }, []);
-
-  // Fetch status from backend
+  // ── Seed + Fetch status secara sequential ─────────────────────────
+  // Seed HARUS selesai sebelum fetch status, agar student_section_status rows
+  // sudah tersedia saat status dicek. Seed bersifat idempotent (no-op jika rows
+  // sudah ada). completeSectionAndUnlockNext sekarang menggunakan UPSERT sehingga
+  // tetap aman meskipun seed belum sempat berjalan.
   useEffect(() => {
     let cancelled = false;
-    async function fetchStatus() {
+
+    async function init() {
       try {
+        // 1. Seed student_section_status rows (idempotent — no-op jika sudah ada)
+        await fetch("/api/materi/faktorial/seed");
+
+        if (cancelled) return;
+
+        // 2. Fetch status dari backend
         const res = await fetch("/api/faktorial/status");
         if (!res.ok || cancelled) return;
+
         const data: FaktorialStatusResponse = await res.json();
 
         // Convert section-name-based status to index-based
         const cs: Record<number, boolean> = {};
         if (data.sections["eksplorasi_kontekstual"] === "completed") cs[0] = true;
         if (data.sections["aktivitas_deep_learning"] === "completed") cs[1] = true;
+        // penjelasan_konsep (index 2) — read-only, di-infer di FaktorialContent
         if (data.sections["contoh_soal"] === "completed") cs[3] = true;
         if (data.sections["mengapa_corner"] === "completed") cs[4] = true;
         if (data.sections["refleksi_mini"] === "completed") {
@@ -62,10 +71,13 @@ export default function FaktorialPage() {
 
         setCompletedSections(cs);
       } catch (err) {
-        console.error("[faktorial-page] fetchStatus error:", err);
+        console.error("[faktorial-page] init error:", err);
+      } finally {
+        if (!cancelled) setIsCheckingStatus(false);
       }
     }
-    fetchStatus();
+
+    init();
     return () => { cancelled = true; };
   }, []);
 
@@ -94,7 +106,17 @@ export default function FaktorialPage() {
     return { completedKeys: keys, activeKey: active };
   }, [completedSections, allDone]);
 
-  const pageContent = (
+  const pageContent = isCheckingStatus ? (
+    <div className="flex items-center justify-center py-20">
+      <div className="flex flex-col items-center gap-4">
+        <svg className="h-8 w-8 animate-spin text-[#346739]" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+          <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+        </svg>
+        <p className="text-sm text-[#346739]">Memuat progres belajar...</p>
+      </div>
+    </div>
+  ) : (
     <div ref={contentRef} style={{ padding: "32px 12px 80px", margin: "0 auto" }}>
       <SelectionToolbar contentRef={contentRef} />
       <div className="rounded-xl border border-[#346739] bg-white p-6 sm:p-8">
@@ -111,6 +133,7 @@ export default function FaktorialPage() {
       activeKey={activeKey}
       completedKeys={completedKeys}
       tocSections={FAKTORIAL_TOC}
+      materiSlug="faktorial"
     >
       {pageContent}
     </ChatbotShell>

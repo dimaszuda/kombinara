@@ -354,28 +354,36 @@ interface SingleValueCardProps {
   value: number;
   keterangan: string;
   icon?: ReactNode;
+  loading?: boolean;
+  hasData?: boolean;
 }
 
-function SingleValueCard({ title, value, keterangan, icon }: SingleValueCardProps) {
+function SingleValueCard({ title, value, keterangan, icon, loading, hasData = true }: SingleValueCardProps) {
   return (
     <Card span={1}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", textAlign: "center", gap: 6 }}>
-        {/* Title */}
-        <div style={{ fontSize: 13, fontWeight: 500, color: "#6B6B6B", display: "flex", alignItems: "center", gap: 6 }}>
-          {icon && (
-            <span style={{ color: COLORS.green, fontSize: 16, display: "inline-flex" }}>
-              {icon}
-            </span>
-          )}
-          {title}
+      {loading && !hasData ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#8A8A8A", fontSize: 13 }}>
+          Memuat data...
         </div>
-        {/* Value besar di tengah */}
-        <div style={{ fontSize: 52, fontWeight: 700, color: COLORS.green, lineHeight: 1 }}>
-          {value}
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", textAlign: "center", gap: 6 }}>
+          {/* Title */}
+          <div style={{ fontSize: 13, fontWeight: 500, color: "#6B6B6B", display: "flex", alignItems: "center", gap: 6 }}>
+            {icon && (
+              <span style={{ color: COLORS.green, fontSize: 16, display: "inline-flex" }}>
+                {icon}
+              </span>
+            )}
+            {title}
+          </div>
+          {/* Value besar di tengah */}
+          <div style={{ fontSize: 52, fontWeight: 700, color: COLORS.green, lineHeight: 1 }}>
+            {value}
+          </div>
+          {/* Keterangan kecil di bawah */}
+          <div style={{ fontSize: 11.5, color: "#8A8A8A" }}>{keterangan}</div>
         </div>
-        {/* Keterangan kecil di bawah */}
-        <div style={{ fontSize: 11.5, color: "#8A8A8A" }}>{keterangan}</div>
-      </div>
+      )}
     </Card>
   );
 }
@@ -596,6 +604,22 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
           Reset filter
         </button>
       ) : null}
+      {loading ? (
+        <div
+          style={{
+            width: 20,
+            height: 20,
+            border: "2.5px solid #E2E2E2",
+            borderTop: `2.5px solid ${COLORS.green}`,
+            borderRadius: "50%",
+            animation: "spin 0.7s linear infinite",
+            flexShrink: 0,
+            alignSelf: "flex-end",
+            marginBottom: 6,
+          }}
+        />
+      ) : null}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
@@ -922,8 +946,7 @@ export default function KombinaraDashboard() {
   }, [filtered, dashData]);
   const scatterForm = useMemo(() => filtered.slice(0, 80).map((s) => ({ x: s.formDurasi, y: s.formNilai, passed: s.formPassed })), [filtered]);
 
-  // Total kelas & siswa: prioritas data real, fallback ke dummy
-  const totalKelas = dashData?.totalKelas ?? (new Set(filtered.map((s) => s.kelas)).size || KELAS_LIST.length);
+  // Total siswa: prioritas data real, fallback ke dummy
   const totalSiswa = dashData?.totalSiswa ?? filtered.length;
 
   const integrityLog = useMemo(() => filtered.filter((s) => s.integrityEvents > 0 && s.materi !== "Pendahuluan").slice(0, 12), [filtered]);
@@ -1072,7 +1095,7 @@ export default function KombinaraDashboard() {
         <section style={{ marginBottom: 36 }}>
           <CategoryHeader color={COLORS.green} title="Ringkasan" subtitle="Gambaran umum kelas dan siswa" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-            <SingleValueCard title="Total kelas" value={totalKelas} keterangan="kelas" icon={<i className="ti ti-school" />} />
+            <SingleValueCard title="Total kelas" value={dashData?.totalKelas ?? 0} keterangan="kelas" icon={<i className="ti ti-school" />} loading={dashLoading} hasData={dashData !== null} />
             <GenderDistributionCard genderBreakdown={dashData?.genderBreakdown} loading={dashLoading} />
           </div>
 

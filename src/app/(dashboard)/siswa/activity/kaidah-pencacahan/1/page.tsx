@@ -3,7 +3,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { IconClock, IconUserSolo } from "@/components/activity/ActivityIcons";
-import AktivitasSiswaAccessGate from "@/components/activity/AktivitasSiswaAccessGate";
 
 // ── Color palette ──
 const C = {
@@ -368,35 +367,23 @@ export default function AktivitasKP1() {
   const [refleksi1, setRefleksi1] = useState("");
   const [refleksi2, setRefleksi2] = useState("");
 
-  // ── Loading existing submissions ──────────────────────────────
+  // ── Loading existing submissions — lightweight check only ──────
   const [isLoadingExisting, setIsLoadingExisting] = useState(true);
   const [hasExistingSubmissions, setHasExistingSubmissions] = useState(false);
+  const [revealedSteps, setRevealedSteps] = useState<Record<number, boolean>>({});
+  const [loadingAnswer, setLoadingAnswer] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     let cancelled = false;
     async function loadExisting() {
       try {
         const res = await fetch(
-          "/api/aktivitas-siswa?concept_id=kaidah_penjumlahan&activity_key=aktivitas_1"
+          "/api/aktivitas-siswa?concept_id=kaidah_penjumlahan&activity_key=aktivitas_1&mode=exists"
         );
         if (!res.ok || cancelled) return;
         const data = await res.json();
-        if (data.hasSubmissions && data.submissions) {
+        if (data.hasSubmissions) {
           setHasExistingSubmissions(true);
-          // Build feedbackMap from stored data
-          const fb: Record<number, { text: string; isCorrect: boolean }> = {};
-          for (const step of STEPS) {
-            const sub = data.submissions[step.questionKey];
-            if (sub) {
-              fb[step.index] = {
-                text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
-                isCorrect: sub.isCorrect,
-              };
-            }
-          }
-          setFeedbackMap(fb);
-          // Show all steps
-          setCurrentStep(TOTAL_STEPS - 1);
         }
       } catch {
         // Silently ignore — user can still fill in manually
@@ -408,6 +395,31 @@ export default function AktivitasKP1() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Reveal answer for a specific question ─────────────────────
+  const handleRevealAnswer = useCallback(async (idx: number) => {
+    if (revealedSteps[idx]) return;
+    setLoadingAnswer((p) => ({ ...p, [idx]: true }));
+    try {
+      const step = STEPS[idx];
+      const res = await fetch(
+        `/api/aktivitas-siswa?concept_id=kaidah_penjumlahan&activity_key=aktivitas_1&question_key=${encodeURIComponent(step.questionKey)}`
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.submission) {
+        setFeedbackMap((p) => ({
+          ...p,
+          [idx]: {
+            text: `📝 Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            isCorrect: data.submission.isCorrect,
+          },
+        }));
+        setRevealedSteps((p) => ({ ...p, [idx]: true }));
+      }
+    } catch { /* silent */ }
+    finally { setLoadingAnswer((p) => ({ ...p, [idx]: false })); }
+  }, [revealedSteps]);
 
   const allComplete =
     currentStep >= TOTAL_STEPS - 1 &&
@@ -805,8 +817,7 @@ export default function AktivitasKP1() {
 
   // ── Main Render ──────────────────────────────────────────────────
   return (
-    <AktivitasSiswaAccessGate conceptId="kaidah_perkalian">
-      <div className="min-h-screen py-8 px-4 bg-white">
+    <div className="min-h-screen py-8 px-4 bg-white">
       <div className="max-w-5xl mx-auto">
         <div
           className="border-2 rounded-2xl p-6 space-y-6"
@@ -891,7 +902,7 @@ export default function AktivitasKP1() {
           </div>
 
           {/* ── Progress Indicator ── */}
-          <ProgressIndicator currentStep={currentStep} feedbackMap={feedbackMap} />
+          {!hasExistingSubmissions && <ProgressIndicator currentStep={currentStep} feedbackMap={feedbackMap} />}
 
           {/* ── Loading State ── */}
           {isLoadingExisting && (
@@ -901,19 +912,56 @@ export default function AktivitasKP1() {
             </div>
           )}
 
-          {/* ── Already Completed Banner ── */}
+          {/* ── Already Completed — Review Mode ── */}
           {!isLoadingExisting && hasExistingSubmissions && (
-            <div
-              className="rounded-xl p-4 text-center"
-              style={{ backgroundColor: C.greenLight }}
-            >
-              <p className="font-bold text-base" style={{ color: C.green }}>
-                ✅ Kamu sudah menyelesaikan aktivitas ini!
-              </p>
-              <p className="text-sm text-slate-600 mt-1">
-                Berikut jawaban dan feedback dari AI. Tidak perlu menjawab ulang.
-              </p>
-            </div>
+            <>
+              <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
+                <p className="font-bold text-base" style={{ color: C.green }}>
+                  ✅ Kamu sudah menyelesaikan aktivitas ini!
+                </p>
+                <p className="text-sm text-slate-600 mt-1">
+                  Klik &ldquo;Lihat jawabanku&rdquo; di setiap langkah untuk melihat jawaban dan feedback.
+                </p>
+              </div>
+              {/* Question review cards */}
+              <div className="space-y-4">
+                {STEPS.map((step) => {
+                  const isRevealed = revealedSteps[step.index] === true;
+                  const isLoading = loadingAnswer[step.index] === true;
+                  return (
+                    <div key={step.index} className="rounded-xl border p-4" style={{ borderColor: isRevealed ? C.green : C.border, background: isRevealed ? C.white : C.bg }}>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white flex-shrink-0"
+                            style={{ backgroundColor: isRevealed ? C.green : C.purple }}>
+                            {isRevealed ? "✓" : step.index + 1}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold" style={{ color: C.purple }}>{step.label}</p>
+                          </div>
+                        </div>
+                        {!isRevealed && (
+                          <button
+                            type="button"
+                            onClick={() => handleRevealAnswer(step.index)}
+                            disabled={isLoading}
+                            className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-50 flex-shrink-0"
+                            style={{ backgroundColor: C.green }}
+                          >
+                            {isLoading ? <><Spinner /> Memuat...</> : "Lihat jawabanku"}
+                          </button>
+                        )}
+                      </div>
+                      {isRevealed && (
+                        <div className="mt-4 pt-4 border-t" style={{ borderColor: C.greenLight }}>
+                          {renderStep(step.index, true, false)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
 
           {/* ── All Complete Banner ── */}
@@ -928,11 +976,10 @@ export default function AktivitasKP1() {
             </div>
           )}
 
-          {/* ── Sequential Steps ── */}
-          {!isLoadingExisting && renderVisibleSteps()}
+          {/* ── Sequential Steps — for fresh attempts ── */}
+          {!isLoadingExisting && !hasExistingSubmissions && renderVisibleSteps()}
         </div>
       </div>
     </div>
-    </AktivitasSiswaAccessGate>
   );
 }

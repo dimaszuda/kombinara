@@ -72,6 +72,12 @@ interface ChatbotProps {
   otherPanelOpen: boolean;
   selectionContext?: SelectionContext | null;
   onClearContext?: () => void;
+  /** Section yang sedang aktif (dari sequential unlocking) */
+  activeSection?: string | null;
+  /** Daftar section key yang sudah completed */
+  completedSections?: string[];
+  /** Slug materi/konsep yang sedang dipelajari */
+  materiSlug?: string;
 }
 
 // ─── Message bubble ───────────────────────────────────────────────────────────
@@ -595,6 +601,163 @@ function PanelHeader({
   );
 }
 
+// ─── Announcement Banner (info update AI) ─────────────────────────────────────
+const ANNOUNCEMENT_STORAGE_KEY = "kombi-announcement-v1";
+
+function AnnouncementBanner() {
+  const [expanded, setExpanded] = useState(false);
+  const [dismissed, setDismissed] = useState(true);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
+    if (stored !== "dismissed") setDismissed(false);
+  }, []);
+
+  const handleDismiss = () => {
+    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, "dismissed");
+    setDismissed(true);
+  };
+
+  if (dismissed) return null;
+
+  return (
+    <div
+      style={{
+        margin: "0 12px 4px",
+        background: "rgba(255,255,255,0.16)",
+        border: "0.5px solid rgba(255,255,255,0.28)",
+        borderRadius: 10,
+        overflow: "hidden",
+      }}
+    >
+      {/* Collapsed row */}
+      <div
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "10px 12px",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+      >
+        {/* Info icon */}
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.22)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12.5,
+              fontWeight: 500,
+              color: "#ffffff",
+              lineHeight: 1.4,
+            }}
+          >
+            Update kemampuan AI — sekarang lebih kontekstual
+          </p>
+        </div>
+
+        {/* Expand/collapse chevron */}
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="rgba(255,255,255,0.7)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            flexShrink: 0,
+            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.25s ease",
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+
+        {/* Dismiss button */}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
+          aria-label="Tutup pemberitahuan"
+          style={{
+            background: "rgba(0,0,0,0.12)",
+            border: "none",
+            cursor: "pointer",
+            padding: "3px 6px",
+            borderRadius: 4,
+            fontSize: 11,
+            color: "rgba(255,255,255,0.7)",
+            flexShrink: 0,
+            lineHeight: 1,
+          }}
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Expanded detail */}
+      <div
+        style={{
+          maxHeight: expanded ? 400 : 0,
+          overflow: expanded ? "auto" : "hidden",
+          transition: "max-height 0.35s ease",
+        }}
+      >
+        <div
+          style={{
+            padding: "0 12px 12px 46px",
+            fontSize: 12,
+            color: "rgba(255,255,255,0.85)",
+            lineHeight: 1.6,
+          }}
+        >
+          <p style={{ margin: "0 0 8px" }}>
+            Kami melakukan optimalisasi percakapan AI berdasarkan masukan dari para siswa. Berikut rinciannya:
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 4 }}>
+            <li>AI sekarang memahami <strong>posisi belajar kamu</strong> dan tahu persis di section mana kamu berada.</li>
+            <li>Kalau kamu minta <strong>rangkuman</strong>, AI dapat merangkum materi yang telah kamu pelajari.</li>
+            <li>Percakapan jadi lebih <strong>relevan dan personal</strong> karena AI tahu persis sejauh mana progress belajar kamu.</li>
+          </ul>
+          <p style={{ margin: "8px 0 0", color: "rgba(255,255,255,0.6)", fontSize: 11 }}>
+            Cukup tanya seperti biasa — Kombi akan otomatis menyesuaikan jawabannya dengan materi yang sedang kamu pelajari
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Chatbot({
   isOpen,
@@ -603,6 +766,9 @@ export default function Chatbot({
   otherPanelOpen,
   selectionContext,
   onClearContext,
+  activeSection,
+  completedSections,
+  materiSlug,
 }: ChatbotProps) {
   const [hovered, setHovered] = useState(false);
   const [input, setInput] = useState("");
@@ -660,6 +826,19 @@ export default function Chatbot({
           body.contextAfter = selectionContext.contextAfter;
         }
 
+        // ── Sertakan konteks section (sequential unlocking) ──
+        // Supaya AI paham materi/section mana yang sedang dipelajari siswa,
+        // tanpa perlu siswa melakukan seleksi teks terlebih dahulu.
+        if (activeSection) {
+          body.activeSection = activeSection;
+        }
+        if (completedSections && completedSections.length > 0) {
+          body.completedSections = completedSections;
+        }
+        if (materiSlug) {
+          body.materiSlug = materiSlug;
+        }
+
         // ── Sliding window: kirim history 5 percakapan terakhir ──
         const allMessages = messagesRef.current;
         // Filter out the initial AI prompt (ai-init) — not real conversation
@@ -703,7 +882,7 @@ export default function Chatbot({
         setIsLoading(false);
       }
     },
-    [selectionContext]
+    [selectionContext, activeSection, completedSections, materiSlug]
   );
 
   const handleSend = useCallback(() => {
@@ -1014,6 +1193,7 @@ export default function Chatbot({
         />
 
         {contextBar}
+        <AnnouncementBanner />
         {messagesSection}
         {inputSection}
       </div>
@@ -1041,6 +1221,7 @@ export default function Chatbot({
       >
         {desktopHeader}
         {contextBar}
+        <AnnouncementBanner />
         {messagesSection}
         {inputSection}
       </div>

@@ -17,6 +17,8 @@ interface ChatbotShellProps {
   completedKeys?: Set<string>;
   /** Custom TOC sections (for pages with different TOC structure) */
   tocSections?: TocSection[];
+  /** Slug materi/konsep yang sedang dipelajari (contoh: "kaidah-pencacahan", "faktorial") */
+  materiSlug?: string;
 }
 
 export default function ChatbotShell({
@@ -24,6 +26,7 @@ export default function ChatbotShell({
   activeKey = null,
   completedKeys = new Set(),
   tocSections,
+  materiSlug,
 }: ChatbotShellProps) {
   const [activePanel, setActivePanel] = useState<PanelKind>(null);
   const [selectionContext, setSelectionContext] = useState<SelectionContext | null>(null);
@@ -54,6 +57,9 @@ export default function ChatbotShell({
         otherPanelOpen={activePanel !== null && activePanel !== "chatbot"}
         selectionContext={selectionContext}
         onClearContext={() => setSelectionContext(null)}
+        activeSection={activeKey}
+        completedSections={[...completedKeys]}
+        materiSlug={materiSlug}
       />
       <TableContent
         isOpen={activePanel === "tablecontent"}
