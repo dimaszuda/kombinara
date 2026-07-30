@@ -470,9 +470,9 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
             {feedback["situasi1"] && (
               <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
                 <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
-                <p className={`text-sm leading-relaxed ${textColor["situasi1"] || "text-[#2C2C2A]"}`}>
+                <RichText className={`text-sm leading-relaxed ${textColor["situasi1"] || "text-[#2C2C2A]"}`}>
                   {feedback["situasi1"]}
-                </p>
+                </RichText>
               </div>
             )}
 
@@ -962,9 +962,9 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
                     ? "💬 Feedback Kombi — Yuk diperbaiki!"
                     : "⚠️ Ups, ada kendala"}
                 </p>
-                <p className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">
+                <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">
                   {dlFeedback}
-                </p>
+                </RichText>
                 {dlFeedbackType === "retry" && (
                   <p className="mt-2 text-xs text-[#663362] italic">
                     Kamu bisa mengedit jawabanmu di atas lalu klik &ldquo;Simpan Jawaban&rdquo; lagi.
@@ -1762,9 +1762,9 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
                   <p className="mb-0.5 text-xs font-medium text-[#663362]">
                     💬 Feedback Kombi
                   </p>
-                  <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                  <RichText className="text-sm leading-relaxed text-[#2C2C2A]">
                     {fb.text}
-                  </p>
+                  </RichText>
                 </div>
               )}
 

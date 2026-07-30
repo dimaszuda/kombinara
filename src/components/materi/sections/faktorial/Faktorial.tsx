@@ -198,9 +198,9 @@ function AiFeedbackBox({
       >
         {isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
       </p>
-      <p className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">
+      <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">
         {feedback}
-      </p>
+      </RichText>
     </div>
   );
 }

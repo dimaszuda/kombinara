@@ -16,10 +16,13 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
-import { seedStudentSectionStatus } from "@/lib/data/student-section-status";
+import { seedStudentSectionStatus, seedPermutasiSectionStatus } from "@/lib/data/student-section-status";
 
 /** Slugs that trigger Kaidah Pencacahan seeding. */
 const SEEDABLE_SLUGS = new Set(["kaidah-pencacahan", "faktorial"]);
+
+/** Slugs that trigger Permutasi seeding. */
+const PERMUTASI_SLUGS = new Set(["permutasi"]);
 
 // ─── GET ────────────────────────────────────────────────────────────
 
@@ -29,12 +32,7 @@ export async function GET(
 ) {
   const { slug } = params;
 
-  // Only handle known seedable slugs; silently skip others (not an error).
-  if (!SEEDABLE_SLUGS.has(slug)) {
-    return NextResponse.json({ seeded: false, reason: "not_applicable" });
-  }
-
-  // ── Auth ─────────────────────────────────────────────────────────
+  // ── Auth (dijalankan dulu sebelum seeding apapun) ────────────────
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -53,7 +51,18 @@ export async function GET(
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
-  // ── Seed ─────────────────────────────────────────────────────────
+  // ── Handle permutasi seeding ─────────────────────────────────────
+  if (PERMUTASI_SLUGS.has(slug)) {
+    const result = await seedPermutasiSectionStatus(student.id);
+    return NextResponse.json(result);
+  }
+
+  // Only handle known seedable slugs; silently skip others (not an error).
+  if (!SEEDABLE_SLUGS.has(slug)) {
+    return NextResponse.json({ seeded: false, reason: "not_applicable" });
+  }
+
+  // ── Seed for kaidah-pencacahan / faktorial ───────────────────────
   const result = await seedStudentSectionStatus(student.id, supabase);
 
   return NextResponse.json(result);

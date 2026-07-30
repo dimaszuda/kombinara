@@ -57,6 +57,16 @@ export const APERSEPSI_PEMANTIK_GROUND_TRUTH: Record<string, string> = {
     "Cara menyederhanakan n!/(n-2)! adalah dengan menjabarkan n! = n×(n-1)×(n-2)!, lalu coret (n-2)! di pembilang dan penyebut, sehingga tersisa n×(n-1). Tidak perlu menghitung nilai faktorial secara penuh.",
   refleksi_faktorial_4:
     "Jawaban bersifat dugaan — siswa diharapkan menyadari bahwa faktorial muncul dalam rumus permutasi dan kombinasi karena kedua rumus tersebut melibatkan perkalian menurun (seperti 5×4×3) yang merupakan bentuk faktorial yang disederhanakan. Contoh: P(n,r) = n!/(n-r)! menggunakan faktorial untuk menghitung banyaknya susunan.",
+
+  // ── Refleksi Mini — Permutasi ─────────────────────────────────
+  refleksi_permutasi_1:
+    "Permutasi adalah kaidah perkalian yang sudah 'diformulakan' untuk kasus di mana urutan penting. Bedanya: kaidah perkalian menghitung langkah demi langkah secara eksplisit (kotak 1 × kotak 2 × ...), sedangkan rumus permutasi P(n,r) = n!/(n-r)! langsung memberikan hasil tanpa perlu membuat kotak satu per satu. Intinya: permutasi adalah shortcut dari kaidah perkalian.",
+  refleksi_permutasi_2:
+    "Rumus permutasi dengan unsur yang sama digunakan ketika ada objek yang identik (kembar) dalam susunan. Contoh: menyusun huruf MATEMATIKA (M ada 2, A ada 3, T ada 2). Jika tidak ada unsur yang sama, gunakan permutasi biasa P(n,r) atau n!.",
+  refleksi_permutasi_3:
+    "Permutasi siklis digunakan untuk susunan MELINGKAR di mana tidak ada titik awal yang tetap (tidak ada 'posisi nomor 1'). Contoh: orang duduk mengelilingi meja bundar, gelang, kalung. Rumusnya P(siklis n) = (n−1)!, karena satu orang dijadikan patokan dan sisanya disusun linear.",
+  refleksi_permutasi_4:
+    "P(n,n) = n! karena jika kita menyusun SEMUA n objek yang berbeda dengan urutan diperhatikan, sama saja dengan menyusun n objek dalam satu baris penuh. Jumlah caranya persis n! (n × (n-1) × ... × 1). Secara intuitif: saat r = n, tidak ada objek yang 'tersisa' atau 'tidak terpakai', sehingga penyebut (n-r)! menjadi 0! = 1 dan rumus P(n,n) = n!/0! = n!.",
 };
 
 /** Deep Learning — keyed by concept_id */

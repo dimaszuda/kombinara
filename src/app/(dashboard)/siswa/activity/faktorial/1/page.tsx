@@ -105,7 +105,7 @@ function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean })
   return (
     <div className={`mt-3 rounded-lg border ${bc} ${bg} p-3`}>
       <p className={`mb-1 text-xs font-medium ${lc}`}>{ic} Feedback Kombi</p>
-      <p className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{text}</p>
+      <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{text}</RichText>
     </div>
   );
 }

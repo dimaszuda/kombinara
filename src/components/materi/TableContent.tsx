@@ -15,6 +15,10 @@ export interface TocSection {
   targetId?: string;
   /** Sub-sections (indented) */
   children?: TocSection[];
+  /** Override tampilan nomor di bubble. undefined = auto-number (1, 2, 3...) */
+  numberOverride?: string;
+  /** Jika true, bubble hanya tampilkan dot ● tanpa angka */
+  dotOnly?: boolean;
 }
 
 // ─── TOC Data untuk Kaidah Pencacahan ─────────────────────────────────────────
@@ -192,13 +196,13 @@ function TocItem({
         transition: "background 0.18s ease",
       }}
     >
-      {/* Number bubble */}
+      {/* Number bubble (or dot) */}
       <div
         style={{
-          width: 28,
-          height: 28,
+          width: section.dotOnly ? 12 : 28,
+          height: section.dotOnly ? 12 : 28,
           borderRadius: "50%",
-          background: numBg,
+          background: section.dotOnly ? "rgba(255,255,255,0.4)" : numBg,
           color: numColor,
           fontSize: isSubItem ? 10 : 12,
           fontWeight: 600,
@@ -206,11 +210,11 @@ function TocItem({
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
-          border: "1.5px solid rgba(255,255,255,0.4)",
+          border: section.dotOnly ? "none" : "1.5px solid rgba(255,255,255,0.4)",
           transition: "background 0.18s ease, color 0.18s ease",
         }}
       >
-        {displayNumber}
+        {!section.dotOnly && displayNumber}
       </div>
 
       {/* Text */}
@@ -278,12 +282,14 @@ function TocList({
   let mainNum = 0;
   for (const s of tocSections) {
     mainNum++;
-    flatItems.push({ section: s, isSubItem: false, displayNumber: String(mainNum) });
+    const mainDisplay = s.numberOverride ?? String(mainNum);
+    flatItems.push({ section: s, isSubItem: false, displayNumber: mainDisplay });
     if (s.children) {
       let subNum = 0;
       for (const c of s.children) {
         subNum++;
-        flatItems.push({ section: c, isSubItem: true, displayNumber: `${mainNum}.${subNum}` });
+        const subDisplay = c.numberOverride ?? `${mainDisplay}.${subNum}`;
+        flatItems.push({ section: c, isSubItem: true, displayNumber: subDisplay });
       }
     }
   }

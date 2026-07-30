@@ -33,7 +33,11 @@ import {
   getRefleksiAllQuestionKeys,
 } from "@/lib/data/student-section-status";
 
-const VALID_CONCEPTS = ["kaidah_penjumlahan", "kaidah_perkalian", "permutasi", "kombinasi", "faktorial"] as const;
+const VALID_CONCEPTS = [
+  "kaidah_penjumlahan", "kaidah_perkalian",
+  "permutasi", "permutasi_r_unsur_dari_n_unsur", "permutasi_dengan_unsur_sama", "permutasi_siklis",
+  "kombinasi", "faktorial"
+] as const;
 
 export async function POST(req: Request) {
   try {

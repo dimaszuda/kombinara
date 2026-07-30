@@ -64,6 +64,45 @@ export const MATERI_SECTIONS = [
 
 export const MATERI_CONCEPT_IDS = ["kaidah_penjumlahan", "kaidah_perkalian", "faktorial"] as const;
 
+// ═══════════════════════════════════════════════════════════════
+// Permutasi Sections (3 concepts, 13 sections)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * permutasi_r_unsur_dari_n_unsur (indices 0-2, 3 sections):
+ *   eksplorasi_kontekstual -> aktivitas_deep_learning -> penjelasan_konsep
+ *
+ * permutasi_dengan_unsur_sama (indices 3-5, 3 sections):
+ *   eksplorasi_kontekstual -> aktivitas_deep_learning -> penjelasan_konsep
+ *
+ * permutasi_siklis (indices 6-10, 5 sections):
+ *   eksplorasi_kontekstual -> aktivitas_deep_learning -> penjelasan_konsep
+ *   -> contoh_soal -> refleksi_mini
+ */
+export const PERMUTASI_SECTIONS = [
+  // ── permutasi_r_unsur_dari_n_unsur (3 sections) ──
+  { conceptId: "permutasi_r_unsur_dari_n_unsur", section: "eksplorasi_kontekstual" },   // 0
+  { conceptId: "permutasi_r_unsur_dari_n_unsur", section: "aktivitas_deep_learning" },  // 1
+  { conceptId: "permutasi_r_unsur_dari_n_unsur", section: "penjelasan_konsep" },        // 2
+
+  // ── permutasi_dengan_unsur_sama (3 sections) ──
+  { conceptId: "permutasi_dengan_unsur_sama", section: "eksplorasi_kontekstual" },      // 3
+  { conceptId: "permutasi_dengan_unsur_sama", section: "aktivitas_deep_learning" },     // 4
+  { conceptId: "permutasi_dengan_unsur_sama", section: "penjelasan_konsep" },           // 5
+
+  // ── permutasi_siklis (5 sections) ──
+  { conceptId: "permutasi_siklis", section: "eksplorasi_kontekstual" },                 // 6
+  { conceptId: "permutasi_siklis", section: "aktivitas_deep_learning" },                // 7
+  { conceptId: "permutasi_siklis", section: "penjelasan_konsep" },                      // 8
+  { conceptId: "permutasi_siklis", section: "contoh_soal" },                            // 9
+  { conceptId: "permutasi_siklis", section: "refleksi_mini" },                           // 10
+] as const;
+
+export const PERMUTASI_CONCEPT_IDS = ["permutasi_r_unsur_dari_n_unsur", "permutasi_dengan_unsur_sama", "permutasi_siklis"] as const;
+
+/** Unified lookup: MATERI_SECTIONS + PERMUTASI_SECTIONS */
+export const ALL_SECTIONS = [...MATERI_SECTIONS, ...PERMUTASI_SECTIONS] as const;
+
 /**
  * Section yang validasi concept_id+section-nya harus dilakukan di application
  * layer menggunakan konstanta di atas. JANGAN mengandalkan CHECK constraint
@@ -189,6 +228,80 @@ export async function seedStudentSectionStatus(
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Permutasi Seeding Function
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Seed student_section_status rows for Permutasi.
+ *
+ * Idempotent -- safe to call multiple times. For permutasi, the first
+ * section of the first concept (permutasi_r_unsur_dari_n_unsur) is always
+ * unlocked on seed. Subsequent concepts start locked and are unlocked
+ * sequentially via completeSectionAndUnlockNext.
+ *
+ * @param studentId - The internal student.id (INT) from Prisma.
+ */
+export async function seedPermutasiSectionStatus(
+  studentId: number
+): Promise<SeedResult> {
+  // ── Step 1: Check which concepts need seeding ────────────────
+  const existingCounts = await Promise.all(
+    [...PERMUTASI_CONCEPT_IDS].map((cid) =>
+      prisma.studentSectionStatus.count({
+        where: { studentId, conceptId: cid },
+      }).then((count) => ({ conceptId: cid, count }))
+    )
+  );
+
+  const totalExisting = existingCounts.reduce((sum, c) => sum + c.count, 0);
+  const conceptsToSeed = existingCounts
+    .filter((c) => c.count === 0)
+    .map((c) => c.conceptId);
+
+  if (conceptsToSeed.length === 0) {
+    return { seeded: false, existingCount: totalExisting };
+  }
+
+  // ── Step 2: Build rows ──────────────────────────────────────
+  const sectionsToSeed = PERMUTASI_SECTIONS.filter((item) =>
+    conceptsToSeed.includes(item.conceptId)
+  );
+
+  const rows = sectionsToSeed.map((item, index) => {
+    const isFirstInConcept = sectionsToSeed.findIndex(
+      (s) => s.conceptId === item.conceptId
+    ) === index;
+    // First section of the first concept is unlocked; others start locked
+    const isFirstConcept = item.conceptId === "permutasi_r_unsur_dari_n_unsur";
+    const shouldUnlock = isFirstInConcept && isFirstConcept;
+
+    return {
+      studentId,
+      conceptId: item.conceptId,
+      section: item.section,
+      status: shouldUnlock ? "unlocked" : "locked",
+      completedAt: null,
+    };
+  });
+
+  // ── Step 3: Bulk insert ─────────────────────────────────────
+  await prisma.$transaction(async (tx) => {
+    await tx.studentSectionStatus.createMany({
+      data: rows as Array<{
+        studentId: number;
+        conceptId: string;
+        section: string;
+        status: string;
+        completedAt: null;
+      }>,
+      skipDuplicates: true,
+    });
+  });
+
+  return { seeded: true, existingCount: totalExisting };
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Section Completion -- Shared Function
 // ═══════════════════════════════════════════════════════════════
 
@@ -233,8 +346,8 @@ export async function completeSectionAndUnlockNext(
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const db: PrismaClient = tx ?? prisma;
 
-  // ── Find current index in the ordered array ──────────────────
-  const currentIndex = MATERI_SECTIONS.findIndex(
+  // ── Find current index in the unified ordered array ───────────
+  const currentIndex = ALL_SECTIONS.findIndex(
     (entry) => entry.conceptId === conceptId && entry.section === section
   );
 
@@ -268,12 +381,22 @@ export async function completeSectionAndUnlockNext(
 
   // ── 2. Look up the next step ─────────────────────────────────
   const nextIndex = currentIndex + 1;
-  if (nextIndex >= MATERI_SECTIONS.length) {
+  if (nextIndex >= ALL_SECTIONS.length) {
     // Current section is the last one -- nothing to unlock.
     return;
   }
 
-  const nextEntry = MATERI_SECTIONS[nextIndex];
+  const nextEntry = ALL_SECTIONS[nextIndex];
+
+  // ── 2a. Cross-family guard: don't unlock across concept families ──
+  const MATERI_FAMILY = new Set<string>([...MATERI_CONCEPT_IDS]);
+  const PERMUTASI_FAMILY = new Set<string>([...PERMUTASI_CONCEPT_IDS]);
+  const currentFamily = MATERI_FAMILY.has(conceptId) ? "materi" : PERMUTASI_FAMILY.has(conceptId) ? "permutasi" : null;
+  const nextFamily = MATERI_FAMILY.has(nextEntry.conceptId) ? "materi" : PERMUTASI_FAMILY.has(nextEntry.conceptId) ? "permutasi" : null;
+  if (currentFamily !== nextFamily) {
+    // Don't unlock across concept families (e.g., faktorial → permutasi)
+    return;
+  }
 
   // ── 3. Special case: aktivitas_siswa gate for refleksi_mini ──
   // When completing kaidah_perkalian.contoh_soal (index 11), the next
@@ -404,6 +527,17 @@ const LAST_QUESTION_KEY_MAP: Record<string, Record<string, string>> = {
     contoh_soal: "penjumlahan_transport",
     refleksi_mini: "refleksi_faktorial_4",
   },
+  permutasi_r_unsur_dari_n_unsur: {
+    eksplorasi_kontekstual: "soal_2_hitung_medali",
+  },
+  permutasi_dengan_unsur_sama: {
+    eksplorasi_kontekstual: "siapa_benar_ada",
+  },
+  permutasi_siklis: {
+    eksplorasi_kontekstual: "permutasi_siklis_eksplorasi",
+    contoh_soal: "contoh_7_totalAkhir",
+    refleksi_mini: "refleksi_permutasi_4",
+  },
 };
 
 /**
@@ -427,6 +561,24 @@ const REFLEKSI_ALL_QUESTION_KEYS: Record<string, string[]> = {
     "refleksi_faktorial_2",
     "refleksi_faktorial_3",
     "refleksi_faktorial_4",
+  ],
+  permutasi_r_unsur_dari_n_unsur: [
+    "refleksi_permutasi_1",
+    "refleksi_permutasi_2",
+    "refleksi_permutasi_3",
+    "refleksi_permutasi_4",
+  ],
+  permutasi_dengan_unsur_sama: [
+    "refleksi_permutasi_1",
+    "refleksi_permutasi_2",
+    "refleksi_permutasi_3",
+    "refleksi_permutasi_4",
+  ],
+  permutasi_siklis: [
+    "refleksi_permutasi_1",
+    "refleksi_permutasi_2",
+    "refleksi_permutasi_3",
+    "refleksi_permutasi_4",
   ],
 };
 

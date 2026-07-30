@@ -443,7 +443,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
             <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
               {fb.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
             </p>
-            <p className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</p>
+            <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</RichText>
           </div>
         )}
 
@@ -503,7 +503,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
             <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
               {fb.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
             </p>
-            <p className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</p>
+            <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</RichText>
           </div>
         )}
 
@@ -546,7 +546,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
             <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
               {fb.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
             </p>
-            <p className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</p>
+            <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</RichText>
           </div>
         )}
 
@@ -860,7 +860,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
       {readOnly && savedFeedback && (
         <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
           <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
-          <p className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{savedFeedback}</p>
+          <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{savedFeedback}</RichText>
         </div>
       )}
       <div className="border-b-2 border-[#34673966] mt-4" />
@@ -1386,9 +1386,9 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
                     <p className="mb-0.5 text-xs font-medium text-[#663362]">
                       💬 Feedback Kombi
                     </p>
-                    <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                    <RichText className="text-sm leading-relaxed text-[#2C2C2A]">
                       {fb.text}
-                    </p>
+                    </RichText>
                   </div>
                 )}
               </div>
@@ -1498,9 +1498,9 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
                   <p className="mb-0.5 text-xs font-medium text-[#663362]">
                     💬 Feedback Kombi
                   </p>
-                  <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                  <RichText className="text-sm leading-relaxed text-[#2C2C2A]">
                     {fb.text}
-                  </p>
+                  </RichText>
                 </div>
               )}
 

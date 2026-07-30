@@ -185,8 +185,24 @@ export async function GET(req: Request) {
             isCorrect: r.isCorrect,
             submittedAt: r.createdAt?.toISOString() ?? null,
           });
+        } else if (ans.activity && typeof ans.activity === "string") {
+          // This is a named activity entry (a1_table, a2_table, a1_langkah2, a2_nalar, etc.)
+          // Deduplicate: keep latest per activity name
+          const existingIdx = entries.findIndex(e => e.questionKey === ans.activity);
+          const entry = {
+            questionKey: ans.activity as string,
+            answer: r.answer,
+            feedback: r.feedback,
+            isCorrect: r.isCorrect,
+            submittedAt: r.createdAt?.toISOString() ?? null,
+          };
+          if (existingIdx >= 0) {
+            entries[existingIdx] = entry;
+          } else {
+            entries.push(entry);
+          }
         } else {
-          // This is a table answer entry (has numeric answer keys)
+          // Fallback: generic table entry (for Faktorial-style single-table answers)
           // Keep the latest table entry only
           const existingTableIdx = entries.findIndex(e => e.questionKey === "deep_learning_table");
           if (existingTableIdx >= 0) {

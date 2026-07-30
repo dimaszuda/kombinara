@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS refleksi_mini (
   refleksi_id  SERIAL    PRIMARY KEY,
   student_id   INT       NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
   concept_id   VARCHAR   NOT NULL
-                 CHECK (concept_id IN ('kaidah_penjumlahan', 'kaidah_perkalian', 'permutasi', 'kombinasi')),
+                 CHECK (concept_id IN ('kaidah_penjumlahan', 'kaidah_perkalian', 'permutasi', 'permutasi_r_unsur_dari_n_unsur', 'permutasi_dengan_unsur_sama', 'permutasi_siklis', 'kombinasi', 'faktorial')),
   question_key VARCHAR   NOT NULL,
   answer       TEXT      NOT NULL,
   feedback     TEXT,

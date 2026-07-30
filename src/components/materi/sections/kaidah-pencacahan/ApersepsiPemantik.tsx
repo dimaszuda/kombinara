@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useState, useCallback, useEffect, useRef } from "react";
+import { RichText } from "@/components/shared/RichText";
 import { CheckIcon, LightbulbIcon } from "@/components/ui/IconButton";
 import VehicleChoicePicker from "./VehicleChoicePicker";
 import OutfitComboPicker from "./OutfitComboPicker";
@@ -158,7 +159,7 @@ function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean })
       <p className={`mb-1 text-xs font-medium ${labelColor}`}>
         {isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
       </p>
-      <p className="text-sm leading-relaxed text-[#2C2C2A]">{text}</p>
+      <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{text}</RichText>
     </div>
   );
 }
