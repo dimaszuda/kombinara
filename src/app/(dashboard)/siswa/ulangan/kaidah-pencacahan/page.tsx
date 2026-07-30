@@ -26,7 +26,7 @@ const PETUNJUK = [
   'Tuliskan langkah-langkah cara perhitungan secara lengkap pada kolom "Cara Hitung".',
   'Tuliskan hasil akhir jawaban pada kolom "Jawaban Akhir".',
   "Pastikan semua soal telah dijawab sebelum menekan tombol Submit.",
-  "Asesmen ini dapat dikerjakan lebih dari satu kali dengan jeda 5 menit",
+  "Latihan ini dapat dikerjakan lebih dari satu kali dengan jeda 5 menit",
 ];
 
 const BOLEH = ["Menggunakan coretan / kertas buram", "Menghitung secara manual"];
@@ -230,12 +230,12 @@ export default function AsesmenKaidahPencacahanPage() {
         // Handle cooldown (429)
         if (res.status === 429 && err.cooldown_remaining_seconds) {
           setCooldownSeconds(err.cooldown_remaining_seconds);
-          setAttemptError(err.message ?? "Silakan tunggu sebelum memulai asesmen kembali.");
+          setAttemptError(err.message ?? "Silakan tunggu sebelum memulai latihan kembali.");
           return;
         }
 
         setAttemptError(
-          err.error ?? "Gagal memulai asesmen. Silakan coba lagi."
+          err.error ?? "Gagal memulai latihan. Silakan coba lagi."
         );
         return;
       }
@@ -256,7 +256,7 @@ export default function AsesmenKaidahPencacahanPage() {
     } catch (e) {
       console.error("[handleStart] Failed to create attempt:", e);
       setAttemptError(
-        "Gagal memulai asesmen. Periksa koneksi internet dan coba lagi."
+        "Gagal memulai latihan. Periksa koneksi internet dan coba lagi."
       );
     }
   }
@@ -383,7 +383,7 @@ export default function AsesmenKaidahPencacahanPage() {
   if (accessAllowed === null) {
     return (
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
-        <p style={{ fontSize: 15, color: "#6b8f6d" }}>Memeriksa akses asesmen...</p>
+        <p style={{ fontSize: 15, color: "#6b8f6d" }}>Memeriksa akses latihan...</p>
       </div>
     );
   }
@@ -525,7 +525,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
         </h1>
         <p style={{ fontSize: 14, color: "#9a7b5c", margin: 0, lineHeight: 1.7 }}>
           Kamu harus menyelesaikan seluruh section pada materi Kaidah
-          Penjumlahan dan Kaidah Perkalian sebelum dapat mengerjakan asesmen
+          Penjumlahan dan Kaidah Perkalian sebelum dapat mengerjakan latihan
           formatif ini.
         </p>
       </div>
@@ -708,7 +708,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
           }}
         >
           Selesaikan semua section di atas, lalu kembali ke halaman ini untuk
-          memulai asesmen.
+          memulai latihan pemahaman.
         </p>
       </div>
     </div>
@@ -720,7 +720,7 @@ function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () =
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "36px 24px" }}>
       <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#346739", opacity: 0.7, margin: "0 0 6px" }}>
-        Asesmen Formatif
+        Latihan Pemahaman (Asesmen)
       </p>
       <h1 style={{ fontSize: 26, fontWeight: 700, color: "#1a3d1c", margin: "0 0 28px" }}>
         Kaidah Pencacahan
@@ -761,7 +761,7 @@ function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () =
       {isOnCooldown && cooldownSeconds != null && cooldownSeconds > 0 && (
         <div style={{ textAlign: "center", marginBottom: 16, backgroundColor: "#fff5f0", borderRadius: 10, border: "1.5px solid #fde68a", padding: "12px 16px" }}>
           <p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>
-            ⏳ Silakan tunggu <strong>{formatTime(cooldownSeconds)}</strong> sebelum dapat memulai asesmen kembali.
+            ⏳ Silakan tunggu <strong>{formatTime(cooldownSeconds)}</strong> sebelum dapat memulai latihan kembali.
           </p>
         </div>
       )}
@@ -778,7 +778,7 @@ function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () =
             opacity: isOnCooldown ? 0.7 : 1,
           }}
         >
-          Siap, Mulai Asesmen
+          Siap, Mulai latihan
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />
           </svg>
@@ -890,7 +890,7 @@ function ActiveScreen({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 8 }}>
           <div>
             <p style={{ fontSize: 11, fontWeight: 600, color: "#346739", opacity: 0.7, margin: 0, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-              Asesmen Formatif — Kaidah Pencacahan
+              Latihan Pemahaman — Kaidah Pencacahan
             </p>
             <p style={{ fontSize: 12, color: "#6b8f6d", margin: "2px 0 0" }}>{answeredCount}/{SOAL_DATA.length} soal terjawab</p>
           </div>
@@ -1051,7 +1051,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1a3d1c", margin: "0 0 8px" }}>Jawaban Terkirim!</h1>
         <p style={{ fontSize: 15, color: "#5a7d5c", margin: 0, lineHeight: 1.7 }}>
-          {allAnswered ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan asesmen ini!" : `Kamu menjawab ${answeredCount} dari ${SOAL_DATA.length} soal. Jawaban telah dikirimkan.`}
+          {allAnswered ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan latihan ini!" : `Kamu menjawab ${answeredCount} dari ${SOAL_DATA.length} soal. Jawaban telah dikirimkan.`}
         </p>
 
         {/* Status: jawaban tersimpan & sedang dikoreksi */}
@@ -1063,7 +1063,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>Jawaban sudah tersimpan</p>
               <p style={{ fontSize: 12, color: "#5a7d5c", margin: 0, lineHeight: 1.6 }}>
-                Jawabanmu sedang dilakukan proses koreksi. Kembali lagi ke menu asesmen setelah beberapa jam untuk mendapatkan nilai hasil asesmen.
+                Jawabanmu sedang dilakukan proses koreksi. Kembali lagi ke menu latihan setelah beberapa jam untuk mendapatkan nilai hasil latihan.
               </p>
             </div>
           </div>
@@ -1104,7 +1104,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
 
       <div style={{ marginTop: 32, textAlign: "center" }}>
         <Link href="/siswa/ulangan" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", backgroundColor: "#346739", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-          ← Kembali ke Daftar Asesmen
+          ← Kembali ke Daftar Latihan
         </Link>
       </div>
     </div>
@@ -1222,7 +1222,7 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: Result
       {/* Cooldown Notice */}
       <div style={{ marginBottom: 24, backgroundColor: "#fff5f0", borderRadius: 10, border: "1.5px solid #fde68a", padding: "12px 16px", textAlign: "center" }}>
         <p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>
-          ⏳ Kamu dapat memulai asesmen kembali dalam <strong>5 menit</strong>. Gunakan waktu ini untuk mempelajari feedback dan memperbaiki pemahamanmu.
+          ⏳ Kamu dapat memulai latihan kembali dalam <strong>5 menit</strong>. Gunakan waktu ini untuk mempelajari feedback dan memperbaiki pemahamanmu.
         </p>
       </div>
 
@@ -1298,7 +1298,7 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: Result
       {/* Action Buttons */}
       <div style={{ textAlign: "center", display: "flex", gap: 12, justifyContent: "center" }}>
         <Link href="/siswa/ulangan" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", backgroundColor: "#346739", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-          ← Kembali ke Daftar Asesmen
+          ← Kembali ke Daftar Latihan
         </Link>
       </div>
     </div>

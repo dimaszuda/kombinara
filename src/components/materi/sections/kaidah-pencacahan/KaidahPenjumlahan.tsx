@@ -178,9 +178,9 @@ function SectionProgress({
 // Eksplorasi Kontekstual
 // ============================================================================
 
-const SOAL_EKSPLORASI_1 = `Kamu memiliki 4 baju batik berbeda motif dan 3 baju polos berbeda warna. Kamu ingin pergi bersama kedua orang tuamu untuk menghadiri pernikahan saudara. Berapa banyak pilihan baju yang bisa kamu pakai? Apakah kamu bisa memakai baju batik dan baju polos sekaligus? Atau bersamaan?`;
+const SOAL_EKSPLORASI_1 = `Kamu memiliki 4 baju batik berbeda motif dan 3 baju polos berbeda warna. Kamu ingin pergi bersama kedua orang tuamu untuk menghadiri pernikahan saudara. Kamu hanya diperbolehkan memakai 1 baju oleh kedua orang tuamu. Berapa banyak pilihan baju yang bisa kamu pakai? Apakah kamu bisa memakai baju batik dan baju polos sekaligus? Atau bersamaan?`;
 
-const SOAL_EKSPLORASI_2 = `Kamu ingin pergi dari Jakarta ke Bali. Ada 3 penerbangan langsung dan 2 rute jalur laut yang tersedia. Berapa total pilihan cara kamu bisa pergi ke Bali? Apakah kamu bisa mengambil penerbangan dan jalur laut sekaligus dalam satu perjalanan?`;
+const SOAL_EKSPLORASI_2 = `Kamu ingin pergi dari Jakarta ke Bali. Kamu dapat memilih salah satu dari jenis rute/jalur yaitu jalur udara atau jalur laut. Ada 3 penerbangan langsung dan 2 rute jalur laut yang tersedia. Berapa total pilihan cara kamu bisa pergi ke Bali? Apakah kamu bisa mengambil penerbangan dan jalur laut sekaligus dalam satu perjalanan?`;
 
 function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: SectionProps & { savedData?: PenjumlahanEksplorasiSavedData }) {
   // ── Restore answers from savedData ──────────────────────────────

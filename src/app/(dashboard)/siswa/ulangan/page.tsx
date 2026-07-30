@@ -63,7 +63,7 @@ export default function UlanganListPage() {
             opacity: 0.7,
           }}
         >
-          Asesmen Formatif
+          Latihan Pemahaman (Asesmen)
         </p>
         <h1
           style={{
@@ -74,7 +74,7 @@ export default function UlanganListPage() {
             lineHeight: "1.3",
           }}
         >
-          Pilih Materi Asesmen
+          Pilih Materi Latihan Pemahaman
         </h1>
       </div>
 
@@ -154,7 +154,7 @@ export default function UlanganListPage() {
                       borderRadius: "99px",
                     }}
                   >
-                    Asesmen Formatif
+                    Latihan Pemahaman
                   </span>
                 </div>
 
@@ -223,7 +223,7 @@ export default function UlanganListPage() {
                       letterSpacing: "0.01em",
                     }}
                   >
-                    Mulai Asesmen
+                    Mulai Latihan
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="9 18 15 12 9 6" />
                     </svg>

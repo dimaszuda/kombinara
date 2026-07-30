@@ -31,7 +31,7 @@ const NAV_ITEMS_SISWA: NavItemDef[] = [
     icon: "/icons/activity.png"
   },
   {
-    label: "Assesmen Formatif",
+    label: "Latihan Pemahaman",
     href: "/siswa/ulangan",
     icon: "/icons/test.png",
   },
@@ -44,7 +44,7 @@ const NAV_ITEMS_GURU: NavItemDef[] = [
     icon: "/icons/dashboard icon.png",
   },
   {
-    label: "Learning Analytics Dashboard",
+    label: "Learning Dashboard",
     href: "/guru/dashboard",
     icon: "/icons/data-analytics.png",
   },
@@ -56,10 +56,10 @@ const NAV_ITEMS_GURU: NavItemDef[] = [
   {
     label: "Aktivitas Siswa",
     href: "/siswa/activity",
-    icon: "/icons/activity.png"
+    icon: "/icons/activity.png" 
   },
   {
-    label: "Assesmen Formatif",
+    label: "Latihan Pemahaman",
     href: "/siswa/ulangan",
     icon: "/icons/test.png",
   },
