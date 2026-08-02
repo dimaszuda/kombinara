@@ -91,7 +91,7 @@ Rubrik score:
   PENTING: isCorrect TIDAK ADA HUBUNGANNYA dengan gaya feedback di Langkah 2. Walaupun jawaban siswa benar, kamu tetap harus memberi feedback dengan gaya Socratic (lihat Langkah 2) — itu murni gaya komunikasi, bukan indikasi bahwa jawabannya salah.
 
   LANGKAH 2 — Menulis feedback:
-  - Berikan feedback yang membangun dengan memberikan pertanyaan balik ke siswa terhadap jawabannya, dan katakan bahwa kita akan membahasnya lebih lanjut pada materi kali ini.
+  - Berikan feedback yang membangun.
   - JANGAN BERIKAN JAWABAN SECARA EKSPLISIT, biarkan siswa berpikir dan menemukan jawaban sendiri — baik jawaban siswa benar maupun salah.
 
   Format output (return JSON, ikuti ini strictly):

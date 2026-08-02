@@ -389,7 +389,7 @@ export default function CourierRouteExplorer({
 
         <div className="mt-3">
           <label className="mb-1 block text-xs font-medium text-[#663362]">
-            Cara hitung total rutenya
+            Cara hitung total rute pulang pergi
           </label>
           <textarea
             placeholder="ceritain logikamu"
