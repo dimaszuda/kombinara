@@ -23,7 +23,7 @@ const ACTIVITY_CARDS = [
   {
     ...MATERI_CARDS[3],
     tujuan:
-      "Setelah menyelesaikan aktivitas ini, siswa mampu menentukan banyaknya cara memilih beberapa objek dari suatu himpunan tanpa memperhatikan urutan penyusunnya.",
+      "Setelah menyelesaikan aktivitas ini, siswa mampu membedakan kombinasi dari permutasi berdasarkan konteks, menerapkan rumus kombinasi termasuk dengan syarat, memilih strategi penyelesaian yang tepat, dan menjelaskan alasan penggunaan kombinasi secara konseptual.",
   },
 ];
 
