@@ -20,7 +20,7 @@ export const MATERI_CARDS = [
     alt: "Faktorial",
   },
   {
-    id: "2",
+    id: "3",
     title: "Permutasi",
     href: "/siswa/materi/permutasi",
     activity: "/siswa/activity/permutasi",
@@ -30,7 +30,7 @@ export const MATERI_CARDS = [
     alt: "Permutasi",
   },
   {
-    id: "3",
+    id: "4",
     title: "Kombinasi",
     href: "/siswa/materi/kombinasi",
     activity: "/siswa/activity/kombinasi",
@@ -38,6 +38,16 @@ export const MATERI_CARDS = [
       "Materi kombinasi membahas tentang cara menghitung banyaknya pilihan objek ketika urutan tidak diperhatikan.",
     image: "/images/kombinasi.png",
     alt: "Kombinasi",
+  },
+  {
+    id: "5",
+    title: "Bagian Penutup Modul",
+    href: "/siswa/materi/penutup",
+    activity: null,
+    description:
+      "Refleksi mendalam, asesmen diri, rangkuman konsep, glosarium, dan soal tantangan untuk memperkuat pemahamanmu terhadap seluruh materi Kaidah Pencacahan.",
+    image: "/images/penutup-card.svg",
+    alt: "Bagian Penutup Modul",
   },
 ];
 

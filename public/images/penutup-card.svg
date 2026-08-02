@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Book cover -->
+  <path
+    d="M40 30 L160 30 L160 175 L100 150 L40 175 Z"
+    stroke="#346739"
+    stroke-width="6"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <!-- Spine line -->
+  <line x1="100" y1="30" x2="100" y2="150" stroke="#346739" stroke-width="4" stroke-linecap="round" />
+  <!-- Bookmark ribbon -->
+  <path
+    d="M130 30 L130 90 L115 80 L100 90 L100 30"
+    stroke="#346739"
+    stroke-width="5"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <!-- Checkmark on bookmark -->
+  <path
+    d="M110 70 L116 77 L130 60"
+    stroke="#346739"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Text lines on book -->
+  <line x1="55" y1="95" x2="85" y2="92" stroke="#346739" stroke-width="3" stroke-linecap="round" />
+  <line x1="55" y1="115" x2="88" y2="112" stroke="#346739" stroke-width="3" stroke-linecap="round" />
+  <line x1="55" y1="135" x2="82" y2="132" stroke="#346739" stroke-width="3" stroke-linecap="round" />
+  <line x1="115" y1="100" x2="88" y2="98" stroke="#346739" stroke-width="3" stroke-linecap="round" />
+  <line x1="115" y1="120" x2="88" y2="118" stroke="#346739" stroke-width="3" stroke-linecap="round" />
+  <line x1="115" y1="140" x2="90" y2="138" stroke="#346739" stroke-width="3" stroke-linecap="round" />
+  <!-- Sparkle top-right (penutup = completion) -->
+  <path d="M150 50 L155 65 L170 70 L155 75 L150 90 L145 75 L130 70 L145 65 Z"
+    stroke="#346739" stroke-width="3.5" stroke-linejoin="round" fill="none" />
+</svg>
