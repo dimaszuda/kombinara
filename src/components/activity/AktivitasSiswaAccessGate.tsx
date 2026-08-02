@@ -34,7 +34,7 @@ const C = {
 const CONCEPT_NAMES: Record<string, string> = {
   kaidah_perkalian: "Kaidah Perkalian",
   faktorial: "Faktorial",
-  permutasi: "Permutasi",
+  permutasi_siklis: "Permutasi",
 };
 
 // ── Spinner ─────────────────────────────────────────────────────────────────

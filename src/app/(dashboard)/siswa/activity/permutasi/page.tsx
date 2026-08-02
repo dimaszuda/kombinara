@@ -140,7 +140,7 @@ function ActivityCard({ data }: ActivityCardProps) {
 
 export default function AktivitasSiswa() {
   return (
-    <AktivitasSiswaAccessGate conceptId="permutasi" materialSlug="permutasi">
+    <AktivitasSiswaAccessGate conceptId="permutasi_siklis" materialSlug="permutasi">
       <div className="min-h-screen py-8 px-4" style={{ backgroundColor: C.white }}>
         <div className="max-w-[1400px] mx-auto">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3 pb-4">

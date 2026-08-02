@@ -100,8 +100,32 @@ export const PERMUTASI_SECTIONS = [
 
 export const PERMUTASI_CONCEPT_IDS = ["permutasi_r_unsur_dari_n_unsur", "permutasi_dengan_unsur_sama", "permutasi_siklis"] as const;
 
-/** Unified lookup: MATERI_SECTIONS + PERMUTASI_SECTIONS */
-export const ALL_SECTIONS = [...MATERI_SECTIONS, ...PERMUTASI_SECTIONS] as const;
+// ═══════════════════════════════════════════════════════════════
+// Kombinasi Sections (1 concept, 7 sections)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * kombinasi (indices 0-6, 7 sections):
+ *   eksplorasi_kontekstual -> aktivitas_deep_learning -> penjelasan_konsep
+ *   -> contoh_soal -> mengapa_corner -> permutasi_vs_kombinasi -> refleksi_mini
+ *
+ * NOTE: permutasi_vs_kombinasi (Panduan Definitif) is read-only and
+ * NOT tracked in student_section_status. It is skipped during seeding.
+ */
+export const KOMBINASI_SECTIONS = [
+  { conceptId: "kombinasi", section: "eksplorasi_kontekstual" },
+  { conceptId: "kombinasi", section: "aktivitas_deep_learning" },
+  { conceptId: "kombinasi", section: "penjelasan_konsep" },
+  { conceptId: "kombinasi", section: "contoh_soal" },
+  { conceptId: "kombinasi", section: "mengapa_corner" },
+  // permutasi_vs_kombinasi is skipped (read-only, not in DB)
+  { conceptId: "kombinasi", section: "refleksi_mini" },
+] as const;
+
+export const KOMBINASI_CONCEPT_IDS = ["kombinasi"] as const;
+
+/** Unified lookup: MATERI_SECTIONS + PERMUTASI_SECTIONS + KOMBINASI_SECTIONS */
+export const ALL_SECTIONS = [...MATERI_SECTIONS, ...PERMUTASI_SECTIONS, ...KOMBINASI_SECTIONS] as const;
 
 /**
  * Section yang validasi concept_id+section-nya harus dilakukan di application
@@ -302,6 +326,80 @@ export async function seedPermutasiSectionStatus(
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Kombinasi Seeding Function
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Seed student_section_status rows for Kombinasi.
+ *
+ * Idempotent -- safe to call multiple times. The first section
+ * (eksplorasi_kontekstual) is always unlocked on seed. Subsequent
+ * sections start locked and are unlocked sequentially.
+ *
+ * NOTE: permutasi_vs_kombinasi (Panduan Definitif) is NOT seeded --
+ * it's a read-only section not tracked in student_section_status.
+ *
+ * @param studentId - The internal student.id (INT) from Prisma.
+ */
+export async function seedKombinasiSectionStatus(
+  studentId: number
+): Promise<SeedResult> {
+  const conceptIds = [...KOMBINASI_CONCEPT_IDS];
+
+  const existingCounts = await Promise.all(
+    conceptIds.map((cid) =>
+      prisma.studentSectionStatus.count({
+        where: { studentId, conceptId: cid },
+      }).then((count) => ({ conceptId: cid, count }))
+    )
+  );
+
+  const totalExisting = existingCounts.reduce((sum, c) => sum + c.count, 0);
+  const conceptsToSeed = existingCounts
+    .filter((c) => c.count === 0)
+    .map((c) => c.conceptId);
+
+  if (conceptsToSeed.length === 0) {
+    return { seeded: false, existingCount: totalExisting };
+  }
+
+  const sectionsToSeed = KOMBINASI_SECTIONS.filter((item) =>
+    conceptsToSeed.includes(item.conceptId)
+  );
+
+  const rows = sectionsToSeed.map((item, index) => {
+    const isFirstInConcept = sectionsToSeed.findIndex(
+      (s) => s.conceptId === item.conceptId
+    ) === index;
+    // First section is unlocked; others start locked
+    const shouldUnlock = isFirstInConcept;
+
+    return {
+      studentId,
+      conceptId: item.conceptId,
+      section: item.section,
+      status: shouldUnlock ? "unlocked" : "locked",
+      completedAt: null,
+    };
+  });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.studentSectionStatus.createMany({
+      data: rows as Array<{
+        studentId: number;
+        conceptId: string;
+        section: string;
+        status: string;
+        completedAt: null;
+      }>,
+      skipDuplicates: true,
+    });
+  });
+
+  return { seeded: true, existingCount: totalExisting };
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Section Completion -- Shared Function
 // ═══════════════════════════════════════════════════════════════
 
@@ -391,8 +489,9 @@ export async function completeSectionAndUnlockNext(
   // ── 2a. Cross-family guard: don't unlock across concept families ──
   const MATERI_FAMILY = new Set<string>([...MATERI_CONCEPT_IDS]);
   const PERMUTASI_FAMILY = new Set<string>([...PERMUTASI_CONCEPT_IDS]);
-  const currentFamily = MATERI_FAMILY.has(conceptId) ? "materi" : PERMUTASI_FAMILY.has(conceptId) ? "permutasi" : null;
-  const nextFamily = MATERI_FAMILY.has(nextEntry.conceptId) ? "materi" : PERMUTASI_FAMILY.has(nextEntry.conceptId) ? "permutasi" : null;
+  const KOMBINASI_FAMILY = new Set<string>([...KOMBINASI_CONCEPT_IDS]);
+  const currentFamily = MATERI_FAMILY.has(conceptId) ? "materi" : PERMUTASI_FAMILY.has(conceptId) ? "permutasi" : KOMBINASI_FAMILY.has(conceptId) ? "kombinasi" : null;
+  const nextFamily = MATERI_FAMILY.has(nextEntry.conceptId) ? "materi" : PERMUTASI_FAMILY.has(nextEntry.conceptId) ? "permutasi" : KOMBINASI_FAMILY.has(nextEntry.conceptId) ? "kombinasi" : null;
   if (currentFamily !== nextFamily) {
     // Don't unlock across concept families (e.g., faktorial → permutasi)
     return;
@@ -420,7 +519,7 @@ export async function completeSectionAndUnlockNext(
   // If it exists as 'unlocked' or 'completed', leaves it unchanged.
   await db.$executeRawUnsafe(
     `INSERT INTO student_section_status (student_id, concept_id, section, status, completed_at)
-     VALUES ($1, $2, $3, 'unlocked', NULL)
+     VALUES ($1, $2::concept_type, $3, 'unlocked', NULL)
      ON CONFLICT (student_id, concept_id, section)
      DO UPDATE SET status = 'unlocked'
      WHERE student_section_status.status = 'locked'`,
@@ -538,6 +637,12 @@ const LAST_QUESTION_KEY_MAP: Record<string, Record<string, string>> = {
     contoh_soal: "contoh_7_totalAkhir",
     refleksi_mini: "refleksi_permutasi_4",
   },
+  kombinasi: {
+    eksplorasi_kontekstual: "tim_basket_urutan",
+    contoh_soal: "c3_total",
+    mengapa_corner: "mengapa_dikali_ditambah",
+    refleksi_mini: "refleksi_4",
+  },
 };
 
 /**
@@ -579,6 +684,12 @@ const REFLEKSI_ALL_QUESTION_KEYS: Record<string, string[]> = {
     "refleksi_permutasi_2",
     "refleksi_permutasi_3",
     "refleksi_permutasi_4",
+  ],
+  kombinasi: [
+    "refleksi_1",
+    "refleksi_2",
+    "refleksi_3",
+    "refleksi_4",
   ],
 };
 

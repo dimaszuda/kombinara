@@ -229,9 +229,10 @@ export async function GET(req: Request) {
     else if (section === "penjelasan_konsep") {
       entries = [];
     }
-    // --- mengapa_corner (stored in eksplorasi_kontekstual table, faktorial only) ---
+    // --- mengapa_corner (stored in eksplorasi_kontekstual for faktorial, refleksi_mini for kombinasi) ---
     else if (section === "mengapa_corner") {
-      const rows = await prisma.$queryRaw<
+      // First, try eksplorasi_kontekstual (used by faktorial)
+      const eksRows = await prisma.$queryRaw<
         Array<{
           question_key: string;
           answer: unknown;
@@ -249,7 +250,7 @@ export async function GET(req: Request) {
         LIMIT 1
       `;
 
-      for (const r of rows) {
+      for (const r of eksRows) {
         entries.push({
           questionKey: r.question_key,
           answer: r.answer,
@@ -258,9 +259,36 @@ export async function GET(req: Request) {
           submittedAt: r.created_at,
         });
       }
+
+      // If not found in eksplorasi_kontekstual, try refleksi_mini (used by kombinasi)
+      if (entries.length === 0) {
+        const refRows = await prisma.refleksiMini.findMany({
+          where: { studentId, conceptId: concept_id, questionKey: "mengapa_dikali_ditambah" },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: {
+            questionKey: true,
+            answer: true,
+            feedback: true,
+            isCorrect: true,
+            createdAt: true,
+          },
+        });
+
+        for (const r of refRows) {
+          entries.push({
+            questionKey: r.questionKey,
+            answer: r.answer,
+            feedback: r.feedback,
+            isCorrect: r.isCorrect,
+            submittedAt: r.createdAt?.toISOString() ?? null,
+          });
+        }
+      }
     }
     // --- contoh_soal ---
     else if (section === "contoh_soal") {
+      // Get latest attempt per question_key (including wrong answers for AI-graded questions like c3_reason)
       const rows = await prisma.$queryRaw<
         Array<{
           question_key: string;
@@ -269,22 +297,18 @@ export async function GET(req: Request) {
           submitted_at: string;
         }>
       >`
-        SELECT question_key, answer, is_correct, submitted_at
+        SELECT DISTINCT ON (question_key) question_key, answer, is_correct, submitted_at
         FROM contoh_soal_bertahap_attempts
         WHERE student_id = ${studentId}
           AND concept_id = ${concept_id}
-          AND is_correct = true
         ORDER BY question_key ASC, submitted_at DESC
       `;
 
-      const seen = new Set<string>();
       for (const r of rows) {
-        if (seen.has(r.question_key)) continue;
-        seen.add(r.question_key);
         entries.push({
           questionKey: r.question_key,
           answer: r.answer,
-          feedback: null, // contoh_soal table doesn't store AI feedback
+          feedback: null, // contoh_soal table doesn't store AI feedback directly
           isCorrect: r.is_correct,
           submittedAt: r.submitted_at,
         });

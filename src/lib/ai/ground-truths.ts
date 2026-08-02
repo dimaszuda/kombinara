@@ -69,6 +69,30 @@ export const APERSEPSI_PEMANTIK_GROUND_TRUTH: Record<string, string> = {
     "P(n,n) = n! karena jika kita menyusun SEMUA n objek yang berbeda dengan urutan diperhatikan, sama saja dengan menyusun n objek dalam satu baris penuh. Jumlah caranya persis n! (n × (n-1) × ... × 1). Secara intuitif: saat r = n, tidak ada objek yang 'tersisa' atau 'tidak terpakai', sehingga penyebut (n-r)! menjadi 0! = 1 dan rumus P(n,n) = n!/0! = n!.",
 };
 
+/**
+ * Kombinasi — ground truth khusus untuk soal kombinasi.
+ * Key = question_key (unik dalam konteks kombinasi).
+ */
+export const KOMBINASI_AI_GROUND_TRUTH: Record<string, string> = {
+  // Mengapa Corner
+  mengapa_dikali_ditambah:
+    "Di dalam satu kasus (misalnya tepat 2 perempuan), pemilihan perempuan DAN pemilihan laki-laki terjadi bersamaan dalam satu tim yang sama — karena keduanya dibutuhkan sekaligus dalam tim itu, maka digunakan aturan perkalian (×). Antar kasus (tepat 2, tepat 3, tepat 4), kasus-kasus tersebut saling lepas (sebuah tim tidak mungkin sekaligus tepat 2 DAN tepat 3 perempuan), sehingga total tim adalah jumlah dari hasil setiap kasus — digunakan aturan penjumlahan (+).",
+
+  // Contoh Soal c3_reason
+  c3_reason:
+    "Di dalam satu kasus (misalnya tepat 2 perempuan), pemilihan perempuan DAN pemilihan laki-laki terjadi bersamaan dalam satu tim yang sama — karena keduanya dibutuhkan sekaligus dalam tim itu, maka digunakan aturan perkalian (×). Antar kasus (tepat 2, tepat 3, tepat 4), kasus-kasus tersebut saling lepas (sebuah tim tidak mungkin sekaligus tepat 2 DAN tepat 3 perempuan), sehingga total tim adalah jumlah dari hasil setiap kasus — digunakan aturan penjumlahan (+).",
+
+  // Refleksi Mini
+  refleksi_1:
+    "C(n,r) = P(n,r) / r! — kombinasi adalah permutasi yang dibagi dengan faktorial banyaknya cara menyusun r objek yang dipilih. C(n,r) = C(n, n−r) karena memilih r objek dari n sama dengan memilih n−r objek yang tidak dipilih. Secara intuitif: menentukan siapa yang masuk tim sama dengan menentukan siapa yang tidak masuk tim.",
+  refleksi_2:
+    "Kombinasi: memilih 3 perwakilan kelas dari 8 siswa (urutan tidak penting, tidak ada jabatan). Permutasi: memilih ketua, wakil, dan sekretaris dari 8 siswa (urutan penting, jabatan berbeda). Perbedaan kuncinya: kombinasi untuk pemilihan tanpa urutan/jabatan, permutasi untuk penyusunan dengan urutan/jabatan.",
+  refleksi_3:
+    "Kombinasi perlu digabungkan (dijumlahkan) ketika soal memiliki syarat seperti 'minimal' atau 'maksimal'. Contoh: minimal 2 perempuan berarti menjumlahkan kasus tepat 2 + tepat 3 + tepat 4 perempuan. Setiap kasus dihitung dengan aturan perkalian (memilih perempuan DAN laki-laki), lalu hasil tiap kasus dijumlahkan karena kasus-kasusnya saling lepas.",
+  refleksi_4:
+    "Urutan belajar: Kaidah Perkalian (dasar: memilih bertahap) → Faktorial (notasi ringkas perkalian menurun) → Permutasi (susunan dengan urutan) → Kombinasi (pemilihan tanpa urutan). Urutan ini masuk akal karena setiap konsep dibangun di atas konsep sebelumnya: faktorial adalah alat tulis untuk kaidah perkalian, permutasi = kaidah perkalian yang diformulakan dengan faktorial, kombinasi = permutasi yang dibagi faktorial untuk menghilangkan urutan. Jika kombinasi diajarkan duluan, siswa tidak akan punya fondasi untuk memahami dari mana rumus C(n,r) berasal.",
+};
+
 /** Deep Learning — keyed by concept_id */
 export const DEEP_LEARNING_GROUND_TRUTH: Record<string, string> = {
   kaidah_penjumlahan:

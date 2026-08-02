@@ -16,13 +16,16 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
-import { seedStudentSectionStatus, seedPermutasiSectionStatus } from "@/lib/data/student-section-status";
+import { seedStudentSectionStatus, seedPermutasiSectionStatus, seedKombinasiSectionStatus } from "@/lib/data/student-section-status";
 
 /** Slugs that trigger Kaidah Pencacahan seeding. */
 const SEEDABLE_SLUGS = new Set(["kaidah-pencacahan", "faktorial"]);
 
 /** Slugs that trigger Permutasi seeding. */
 const PERMUTASI_SLUGS = new Set(["permutasi"]);
+
+/** Slugs that trigger Kombinasi seeding. */
+const KOMBINASI_SLUGS = new Set(["kombinasi"]);
 
 // ─── GET ────────────────────────────────────────────────────────────
 
@@ -54,6 +57,12 @@ export async function GET(
   // ── Handle permutasi seeding ─────────────────────────────────────
   if (PERMUTASI_SLUGS.has(slug)) {
     const result = await seedPermutasiSectionStatus(student.id);
+    return NextResponse.json(result);
+  }
+
+  // ── Handle kombinasi seeding ─────────────────────────────────────
+  if (KOMBINASI_SLUGS.has(slug)) {
+    const result = await seedKombinasiSectionStatus(student.id);
     return NextResponse.json(result);
   }
 
