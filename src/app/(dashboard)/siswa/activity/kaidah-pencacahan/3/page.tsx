@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { IconClock, IconUserGroup } from "@/components/activity/ActivityIcons";
+import { RichText } from "@/components/shared/RichText";
 
 // ── Color palette ──
 const C = {
