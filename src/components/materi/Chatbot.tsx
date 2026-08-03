@@ -908,10 +908,11 @@ export default function Chatbot({
 
                 if (!streamingMsgId) {
                   // Chunk pertama: tambahkan pesan AI ke array
-                  streamingMsgId = `${Date.now()}-ai`;
+                  const msgId = `${Date.now()}-ai`;
+                  streamingMsgId = msgId;
                   setMessages((prev) => [
                     ...prev,
-                    { id: streamingMsgId, type: "ai", text: accumulated },
+                    { id: msgId, type: "ai", text: accumulated },
                   ]);
                 } else {
                   // Chunk berikutnya: update teks secara inkremental
