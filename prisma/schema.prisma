@@ -56,19 +56,22 @@ model Student {
   gender        String
   classId       Int    @map("class_id")
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  class Class @relation(fields: [classId], references: [id])
-  apersepsiResponses      ApersepsiPemantikResponse[]
-  drafts                  AsesmenFormatifDraft[]
-  submissions             AsesmenFormatifSubmission[]
-  attempts                AsesmenFormatifAttempt[]
-  integrityEvents         IntegrityEvent[]
-  eksplorasiKontekstual   EksplorasiKontekstual[]
-  aktivitasDeepLearning   AktivitasDeepLearning[]
-  refleksiMini            RefleksiMini[]
-  aktivitasSiswaEntries   AktivitasSiswaEntry[]
-  aiMessages              AiMessage[]
-  studentSectionStatuses  StudentSectionStatus[]
+  user                        User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class                       Class                        @relation(fields: [classId], references: [id])
+  apersepsiResponses          ApersepsiPemantikResponse[]
+  drafts                      AsesmenFormatifDraft[]
+  submissions                 AsesmenFormatifSubmission[]
+  attempts                    AsesmenFormatifAttempt[]
+  integrityEvents             IntegrityEvent[]
+  eksplorasiKontekstual       EksplorasiKontekstual[]
+  aktivitasDeepLearning       AktivitasDeepLearning[]
+  refleksiMini                RefleksiMini[]
+  aktivitasSiswaEntries       AktivitasSiswaEntry[]
+  aiMessages                  AiMessage[]
+  studentSectionStatuses      StudentSectionStatus[]
+  tantanganSubmissions        TantanganSubmission[]
+  asesmenDiriSubmission       AsesmenDiriSubmission?
+  refleksiMendalamSubmissions RefleksiMendalamSubmission[]
 
   @@map("students")
 }
@@ -83,7 +86,7 @@ model ClassSettings {
   leaderboardMode String   @default("activity_score") @map("leaderboard_mode")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  class           Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@map("class_settings")
 }
@@ -162,7 +165,7 @@ model AiMessage {
   messageId      Int      @id @default(autoincrement()) @map("message_id")
   studentId      Int      @map("student_id")
   conversationId String   @map("conversation_id") @db.Uuid
-  role           String   // "user" | "assistant"
+  role           String // "user" | "assistant"
   content        String
   createdAt      DateTime @default(now()) @map("created_at")
 
@@ -197,15 +200,15 @@ model Quiz {
 }
 
 model Soal {
-  id           Int       @id @default(autoincrement())
-  quizId       Int?      @map("quiz_id")
-  ulanganId    Int?      @map("ulangan_id")
+  id           Int      @id @default(autoincrement())
+  quizId       Int?     @map("quiz_id")
+  ulanganId    Int?     @map("ulangan_id")
   tipe         TipeSoal
   pertanyaan   String
   opsi         Json?
-  jawabanBenar String?   @map("jawaban_benar")
+  jawabanBenar String?  @map("jawaban_benar")
   rubrik       String?
-  bobot        Int       @default(10)
+  bobot        Int      @default(10)
   urutan       Int
 
   quiz    Quiz?          @relation(fields: [quizId], references: [id], onDelete: Cascade)
@@ -358,10 +361,10 @@ model Module {
   slug String @unique
   nama String
 
-  drafts            AsesmenFormatifDraft[]
-  submissions       AsesmenFormatifSubmission[]
-  attempts          AsesmenFormatifAttempt[]
-  integrityEvents   IntegrityEvent[]
+  drafts          AsesmenFormatifDraft[]
+  submissions     AsesmenFormatifSubmission[]
+  attempts        AsesmenFormatifAttempt[]
+  integrityEvents IntegrityEvent[]
 
   @@map("modules")
 }
@@ -384,20 +387,20 @@ model AsesmenFormatifDraft {
 }
 
 model AsesmenFormatifSubmission {
-  id            Int        @id @default(autoincrement()) @map("submission_id")
-  studentId     Int        @map("student_id")
-  moduleId      Int        @map("module_id")
-  conceptId     String     @map("concept_id")
-  answers       Json       @map("answers")
-  totalScore    Float?     @map("total_score")
-  perQuestionResults Json? @map("per_question_results")
-  aiFeedback    String?    @map("ai_feedback")
-  evaluatedAt   DateTime?  @map("evaluated_at")
-  aiModel       String?    @map("ai_model")
-  submittedAt   DateTime   @default(now()) @map("submitted_at")
+  id                 Int       @id @default(autoincrement()) @map("submission_id")
+  studentId          Int       @map("student_id")
+  moduleId           Int       @map("module_id")
+  conceptId          String    @map("concept_id")
+  answers            Json      @map("answers")
+  totalScore         Float?    @map("total_score")
+  perQuestionResults Json?     @map("per_question_results")
+  aiFeedback         String?   @map("ai_feedback")
+  evaluatedAt        DateTime? @map("evaluated_at")
+  aiModel            String?   @map("ai_model")
+  submittedAt        DateTime  @default(now()) @map("submitted_at")
 
-  student  Student                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  module   Module                     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  student  Student                  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  module   Module                   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   attempts AsesmenFormatifAttempt[]
 
   @@index([studentId])
@@ -419,10 +422,10 @@ model AsesmenFormatifAttempt {
   completedAt  DateTime? @map("completed_at")
   submissionId Int?      @map("submission_id")
 
-  student     Student                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  module      Module                     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  submission  AsesmenFormatifSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
-  events      IntegrityEvent[]
+  student    Student                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  module     Module                     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  submission AsesmenFormatifSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  events     IntegrityEvent[]
 
   @@index([studentId])
   @@index([moduleId])
@@ -431,18 +434,18 @@ model AsesmenFormatifAttempt {
 }
 
 model IntegrityEvent {
-  eventId    Int        @id @default(autoincrement()) @map("event_id")
-  studentId  Int        @map("student_id")
-  moduleId   Int        @map("module_id")
-  attemptId  Int        @map("attempt_id")
-  eventType  String     @map("event_type") // 'fullscreen_enter' | 'fullscreen_exit' | 'visibility_hidden' | 'visibility_visible' | 'paste' | 'resize'
-  deviceType String     @map("device_type") // 'mobile' | 'tablet' | 'desktop'
-  metadata   Json?      @map("metadata")
-  createdAt  DateTime   @default(now()) @map("created_at")
+  eventId    Int      @id @default(autoincrement()) @map("event_id")
+  studentId  Int      @map("student_id")
+  moduleId   Int      @map("module_id")
+  attemptId  Int      @map("attempt_id")
+  eventType  String   @map("event_type") // 'fullscreen_enter' | 'fullscreen_exit' | 'visibility_hidden' | 'visibility_visible' | 'paste' | 'resize'
+  deviceType String   @map("device_type") // 'mobile' | 'tablet' | 'desktop'
+  metadata   Json?    @map("metadata")
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  student Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  module  Module                  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  attempt AsesmenFormatifAttempt  @relation(fields: [attemptId], references: [attemptId], onDelete: Cascade)
+  student Student                @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  module  Module                 @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  attempt AsesmenFormatifAttempt @relation(fields: [attemptId], references: [attemptId], onDelete: Cascade)
 
   @@index([attemptId, createdAt])
   @@index([studentId])
@@ -546,4 +549,51 @@ model StudentSectionStatus {
 
   @@id([studentId, conceptId, section])
   @@map("student_section_status")
+}
+
+// ============================================================
+// PHASE 10 — Penutup Modul: Tantangan, Asesmen Diri, Refleksi Mendalam
+// ============================================================
+
+model TantanganSubmission {
+  submissionId   Int      @id @default(autoincrement()) @map("submission_id")
+  studentId      Int      @map("student_id")
+  questionNumber Int      @map("question_number")
+  questionText   String   @map("question_text")
+  jawaban        String
+  isCorrect      Boolean?
+  feedback       String?
+  submittedAt    DateTime @default(now()) @map("submitted_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("tantangan_submissions")
+}
+
+model AsesmenDiriSubmission {
+  submissionId Int      @id @default(autoincrement()) @map("submission_id")
+  studentId    Int      @map("student_id")
+  checklist    Json
+  submittedAt  DateTime @default(now()) @map("submitted_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId])
+  @@map("asesmen_diri_submissions")
+}
+
+model RefleksiMendalamSubmission {
+  submissionId   Int      @id @default(autoincrement()) @map("submission_id")
+  studentId      Int      @map("student_id")
+  questionNumber Int      @map("question_number")
+  questionKey    String   @map("question_key")
+  jawaban        String
+  submittedAt    DateTime @default(now()) @map("submitted_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionNumber])
+  @@index([studentId])
+  @@map("refleksi_mendalam_submissions")
 }

@@ -127,6 +127,35 @@ export const KOMBINASI_CONCEPT_IDS = ["kombinasi"] as const;
 /** Unified lookup: MATERI_SECTIONS + PERMUTASI_SECTIONS + KOMBINASI_SECTIONS */
 export const ALL_SECTIONS = [...MATERI_SECTIONS, ...PERMUTASI_SECTIONS, ...KOMBINASI_SECTIONS] as const;
 
+// ═══════════════════════════════════════════════════════════════
+// Concept Labels & Order
+// ═══════════════════════════════════════════════════════════════
+
+/** Human-readable labels for each conceptId. */
+export const CONCEPT_LABELS: Record<string, string> = {
+  kaidah_penjumlahan: "Kaidah Penjumlahan",
+  kaidah_perkalian: "Kaidah Perkalian",
+  faktorial: "Faktorial",
+  permutasi_r_unsur_dari_n_unsur: "Permutasi r Unsur dari n Unsur",
+  permutasi_dengan_unsur_sama: "Permutasi dengan Unsur Sama",
+  permutasi_siklis: "Permutasi Siklis",
+  kombinasi: "Kombinasi",
+};
+
+/** Sequential order in which students progress through concepts. */
+export const CONCEPT_ORDER = [
+  "kaidah_penjumlahan",
+  "kaidah_perkalian",
+  "faktorial",
+  "permutasi_r_unsur_dari_n_unsur",
+  "permutasi_dengan_unsur_sama",
+  "permutasi_siklis",
+  "kombinasi",
+] as const;
+
+/** All concept IDs combined for querying across all materi. */
+export const ALL_CONCEPT_IDS = [...CONCEPT_ORDER] as const;
+
 /**
  * Section yang validasi concept_id+section-nya harus dilakukan di application
  * layer menggunakan konstanta di atas. JANGAN mengandalkan CHECK constraint

@@ -163,6 +163,46 @@ export const AnswerClassificationPrompt = async (
 };
 
 // ---------------------------------------------------------------------------
+// Tantangan (Penutup Modul) — per-question feedback
+// ---------------------------------------------------------------------------
+
+const TantanganSchema = z.object({
+  isCorrect: z.boolean(),
+  feedback: z.string(),
+});
+
+export type TantanganResult = z.infer<typeof TantanganSchema>;
+
+export const TantanganPrompt = async (
+  soal: string,
+  jawaban: string
+): Promise<TantanganResult> => {
+  const response = await client.responses.parse({
+    model: "gpt-4o",
+    input: [
+      {
+        role: "system",
+        content: PROMPTS.Tantangan.system,
+      },
+      {
+        role: "user",
+        content: PROMPTS.Tantangan.user(soal, jawaban),
+      },
+    ],
+    text: {
+      format: zodTextFormat(TantanganSchema, "tantangan"),
+    },
+  });
+
+  return (
+    response.output_parsed ?? {
+      isCorrect: false,
+      feedback: "Maaf, ada kendala saat memberikan feedback. Coba lagi ya!",
+    }
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Asesmen Formatif — per-question evaluation
 // ---------------------------------------------------------------------------
 
@@ -441,6 +481,48 @@ Siswa TIDAK menyertakan teks yang dipilih (tidak melakukan highlight/seleksi tek
 - Jika siswa meminta rangkuman, rangkum hanya section yang SUDAH SELESAI (✓) saja — jangan membocorkan isi section yang sedang aktif (▶) atau yang belum selesai (○).`;
 }
 
+// ─── Shared helper: build messages array ──────────────────────────────────
+function buildChatMessages(
+  question: string,
+  selectedText?: string,
+  contextBefore?: string,
+  contextAfter?: string,
+  history?: ChatMessage[],
+  activeSection?: string,
+  completedSections?: string[],
+  materiSlug?: string
+): Array<{ role: "system" | "user" | "assistant"; content: string }> {
+  const hasSelectionContext = !!(selectedText && (contextBefore || contextAfter));
+  const sectionCtx = buildSectionContext(activeSection, completedSections, materiSlug);
+
+  let userMessage: string;
+
+  if (hasSelectionContext) {
+    userMessage = PROMPTS.chat.user(selectedText!, contextBefore ?? "", contextAfter ?? "", question);
+    if (sectionCtx) {
+      userMessage = `${sectionCtx}\n\n${userMessage}`;
+    }
+  } else if (sectionCtx) {
+    userMessage = `${sectionCtx}\n\nPertanyaan siswa: ${question}`;
+  } else {
+    userMessage = `Pertanyaan siswa: ${question}`;
+  }
+
+  const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    { role: "system", content: PROMPTS.chat.system },
+  ];
+
+  if (history && history.length > 0) {
+    for (const msg of history) {
+      messages.push({ role: msg.role, content: msg.content });
+    }
+  }
+
+  messages.push({ role: "user", content: userMessage });
+
+  return messages;
+}
+
 export const ChatPrompt = async (
   question: string,
   selectedText?: string,
@@ -451,39 +533,10 @@ export const ChatPrompt = async (
   completedSections?: string[],
   materiSlug?: string
 ): Promise<string> => {
-  const hasSelectionContext = !!(selectedText && (contextBefore || contextAfter));
-  const sectionCtx = buildSectionContext(activeSection, completedSections, materiSlug);
-
-  let userMessage: string;
-
-  if (hasSelectionContext) {
-    userMessage = PROMPTS.chat.user(selectedText!, contextBefore ?? "", contextAfter ?? "", question);
-    // Jika ada section context juga, tambahkan sebagai informasi tambahan
-    if (sectionCtx) {
-      userMessage = `${sectionCtx}\n\n${userMessage}`;
-    }
-  } else if (sectionCtx) {
-    // Tidak ada seleksi teks, tapi ada konteks section — gunakan sebagai panduan AI
-    userMessage = `${sectionCtx}\n\nPertanyaan siswa: ${question}`;
-  } else {
-    // Tidak ada konteks sama sekali
-    userMessage = `Pertanyaan siswa: ${question}`;
-  }
-
-  // Bangun messages array: system prompt + history + current question
-  const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
-    { role: "system", content: PROMPTS.chat.system },
-  ];
-
-  // Sliding window: masukkan history percakapan sebelumnya (maks 5 pasang)
-  if (history && history.length > 0) {
-    for (const msg of history) {
-      messages.push({ role: msg.role, content: msg.content });
-    }
-  }
-
-  // Pertanyaan terbaru
-  messages.push({ role: "user", content: userMessage });
+  const messages = buildChatMessages(
+    question, selectedText, contextBefore, contextAfter,
+    history, activeSection, completedSections, materiSlug,
+  );
 
   const response = await client.chat.completions.create({
     model: "gpt-4o",
@@ -496,3 +549,32 @@ export const ChatPrompt = async (
     "Maaf, Kombi lagi ada kendala nih. Coba tanyakan lagi ya!"
   );
 };
+
+// ─── Streaming variant for SSE ────────────────────────────────────────────
+export async function* ChatPromptStream(
+  question: string,
+  selectedText?: string,
+  contextBefore?: string,
+  contextAfter?: string,
+  history?: ChatMessage[],
+  activeSection?: string,
+  completedSections?: string[],
+  materiSlug?: string
+): AsyncGenerator<string> {
+  const messages = buildChatMessages(
+    question, selectedText, contextBefore, contextAfter,
+    history, activeSection, completedSections, materiSlug,
+  );
+
+  const stream = await client.chat.completions.create({
+    model: "gpt-4o",
+    messages,
+    temperature: 0.7,
+    stream: true,
+  });
+
+  for await (const chunk of stream) {
+    const content = chunk.choices[0]?.delta?.content;
+    if (content) yield content;
+  }
+}

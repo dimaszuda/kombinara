@@ -13,6 +13,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { CONCEPT_ORDER } from "@/lib/data/student-section-status";
 
 interface ProgressData {
   total: number;
@@ -30,6 +31,12 @@ interface ProgressData {
       percentage: number;
     }
   >;
+  currentConcept: {
+    conceptId: string;
+    label: string;
+    sectionIndex: number;   // 1-based; 0 = belum mulai
+    totalSections: number;
+  } | null;
 }
 
 type LoadState =
@@ -181,7 +188,20 @@ export default function AktivitasKamuPanel() {
   // ── Has progress ──
   const { data } = state;
   const hasProgress = data.completed > 0;
-  const remaining = data.total - data.completed;
+  const cc = data.currentConcept;
+
+  // Concept-level values for the ring & section display
+  const conceptPct = cc ? (data.concepts[cc.conceptId]?.percentage ?? 0) : data.percentage;
+  const sectionNow = cc ? cc.sectionIndex : 0;
+  const sectionTotal = cc ? cc.totalSections : data.total;
+
+  // Is the current concept fully completed?
+  const conceptStats = cc ? data.concepts[cc.conceptId] : null;
+  const isConceptDone = conceptStats ? (conceptStats.unlocked === 0 && conceptStats.locked === 0) : false;
+  // Is this the very last concept in the curriculum?
+  const lastConceptId = CONCEPT_ORDER[CONCEPT_ORDER.length - 1];
+  const isLastConcept = cc?.conceptId === lastConceptId;
+  const isAllDone = isConceptDone && isLastConcept;
 
   return (
     <article className="relative flex min-h-[300px] flex-col overflow-hidden rounded-[28px] border-2 border-brand-600 bg-white p-6 md:h-[300px]">
@@ -202,13 +222,13 @@ export default function AktivitasKamuPanel() {
         {/* Hero: big percentage inside the ring */}
         <div className="flex items-center justify-center">
           <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
-            <BackdropRing percentage={data.percentage} size={140} />
+            <BackdropRing percentage={conceptPct} size={140} />
             <div className="relative z-[1] flex flex-col items-center">
               <span className="text-3xl font-bold leading-none text-brand-600">
-                {Math.round(data.percentage)}%
+                {Math.round(conceptPct)}%
               </span>
               <span className="mt-0.5 text-[11px] font-medium text-zinc-500">
-                {data.completed} dari {data.total} bagian
+                Bagian {sectionNow} dari {sectionTotal}
               </span>
             </div>
           </div>
@@ -219,11 +239,51 @@ export default function AktivitasKamuPanel() {
           className="mx-auto mt-2 text-center leading-relaxed text-zinc-600"
           style={{ fontSize: "var(--right-card-text-size)" }}
         >
-          Kamu telah mempelajari{" "}
-          <span className="font-semibold text-brand-600">{data.completed}</span>{" "}
-          dari{" "}
-          <span className="font-semibold text-brand-600">{data.total}</span>{" "}
-          bagian di materi Kaidah Pencacahan
+          {(() => {
+            // All concepts fully completed
+            if (isAllDone) {
+              return <>Kamu sudah menyelesaikan semua materi! 🎉</>;
+            }
+            // Current concept fully done, but there's more ahead
+            if (cc && isConceptDone) {
+              return (
+                <>
+                  Kamu sudah menyelesaikan{" "}
+                  <span className="font-semibold text-brand-600">{cc.label}</span>
+                  {"! 🎉"}
+                </>
+              );
+            }
+            // Actively working on a concept
+            if (cc && sectionNow > 0) {
+              return (
+                <>
+                  Kamu sedang mengerjakan{" "}
+                  <span className="font-semibold text-brand-600">{cc.label}</span>
+                  {", "}bagian ke-{sectionNow} dari {sectionTotal}
+                </>
+              );
+            }
+            // Rows exist but everything locked (diagnostic not passed)
+            if (cc && sectionNow === 0) {
+              return (
+                <>
+                  Selesaikan asesmen diagnostik untuk mulai{" "}
+                  <span className="font-semibold text-brand-600">{cc.label}</span>
+                </>
+              );
+            }
+            // Fallback (shouldn't normally happen)
+            return (
+              <>
+                Kamu telah mempelajari{" "}
+                <span className="font-semibold text-brand-600">{data.completed}</span>{" "}
+                dari{" "}
+                <span className="font-semibold text-brand-600">{data.total}</span>{" "}
+                bagian
+              </>
+            );
+          })()}
         </p>
       </div>
 

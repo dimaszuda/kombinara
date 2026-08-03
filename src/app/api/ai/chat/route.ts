@@ -8,18 +8,27 @@
  *   selectedText?: string,
  *   contextBefore?: string,
  *   contextAfter?: string,
- *   history?: Array<{ role: "user" | "assistant", content: string }>
+ *   history?: Array<{ role: "user" | "assistant", content: string }>,
+ *   stream?: boolean  // set true untuk SSE streaming response
  * }
- * Response: { answer: string, cached?: boolean }
+ *
+ * Non-streaming (default):
+ *   Response: { answer: string, cached?: boolean }
+ *
+ * Streaming (stream: true):
+ *   Response: text/event-stream
+ *   Chunks: data: {"v":"<partial text>"}\n\n
+ *   End:    data: [DONE]\n\n
  *
  * Features:
  * - Sliding window memory (10 pasang percakapan terakhir)
  * - Semantic cache via Upstash Vector + Redis
  * - Persist semua percakapan ke ai_messages (user + assistant)
+ * - SSE streaming untuk pengalaman chat real-time
  */
 
 import { NextResponse } from "next/server";
-import { ChatPrompt } from "@/lib/ai/client";
+import { ChatPrompt, ChatPromptStream } from "@/lib/ai/client";
 import {
   semanticCache,
   buildContextFingerprint,
@@ -53,6 +62,7 @@ export async function POST(req: Request) {
       activeSection,
       completedSections,
       materiSlug,
+      stream: useStream,
     } = body;
 
     // conversation_id wajib untuk persist ke DB
@@ -113,6 +123,73 @@ export async function POST(req: Request) {
         ? `[ctx: ${selectedText.slice(0, 100)}] ${trimmedQuestion}`
         : trimmedQuestion;
 
+    // ══════════════════════════════════════════════════════════════
+    //  STREAMING PATH (SSE)
+    // ══════════════════════════════════════════════════════════════
+    if (useStream === true) {
+      const encoder = new TextEncoder();
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          let fullAnswer = "";
+
+          try {
+            const chunks = ChatPromptStream(
+              trimmedQuestion,
+              typeof selectedText === "string" ? selectedText : undefined,
+              typeof contextBefore === "string" ? contextBefore : undefined,
+              typeof contextAfter === "string" ? contextAfter : undefined,
+              parsedHistory,
+              typeof activeSection === "string" ? activeSection : undefined,
+              Array.isArray(completedSections) ? completedSections.filter((s: unknown) => typeof s === "string") : undefined,
+              typeof materiSlug === "string" ? materiSlug : undefined
+            );
+
+            for await (const chunk of chunks) {
+              fullAnswer += chunk;
+              // SSE format: "data: <JSON>\n\n"
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ v: chunk })}\n\n`));
+            }
+
+            // Signal end of stream
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          } catch (error) {
+            console.error("[chat] Stream error:", error);
+            const fallback = "Maaf, Kombi lagi ada kendala nih. Coba tanyakan lagi ya!";
+            if (!fullAnswer) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ v: fallback })}\n\n`));
+            }
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          } finally {
+            controller.close();
+
+            // ── After stream ends: persist + cache (fire-and-forget) ──
+            const answer = fullAnswer || "Maaf, Kombi lagi ada kendala nih. Coba tanyakan lagi ya!";
+            persistMessage(studentId, convId, "assistant", answer);
+
+            // Cache only if we got a meaningful answer
+            if (fullAnswer) {
+              semanticCache.set(cacheQuestion, lab, answer).catch((err) => {
+                console.warn("[chat] Gagal menyimpan ke semantic cache:", err);
+              });
+            }
+          }
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache, no-transform",
+          Connection: "keep-alive",
+          "X-Accel-Buffering": "no",
+        },
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  NON-STREAMING PATH (existing behaviour)
+    // ══════════════════════════════════════════════════════════════
     const cached = await semanticCache.get(cacheQuestion, lab);
     if (cached) {
       // Simpan jawaban ASSISTANT dari cache ke DB (fire-and-forget)

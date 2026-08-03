@@ -282,7 +282,8 @@ function ChatMessages({
         <MessageBubble key={msg.id} msg={msg} />
       ))}
 
-      {isLoading && (
+      {/* Typing indicator: hanya muncul sebelum chunk pertama stream tiba */}
+      {isLoading && (messages.length === 0 || messages[messages.length - 1].type !== "ai") && (
         <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
           <Image
             src="/icons/AI icon.png"
@@ -340,6 +341,7 @@ function ChatInput({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      e.stopPropagation();
       if (!isLoading) onSend();
     }
   };
@@ -810,14 +812,27 @@ export default function Chatbot({
     if (onClearContext) onClearContext();
   }, [onClearContext]);
 
-  // ── Kirim pesan ke API ──────────────────────────────────────────────────
+  // ── Ref guard: cegah sendToAI dipanggil dua kali ─────────────────────
+  const sendingRef = useRef(false);
+
+  // ── Kirim pesan ke API (streaming SSE) ──────────────────────────────────
   const sendToAI = useCallback(
     async (question: string) => {
+      // Guard: cegah double invocation dari Enter key + button click
+      if (sendingRef.current) return;
+      sendingRef.current = true;
+
       setIsLoading(true);
+
+      // Streaming message ID dibuat saat chunk pertama tiba
+      let streamingMsgId: string | null = null;
+      let accumulated = "";
+
       try {
         const body: Record<string, unknown> = {
           question,
           conversation_id: conversationIdRef.current,
+          stream: true, // ← minta SSE
         };
 
         if (selectionContext) {
@@ -826,9 +841,6 @@ export default function Chatbot({
           body.contextAfter = selectionContext.contextAfter;
         }
 
-        // ── Sertakan konteks section (sequential unlocking) ──
-        // Supaya AI paham materi/section mana yang sedang dipelajari siswa,
-        // tanpa perlu siswa melakukan seleksi teks terlebih dahulu.
         if (activeSection) {
           body.activeSection = activeSection;
         }
@@ -839,11 +851,9 @@ export default function Chatbot({
           body.materiSlug = materiSlug;
         }
 
-        // ── Sliding window: kirim history 5 percakapan terakhir ──
+        // Sliding window: kirim history 5 percakapan terakhir
         const allMessages = messagesRef.current;
-        // Filter out the initial AI prompt (ai-init) — not real conversation
         const conversationMsgs = allMessages.filter((m) => !m.id.endsWith("-ai-init"));
-        // Ambil maks 10 pesan terakhir (5 pasang tanya-jawab)
         const recent = conversationMsgs.slice(-10);
         if (recent.length > 0) {
           body.history = recent.map((m) => ({
@@ -858,17 +868,77 @@ export default function Chatbot({
           body: JSON.stringify(body),
         });
 
-        if (!res.ok) {
+        if (!res.ok || !res.body) {
           throw new Error(`API error: ${res.status}`);
         }
 
-        const data = await res.json();
-        const answer: string = data.answer ?? "Maaf, Kombi lagi ada kendala nih. Coba tanyakan lagi ya!";
+        // ── Baca SSE stream ────────────────────────────────────
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = "";
+        let buffer = "";
 
-        setMessages((prev) => [
-          ...prev,
-          { id: `${Date.now()}-ai`, type: "ai", text: answer },
-        ]);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // Parse SSE lines — cari "data: {...}" lalu "\n\n"
+          const lines = buffer.split("\n");
+          // Simpan sisa buffer yang belum lengkap
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+            const payload = trimmed.slice(6); // setelah "data: "
+
+            if (payload === "[DONE]") {
+              // Stream selesai — tidak ada aksi khusus di sini,
+              // loop akan selesai saat reader done.
+              continue;
+            }
+
+            try {
+              const parsed = JSON.parse(payload);
+              if (typeof parsed?.v === "string") {
+                accumulated += parsed.v;
+
+                if (!streamingMsgId) {
+                  // Chunk pertama: tambahkan pesan AI ke array
+                  streamingMsgId = `${Date.now()}-ai`;
+                  setMessages((prev) => [
+                    ...prev,
+                    { id: streamingMsgId, type: "ai", text: accumulated },
+                  ]);
+                } else {
+                  // Chunk berikutnya: update teks secara inkremental
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === streamingMsgId ? { ...m, text: accumulated } : m
+                    )
+                  );
+                }
+              }
+            } catch {
+              // Skip malformed chunks
+            }
+          }
+        }
+
+        // ── Finalisasi: jika stream kosong, tampilkan fallback ──
+        if (!accumulated) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `${Date.now()}-ai`,
+              type: "ai",
+              text: "Maaf, Kombi lagi ada kendala nih. Coba tanyakan lagi ya!",
+            },
+          ]);
+        }
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -879,6 +949,7 @@ export default function Chatbot({
           },
         ]);
       } finally {
+        sendingRef.current = false;
         setIsLoading(false);
       }
     },

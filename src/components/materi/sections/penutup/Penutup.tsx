@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { SectionBadge } from "@/components/ui/Materi";
 import { CheckIcon } from "@/components/ui/IconButton";
 import {
@@ -159,7 +159,80 @@ function AnswerTextarea({
 }
 
 // ============================================================================
-// 1. TANTANGAN — 10 soal pemecahan masalah
+// Types for "Lihat Jawabanku" (pre-completed sections)
+// ============================================================================
+
+type TantanganJawabanEntry = {
+  questionNumber: number;
+  questionText: string;
+  jawaban: string;
+  isCorrect: boolean | null;
+  feedback: string | null;
+  submittedAt: string;
+};
+
+type AsesmenDiriChecklistItem = {
+  indicator_number: number;
+  pernyataan: string;
+  status: "ya" | "belum" | "ragu";
+};
+
+type RefleksiJawabanEntry = {
+  questionNumber: number;
+  questionKey: string;
+  jawaban: string;
+  submittedAt: string;
+};
+
+// ============================================================================
+// Collapsed "Lihat Jawabanku" wrapper for pre-completed sections
+// ============================================================================
+
+function LihatJawabankuCollapsed({
+  label,
+  loading,
+  onClick,
+}: {
+  label?: string;
+  loading: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
+            ✓
+          </div>
+          <span className="text-sm font-medium text-[#2C2C2A]">
+            {label || "Bagian ini sudah selesai"}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={loading}
+          className="flex items-center gap-2 rounded-full border border-[#346739] px-5 py-2 text-sm font-medium text-[#346739] transition-colors hover:bg-[#34673908] disabled:opacity-50"
+        >
+          {loading ? (
+            <>
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+              </svg>
+              Memuat...
+            </>
+          ) : (
+            "Lihat jawabanku"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 1. TANTANGAN — 10 soal pemecahan masalah (AI feedback + sequential unlock)
 // ============================================================================
 
 const SOAL_TANTANGAN = [
@@ -215,9 +288,47 @@ const SOAL_TANTANGAN = [
   },
 ];
 
-function TantanganSection() {
+/** Feedback box: shows AI feedback after save */
+function TantanganFeedback({ feedback, isCorrect }: { feedback: string; isCorrect: boolean | null }) {
+  return (
+    <div
+      className={`mt-3 rounded-xl border p-3 text-sm leading-relaxed ${
+        isCorrect === true
+          ? "border-[#34673933] bg-[#DBFFD5]/40 text-[#2C2C2A]"
+          : isCorrect === false
+            ? "border-[#E8B4B4] bg-[#FFF0F0] text-[#2C2C2A]"
+            : "border-[#34673926] bg-[#DBFFD5]/20 text-[#2C2C2A]"
+      }`}
+    >
+      <p className="text-xs font-semibold mb-1 text-[#346739]">
+        💬 {isCorrect === true ? "Feedback — Jawabanmu tepat!" : isCorrect === false ? "Feedback — Perlu diperbaiki" : "Feedback"}
+      </p>
+      <p className="whitespace-pre-wrap">{feedback}</p>
+    </div>
+  );
+}
+
+function TantanganSection({
+  onAllCorrect,
+  wasPreCompleted = false,
+  jawabanEntries,
+  loadingJawaban = false,
+  onFetchJawaban,
+}: {
+  onAllCorrect: () => void;
+  wasPreCompleted?: boolean;
+  jawabanEntries?: TantanganJawabanEntry[] | null;
+  loadingJawaban?: boolean;
+  onFetchJawaban?: () => void;
+}) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [savedSoal, setSavedSoal] = useState<Set<number>>(new Set());
+  const [saving, setSaving] = useState<Record<number, boolean>>({});
+  /** AI feedback per question number */
+  const [feedbacks, setFeedbacks] = useState<Record<number, { feedback: string; isCorrect: boolean | null }>>({});
+  /** Track which questions have been answered CORRECTLY (for sequential unlocking) */
+  const [correctNos, setCorrectNos] = useState<Set<number>>(new Set());
+  /** Prevent firing onAllCorrect multiple times */
+  const didFireComplete = useRef(false);
 
   const setAnswer = useCallback(
     (no: number) => (v: string) => {
@@ -226,11 +337,140 @@ function TantanganSection() {
     [],
   );
 
-  const handleSave = (no: number) => {
-    // TODO: integrate with backend API later
-    console.log(`[Tantangan] Soal ${no}:`, answers[no] ?? "");
-    setSavedSoal((prev) => new Set(prev).add(no));
+  /** Whether question N is unlocked: only question 1, or if the previous question was answered correctly */
+  const isUnlocked = (no: number) => {
+    if (no === 1) return true;
+    return correctNos.has(no - 1);
   };
+
+  const handleSave = async (no: number) => {
+    const jawaban = answers[no]?.trim();
+    if (!jawaban) return;
+
+    setSaving((prev) => ({ ...prev, [no]: true }));
+
+    try {
+      const soalItem = SOAL_TANTANGAN.find((s) => s.no === no);
+      if (!soalItem) return;
+
+      const res = await fetch("/api/penutup/tantangan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question_number: no,
+          question_text: soalItem.soal,
+          jawaban,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.error(`[Tantangan] Save error for soal ${no}:`, data);
+        alert(data.error ?? "Gagal menyimpan jawaban. Coba lagi!");
+        return;
+      }
+
+      // Store feedback from AI (latest attempt)
+      setFeedbacks((prev) => ({
+        ...prev,
+        [no]: { feedback: data.feedback, isCorrect: data.isCorrect },
+      }));
+
+      // Only unlock next question if answer is correct
+      if (data.isCorrect === true) {
+        setCorrectNos((prev) => {
+          const next = new Set(prev).add(no);
+          // If all 10 questions are correct, fire onAllCorrect once
+          if (next.size === 10 && !didFireComplete.current) {
+            didFireComplete.current = true;
+            // Small delay so the UI updates (green feedback) before section transitions
+            setTimeout(() => onAllCorrect(), 600);
+          }
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error(`[Tantangan] Network error for soal ${no}:`, err);
+      alert("Gagal terhubung ke server. Coba lagi!");
+    } finally {
+      setSaving((prev) => ({ ...prev, [no]: false }));
+    }
+  };
+
+  // ── Pre-completed + jawaban loaded → read-only view ──────────
+  if (wasPreCompleted && jawabanEntries && jawabanEntries.length > 0) {
+    return (
+      <section>
+        <SectionHeader
+          icon={TrophyIcon}
+          badge="TANTANGAN"
+          title="Soal Tantangan"
+          subtitle="Kerjakan soal-soal berikut untuk memperdalam pemahamanmu"
+        />
+
+        <div className="rounded-xl bg-white p-5 space-y-6">
+          <p className="text-sm leading-relaxed text-[#2C2C2A] italic bg-[#DBFFD5]/40 rounded-lg p-4 border border-[#34673926]">
+            <strong>Setelah kamu menyelesaikan semua materi, aktivitas siswa, dan asesmen formatif,</strong> silahkan kerjakan soal–soal tantangan berikut untuk menambah wawasanmu dan menambah kedalaman pemahamanmu!
+          </p>
+
+          {jawabanEntries.map((entry) => (
+            <div
+              key={entry.questionNumber}
+              className="rounded-xl border border-[#34673926] bg-white p-4"
+            >
+              <div className="flex gap-3">
+                <QuestionNumber n={entry.questionNumber} />
+                <div className="flex-1 min-w-0 space-y-3">
+                  <p className="text-sm leading-relaxed text-[#2C2C2A]">
+                    {entry.questionText}
+                  </p>
+                  <div className="w-full">
+                    <AnswerTextarea
+                      value={entry.jawaban}
+                      onChange={() => {}}
+                      placeholder=""
+                      disabled={true}
+                      rows={6}
+                    />
+                  </div>
+                  {entry.feedback && (
+                    <TantanganFeedback feedback={entry.feedback} isCorrect={entry.isCorrect} />
+                  )}
+                </div>
+              </div>
+              {entry.isCorrect === true && (
+                <p className="mt-4 text-center text-sm text-[#346739] font-medium">
+                  ✅ Jawaban benar
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="border-b-2 border-[#34673966] mt-8" />
+      </section>
+    );
+  }
+
+  // ── Pre-completed but jawaban not yet loaded → collapsed ────
+  if (wasPreCompleted) {
+    return (
+      <section>
+        <SectionHeader
+          icon={TrophyIcon}
+          badge="TANTANGAN"
+          title="Soal Tantangan"
+          subtitle="Kerjakan soal-soal berikut untuk memperdalam pemahamanmu"
+        />
+        <LihatJawabankuCollapsed
+          label="Soal Tantangan sudah selesai"
+          loading={loadingJawaban}
+          onClick={() => onFetchJawaban?.()}
+        />
+        <div className="border-b-2 border-[#34673966] mt-8" />
+      </section>
+    );
+  }
 
   return (
     <section>
@@ -246,8 +486,11 @@ function TantanganSection() {
           <strong>Setelah kamu menyelesaikan semua materi, aktivitas siswa, dan asesmen formatif,</strong> silahkan kerjakan soal–soal tantangan berikut untuk menambah wawasanmu dan menambah kedalaman pemahamanmu!
         </p>
 
-        {SOAL_TANTANGAN.map((item) => {
-          const isSaved = savedSoal.has(item.no);
+        {SOAL_TANTANGAN.filter((item) => isUnlocked(item.no)).map((item) => {
+          const isLoading = saving[item.no] === true;
+          const fb = feedbacks[item.no];
+          const isCorrect = correctNos.has(item.no);
+
           return (
             <div
               key={item.no}
@@ -259,28 +502,36 @@ function TantanganSection() {
                   <p className="text-sm leading-relaxed text-[#2C2C2A]">
                     {item.soal}
                   </p>
+
                   <div className="w-full">
                     <AnswerTextarea
                       value={answers[item.no] ?? ""}
                       onChange={setAnswer(item.no)}
                       placeholder="Tulis jawabanmu beserta cara dan langkah-langkahnya..."
-                      disabled={isSaved}
+                      disabled={isCorrect}
                       rows={6}
                     />
                   </div>
-                  {isSaved && (
-                    <p className="text-xs text-[#346739] font-medium">
-                      ✅ Jawaban tersimpan
-                    </p>
-                  )}
+
+                  {/* AI Feedback after save */}
+                  {fb && <TantanganFeedback feedback={fb.feedback} isCorrect={fb.isCorrect} />}
                 </div>
               </div>
 
-              <SaveButton
-                onClick={() => handleSave(item.no)}
-                hidden={isSaved}
-                disabled={!answers[item.no]?.trim()}
-              />
+              {/* Save button: visible when not yet correct */}
+              {!isCorrect && (
+                <SaveButton
+                  onClick={() => handleSave(item.no)}
+                  disabled={!answers[item.no]?.trim() || isLoading}
+                  loading={isLoading}
+                />
+              )}
+
+              {isCorrect && (
+                <p className="mt-4 text-center text-sm text-[#346739] font-medium">
+                  ✅ Jawaban benar — lanjut ke soal berikutnya!
+                </p>
+              )}
             </div>
           );
         })}
@@ -292,7 +543,7 @@ function TantanganSection() {
 }
 
 // ============================================================================
-// 2. ASESMEN DIRI SISWA — Checklist pemahaman
+// 2. ASESMEN DIRI SISWA — Checklist pemahaman (save to DB, no AI)
 // ============================================================================
 
 const ASESMEN_DIRI_ITEMS = [
@@ -306,7 +557,19 @@ const ASESMEN_DIRI_ITEMS = [
   "Saya dapat menghubungkan materi ini dengan kehidupan nyata",
 ];
 
-function AsesmenDiriSection() {
+function AsesmenDiriSection({
+  onSaved,
+  wasPreCompleted = false,
+  jawabanChecklist,
+  loadingJawaban = false,
+  onFetchJawaban,
+}: {
+  onSaved: () => void;
+  wasPreCompleted?: boolean;
+  jawabanChecklist?: AsesmenDiriChecklistItem[] | null;
+  loadingJawaban?: boolean;
+  onFetchJawaban?: () => void;
+}) {
   const [selections, setSelections] = useState<Record<number, "ya" | "belum" | "ragu">>({});
   const [allSaved, setAllSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -320,16 +583,143 @@ function AsesmenDiriSection() {
 
   const hasAnySelection = Object.keys(selections).length > 0;
 
-  const handleSaveAll = () => {
-    // TODO: integrate with backend API later
-    console.log("[Asesmen Diri] All:", selections);
+  const handleSaveAll = async () => {
     setSaving(true);
-    // Simulate save
-    setTimeout(() => {
+
+    try {
+      // Build checklist array matching DB schema
+      const checklist = ASESMEN_DIRI_ITEMS.map((pernyataan, idx) => ({
+        indicator_number: idx + 1,
+        pernyataan,
+        status: selections[idx] ?? "ragu",
+      }));
+
+      const res = await fetch("/api/penutup/asesmen-diri", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checklist }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("[Asesmen Diri] Save error:", data);
+        alert(data.error ?? "Gagal menyimpan. Coba lagi!");
+        return;
+      }
+
       setAllSaved(true);
+      // Notify parent to unlock Refleksi Mendalam
+      setTimeout(() => onSaved(), 400);
+    } catch (err) {
+      console.error("[Asesmen Diri] Network error:", err);
+      alert("Gagal terhubung ke server. Coba lagi!");
+    } finally {
       setSaving(false);
-    }, 500);
+    }
   };
+
+  // ── Pre-completed + jawaban loaded → read-only view ──────────
+  if (wasPreCompleted && jawabanChecklist && jawabanChecklist.length > 0) {
+    // Build a lookup map from the saved checklist
+    const savedStatusMap: Record<number, "ya" | "belum" | "ragu"> = {};
+    for (const item of jawabanChecklist) {
+      savedStatusMap[item.indicator_number] = item.status;
+    }
+
+    return (
+      <section className="mt-10">
+        <SectionHeader
+          icon={ClipboardCheckIcon}
+          badge="ASESMEN DIRI"
+          title="Asesmen Diri Siswa"
+          subtitle="✅ Checklist Pemahaman — Isi dengan jujur setelah menyelesaikan seluruh modul"
+        />
+
+        <div className="rounded-xl bg-white p-5">
+          <div className="overflow-x-auto rounded-xl border border-[#34673926]">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="bg-[#B8E6BC]">
+                  <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A] w-12">
+                    No.
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-[#2C2C2A]">
+                    Pernyataan
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A] w-20">
+                    Ya ✅
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A] w-20">
+                    Belum ❌
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A] w-20">
+                    Ragu
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#34673915]">
+                {ASESMEN_DIRI_ITEMS.map((item, idx) => {
+                  const savedVal = savedStatusMap[idx + 1];
+                  return (
+                    <tr
+                      key={idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-[#DBFFD5]/30"}
+                    >
+                      <td className="px-4 py-3 text-center font-medium text-[#346739]">
+                        {idx + 1}
+                      </td>
+                      <td className="px-4 py-3 text-[#2C2C2A]">{item}</td>
+                      {(["ya", "belum", "ragu"] as const).map((val) => (
+                        <td key={val} className="px-4 py-3 text-center">
+                          <label className="inline-flex items-center justify-center cursor-default">
+                            <input
+                              type="radio"
+                              name={`asesmen-readonly-${idx}`}
+                              value={val}
+                              checked={savedVal === val}
+                              readOnly
+                              disabled
+                              className="accent-[#346739] w-4 h-4 opacity-70"
+                            />
+                          </label>
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-4 text-center text-sm text-[#346739] font-medium">
+            ✅ Semua asesmen diri telah tersimpan
+          </p>
+        </div>
+
+        <div className="border-b-2 border-[#34673966] mt-8" />
+      </section>
+    );
+  }
+
+  // ── Pre-completed but jawaban not yet loaded → collapsed ────
+  if (wasPreCompleted) {
+    return (
+      <section className="mt-10">
+        <SectionHeader
+          icon={ClipboardCheckIcon}
+          badge="ASESMEN DIRI"
+          title="Asesmen Diri Siswa"
+          subtitle="✅ Checklist Pemahaman — Isi dengan jujur setelah menyelesaikan seluruh modul"
+        />
+        <LihatJawabankuCollapsed
+          label="Asesmen Diri sudah selesai"
+          loading={loadingJawaban}
+          onClick={() => onFetchJawaban?.()}
+        />
+        <div className="border-b-2 border-[#34673966] mt-8" />
+      </section>
+    );
+  }
 
   return (
     <section className="mt-10">
@@ -433,36 +823,41 @@ function AsesmenDiriSection() {
 }
 
 // ============================================================================
-// 3. REFLEKSI MENDALAM — 6 pertanyaan reflektif
+// 3. REFLEKSI MENDALAM — 6 pertanyaan reflektif (save to DB, no AI, generic feedback)
 // ============================================================================
 
 const REFLEKSI_QUESTIONS = [
   {
     no: 1,
+    key: "konsep_paling_dipahami",
     label: "Konsep yang paling saya pahami dengan baik adalah:",
     hint: "Tuliskan dan jelaskan kenapa kamu memahaminya!",
     placeholder: "Tulis konsep yang kamu pahami dan alasannya...",
   },
   {
     no: 2,
+    key: "masih_bingung",
     label: "Saya masih bingung tentang:",
     hint: "Tuliskan dengan spesifik karena ini penting untuk belajar selanjutnya",
     placeholder: "Tulis konsep yang masih membingungkanmu...",
   },
   {
     no: 3,
+    key: "sering_salah",
     label: "Konsep yang paling sering membuat saya salah adalah:",
     hint: undefined,
     placeholder: "Tulis konsep yang sering membuatmu salah...",
   },
   {
     no: 4,
+    key: "cara_membedakan",
     label: "Cara yang saya gunakan untuk membedakan permutasi dan kombinasi:",
     hint: undefined,
     placeholder: "Jelaskan strategimu membedakan permutasi dan kombinasi...",
   },
   {
     no: 5,
+    key: "contoh_kehidupan",
     label:
       "Contoh penggunaan kaidah pencacahan dalam kehidupan sehari-hari yang saya temukan sendiri:",
     hint: undefined,
@@ -470,15 +865,34 @@ const REFLEKSI_QUESTIONS = [
   },
   {
     no: 6,
+    key: "strategi_selanjutnya",
     label: "Strategi belajarku selanjutnya untuk memperkuat pemahaman:",
     hint: undefined,
     placeholder: "Tulis rencana belajarmu selanjutnya...",
   },
 ];
 
-function RefleksiMendalamSection() {
+const REFLEKSI_GENERIC_FEEDBACK = "Jawabanmu sudah tersimpan, ya!";
+
+function RefleksiMendalamSection({
+  onAllSaved,
+  wasPreCompleted = false,
+  jawabanEntries,
+  loadingJawaban = false,
+  onFetchJawaban,
+}: {
+  onAllSaved: () => void;
+  wasPreCompleted?: boolean;
+  jawabanEntries?: RefleksiJawabanEntry[] | null;
+  loadingJawaban?: boolean;
+  onFetchJawaban?: () => void;
+}) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [savedItems, setSavedItems] = useState<Set<number>>(new Set());
+  const [saving, setSaving] = useState<Record<number, boolean>>({});
+  const [savedNos, setSavedNos] = useState<Set<number>>(new Set());
+  /** Generic feedback shown after saving */
+  const [feedbacks, setFeedbacks] = useState<Record<number, string>>({});
+  const didFireComplete = useRef(false);
 
   const setAnswer = useCallback(
     (no: number) => (v: string) => {
@@ -487,11 +901,136 @@ function RefleksiMendalamSection() {
     [],
   );
 
-  const handleSave = (no: number) => {
-    // TODO: integrate with backend API later
-    console.log(`[Refleksi] No ${no}:`, answers[no] ?? "");
-    setSavedItems((prev) => new Set(prev).add(no));
+  /** Sequential unlocking: question 1 always unlocked, N unlocked if N-1 was saved */
+  const isUnlocked = (no: number) => {
+    if (no === 1) return true;
+    return savedNos.has(no - 1);
   };
+
+  const handleSave = async (no: number) => {
+    const jawaban = answers[no]?.trim();
+    if (!jawaban) return;
+
+    setSaving((prev) => ({ ...prev, [no]: true }));
+
+    try {
+      const soalItem = REFLEKSI_QUESTIONS.find((q) => q.no === no);
+      if (!soalItem) return;
+
+      const res = await fetch("/api/penutup/refleksi-mendalam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question_number: no,
+          question_key: soalItem.key,
+          jawaban,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.error(`[Refleksi] Save error for no ${no}:`, data);
+        alert(data.error ?? "Gagal menyimpan jawaban. Coba lagi!");
+        return;
+      }
+
+      // Show generic feedback
+      setFeedbacks((prev) => ({
+        ...prev,
+        [no]: data.feedback ?? REFLEKSI_GENERIC_FEEDBACK,
+      }));
+
+      // Mark as saved → unlocks next question
+      setSavedNos((prev) => {
+        const next = new Set(prev).add(no);
+        // If all 6 questions are saved, fire onAllSaved once
+        if (next.size === 6 && !didFireComplete.current) {
+          didFireComplete.current = true;
+          setTimeout(() => onAllSaved(), 400);
+        }
+        return next;
+      });
+    } catch (err) {
+      console.error(`[Refleksi] Network error for no ${no}:`, err);
+      alert("Gagal terhubung ke server. Coba lagi!");
+    } finally {
+      setSaving((prev) => ({ ...prev, [no]: false }));
+    }
+  };
+
+  // ── Pre-completed + jawaban loaded → read-only view ──────────
+  if (wasPreCompleted && jawabanEntries && jawabanEntries.length > 0) {
+    // Build lookup map by question_number
+    const jawabanMap: Record<number, string> = {};
+    for (const entry of jawabanEntries) {
+      jawabanMap[entry.questionNumber] = entry.jawaban;
+    }
+
+    return (
+      <section className="mt-10">
+        <SectionHeader
+          icon={LightbulbIcon}
+          badge="REFLEKSI"
+          title="Refleksi Mendalam"
+          subtitle="Jawablah dengan jujur dan lengkap"
+        />
+
+        <div className="rounded-xl bg-white p-5 space-y-5">
+          {REFLEKSI_QUESTIONS.map((q) => {
+            const savedJawaban = jawabanMap[q.no] ?? "";
+
+            return (
+              <div
+                key={q.no}
+                className="rounded-xl border border-[#34673926] bg-white p-4"
+              >
+                <div className="flex gap-3">
+                  <QuestionNumber n={q.no} />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div>
+                      <p className="text-sm font-semibold text-[#2C2C2A]">
+                        {q.label}
+                      </p>
+                    </div>
+
+                    <AnswerTextarea
+                      value={savedJawaban}
+                      onChange={() => {}}
+                      placeholder=""
+                      disabled={true}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="border-b-2 border-[#34673966] mt-8" />
+      </section>
+    );
+  }
+
+  // ── Pre-completed but jawaban not yet loaded → collapsed ────
+  if (wasPreCompleted) {
+    return (
+      <section className="mt-10">
+        <SectionHeader
+          icon={LightbulbIcon}
+          badge="REFLEKSI"
+          title="Refleksi Mendalam"
+          subtitle="Jawablah dengan jujur dan lengkap"
+        />
+        <LihatJawabankuCollapsed
+          label="Refleksi Mendalam sudah selesai"
+          loading={loadingJawaban}
+          onClick={() => onFetchJawaban?.()}
+        />
+        <div className="border-b-2 border-[#34673966] mt-8" />
+      </section>
+    );
+  }
 
   return (
     <section className="mt-10">
@@ -503,8 +1042,11 @@ function RefleksiMendalamSection() {
       />
 
       <div className="rounded-xl bg-white p-5 space-y-5">
-        {REFLEKSI_QUESTIONS.map((q) => {
-          const isSaved = savedItems.has(q.no);
+        {REFLEKSI_QUESTIONS.filter((q) => isUnlocked(q.no)).map((q) => {
+          const isSaved = savedNos.has(q.no);
+          const isLoading = saving[q.no] === true;
+          const fb = feedbacks[q.no];
+
           return (
             <div
               key={q.no}
@@ -518,6 +1060,7 @@ function RefleksiMendalamSection() {
                       {q.label}
                     </p>
                   </div>
+
                   <AnswerTextarea
                     value={answers[q.no] ?? ""}
                     onChange={setAnswer(q.no)}
@@ -525,19 +1068,21 @@ function RefleksiMendalamSection() {
                     disabled={isSaved}
                     rows={3}
                   />
-                  {isSaved && (
+                  {fb && (
                     <p className="text-xs text-[#346739] font-medium">
-                      ✅ Jawaban tersimpan
+                      ✅ {fb}
                     </p>
                   )}
                 </div>
               </div>
 
-              <SaveButton
-                onClick={() => handleSave(q.no)}
-                hidden={isSaved}
-                disabled={!answers[q.no]?.trim()}
-              />
+              {!isSaved && (
+                <SaveButton
+                  onClick={() => handleSave(q.no)}
+                  disabled={!answers[q.no]?.trim() || isLoading}
+                  loading={isLoading}
+                />
+              )}
             </div>
           );
         })}
@@ -759,17 +1304,195 @@ function GlosariumSection() {
 }
 
 // ============================================================================
-// Main Export: Gabungkan semua section
+// Main Export: Cross-section sequential unlocking
+//
+// Flow: Tantangan (Q1→…→Q10 benar) → Asesmen Diri (saved) → Refleksi Mendalam
+//       (Q1→…→Q6 saved) → Rangkuman + Glosarium
 // ============================================================================
 
 export default function PenutupContent() {
+  const [showAsesmenDiri, setShowAsesmenDiri] = useState(false);
+  const [showRefleksi, setShowRefleksi] = useState(false);
+  const [showRangkumanGlosarium, setShowRangkumanGlosarium] = useState(false);
+
+  // ── Pre-completion state: checks on mount ──────────────────────
+  const [preCompleted, setPreCompleted] = useState<{
+    tantangan: boolean | null;
+    asesmenDiri: boolean | null;
+    refleksi: boolean | null;
+  }>({ tantangan: null, asesmenDiri: null, refleksi: null });
+
+  // ── Jawaban data fetched on-demand ─────────────────────────────
+  const [jawabanTantangan, setJawabanTantangan] = useState<TantanganJawabanEntry[] | null>(null);
+  const [jawabanAsesmenDiri, setJawabanAsesmenDiri] = useState<AsesmenDiriChecklistItem[] | null>(null);
+  const [jawabanRefleksi, setJawabanRefleksi] = useState<RefleksiJawabanEntry[] | null>(null);
+
+  // ── Loading states per section ─────────────────────────────────
+  const [loadingTantangan, setLoadingTantangan] = useState(false);
+  const [loadingAsesmenDiri, setLoadingAsesmenDiri] = useState(false);
+  const [loadingRefleksi, setLoadingRefleksi] = useState(false);
+
+  // ── Check pre-completion on mount ──────────────────────────────
+  useEffect(() => {
+    async function checkPreCompletion() {
+      try {
+        const [tRes, aRes, rRes] = await Promise.all([
+          fetch("/api/penutup/jawaban?section=tantangan"),
+          fetch("/api/penutup/jawaban?section=asesmen-diri"),
+          fetch("/api/penutup/jawaban?section=refleksi-mendalam"),
+        ]);
+
+        const [tData, aData, rData] = await Promise.all([
+          tRes.ok ? tRes.json() : { hasSubmission: false },
+          aRes.ok ? aRes.json() : { hasSubmission: false },
+          rRes.ok ? rRes.json() : { hasSubmission: false },
+        ]);
+
+        const tComplete = tData.hasSubmission === true;
+        const aComplete = aData.hasSubmission === true;
+        const rComplete = rData.hasSubmission === true;
+
+        setPreCompleted({
+          tantangan: tComplete,
+          asesmenDiri: aComplete,
+          refleksi: rComplete,
+        });
+
+        // Sequentially unlock sections that were completed
+        if (tComplete) {
+          setShowAsesmenDiri(true);
+        }
+        if (tComplete && aComplete) {
+          setShowRefleksi(true);
+        }
+        if (tComplete && aComplete && rComplete) {
+          setShowRangkumanGlosarium(true);
+        }
+      } catch (err) {
+        console.error("[Penutup] Pre-completion check failed:", err);
+      }
+    }
+    checkPreCompletion();
+  }, []);
+
+  // ── Fetch jawaban handlers ─────────────────────────────────────
+  async function fetchJawabanTantangan() {
+    if (loadingTantangan || jawabanTantangan) return;
+    setLoadingTantangan(true);
+    try {
+      const res = await fetch("/api/penutup/jawaban?section=tantangan");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.entries?.length > 0) {
+        setJawabanTantangan(data.entries);
+      }
+    } catch (err) {
+      console.error("[fetchJawabanTantangan] Error:", err);
+    } finally {
+      setLoadingTantangan(false);
+    }
+  }
+
+  async function fetchJawabanAsesmenDiri() {
+    if (loadingAsesmenDiri || jawabanAsesmenDiri) return;
+    setLoadingAsesmenDiri(true);
+    try {
+      const res = await fetch("/api/penutup/jawaban?section=asesmen-diri");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.checklist) {
+        setJawabanAsesmenDiri(data.checklist as AsesmenDiriChecklistItem[]);
+      }
+    } catch (err) {
+      console.error("[fetchJawabanAsesmenDiri] Error:", err);
+    } finally {
+      setLoadingAsesmenDiri(false);
+    }
+  }
+
+  async function fetchJawabanRefleksi() {
+    if (loadingRefleksi || jawabanRefleksi) return;
+    setLoadingRefleksi(true);
+    try {
+      const res = await fetch("/api/penutup/jawaban?section=refleksi-mendalam");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.entries?.length > 0) {
+        setJawabanRefleksi(data.entries);
+      }
+    } catch (err) {
+      console.error("[fetchJawabanRefleksi] Error:", err);
+    } finally {
+      setLoadingRefleksi(false);
+    }
+  }
+
   return (
     <div className="space-y-2">
-      <TantanganSection />
-      <AsesmenDiriSection />
-      <RefleksiMendalamSection />
-      <RangkumanKonsepSection />
-      <GlosariumSection />
+      {/* Tantangan always visible first */}
+      <TantanganSection
+        onAllCorrect={() => {
+          setShowAsesmenDiri(true);
+          if (preCompleted.asesmenDiri) setShowRefleksi(true);
+          if (preCompleted.asesmenDiri && preCompleted.refleksi) setShowRangkumanGlosarium(true);
+        }}
+        wasPreCompleted={preCompleted.tantangan === true}
+        jawabanEntries={jawabanTantangan}
+        loadingJawaban={loadingTantangan}
+        onFetchJawaban={fetchJawabanTantangan}
+      />
+
+      {/* Asesmen Diri — appears after all 10 tantangan are correct */}
+      {showAsesmenDiri && (
+        <AsesmenDiriSection
+          onSaved={() => {
+            setShowRefleksi(true);
+            if (preCompleted.refleksi) setShowRangkumanGlosarium(true);
+          }}
+          wasPreCompleted={preCompleted.asesmenDiri === true}
+          jawabanChecklist={jawabanAsesmenDiri}
+          loadingJawaban={loadingAsesmenDiri}
+          onFetchJawaban={fetchJawabanAsesmenDiri}
+        />
+      )}
+
+      {/* Refleksi Mendalam — appears after asesmen diri is saved */}
+      {showRefleksi && (
+        <RefleksiMendalamSection
+          onAllSaved={() => setShowRangkumanGlosarium(true)}
+          wasPreCompleted={preCompleted.refleksi === true}
+          jawabanEntries={jawabanRefleksi}
+          loadingJawaban={loadingRefleksi}
+          onFetchJawaban={fetchJawabanRefleksi}
+        />
+      )}
+
+      {/* Rangkuman + Glosarium — appears after all refleksi are saved */}
+      {showRangkumanGlosarium && (
+        <>
+          <RangkumanKonsepSection />
+          <GlosariumSection />
+
+          {/* Completion message */}
+          <section className="mt-12 text-center">
+            <div className="rounded-2xl bg-gradient-to-br from-[#DBFFD5]/60 via-[#B8E6BC]/40 to-[#DBFFD5]/60 border-2 border-[#346739] p-8 sm:p-10">
+              <div className="text-5xl mb-4">🎉</div>
+              <h2 className="text-2xl font-bold text-[#346739] mb-3">
+                Selamat, ya! 🏆
+              </h2>
+              <p className="text-base leading-relaxed text-[#2C2C2A] max-w-lg mx-auto">
+                Kamu telah <strong>menyelesaikan seluruh materi Kombinatorika</strong> — mulai dari Kaidah Pencacahan, Faktorial, Permutasi, hingga Kombinasi.
+              </p>
+              <p className="text-sm leading-relaxed text-[#6B6B66] max-w-md mx-auto mt-3">
+                Setiap soal tantangan yang kamu pecahkan, setiap refleksi yang kamu tulis, dan setiap konsep yang kamu pahami adalah bukti nyata dari <strong>usaha keras dan ketekunanmu</strong>. Ini bukan akhir, justru awal dari perjalananmu menguasai matematika yang lebih dalam. Teruslah bertanya, teruslah mencoba, dan jangan pernah takut salah — karena dari situlah pemahaman sejati lahir.
+              </p>
+              <p className="text-sm font-semibold text-[#346739] mt-4">
+                Kamu hebat. Sampai jumpa di modul berikutnya! 🚀
+              </p>
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

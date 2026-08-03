@@ -46,7 +46,7 @@ export const MATERI_CARDS = [
     activity: null,
     description:
       "Refleksi mendalam, asesmen diri, rangkuman konsep, glosarium, dan soal tantangan untuk memperkuat pemahamanmu terhadap seluruh materi Kaidah Pencacahan.",
-    image: "/images/penutup-card.svg",
+    image: "/images/penutup.png",
     alt: "Bagian Penutup Modul",
   },
 ];
