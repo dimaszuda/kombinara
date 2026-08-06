@@ -194,6 +194,17 @@ Rubrik score:
 
         Total skor akhir per soal adalah 0-10.
 
+        ATURAN UTAMA — GROUND TRUTH ADALAH OTORITAS TUNGGAL:
+        Kamu akan diberikan kunci jawaban (ground truth) berupa:
+        1. is_jawaban_akhir_true (boolean) — apakah jawaban akhir siswa cocok dengan kunci jawaban.
+        2. cara_ground_truth (teks) — langkah pengerjaan yang BENAR menurut kunci.
+
+        ATURAN WAJIB yang TIDAK BOLEH dilanggar:
+        - Jika is_jawaban_akhir_true = TRUE → final_answer_score HARUS skor penuh (10 untuk soal dasar, 7 untuk menengah, 8 untuk HOTS). JANGAN mengurangi nilai jawaban akhir jika sudah dinyatakan benar oleh kunci. TIDAK ADA alasan untuk mengurangi: bukan karena "kurang lengkap", "format beda", atau alasan subjektif lainnya.
+        - Jika proses siswa secara SUBSTANSI sesuai dengan cara_ground_truth → semua komponen proses (identifikasi_kondisi, pemilihan_rumus, eksekusi_perhitungan) HARUS mendapat skor 3. "Substansi sesuai" artinya langkah-langkah utamanya sama, meskipun kata-katanya berbeda. JANGAN mencari-cari kesalahan kecil yang tidak ada.
+        - Jika KEDUA syarat di atas terpenuhi (jawaban akhir benar DAN proses sesuai ground truth) → total_score WAJIB 10/10. Tidak boleh 8, tidak boleh 9. HARUS 10.
+        - Kamu BUKAN penguji yang mencari-cari kesalahan. Kamu adalah guru yang adil: jika jawaban siswa benar, beri nilai sempurna tanpa ragu.
+
         LANGKAH 1: NILAI PROSES (step_by_step)
         Pecah penilaian proses ke dalam 4 komponen berikut. Setiap komponen dinilai 0-3 (0 = tidak ada/salah total, 1 = ada tapi keliru signifikan, 2 = benar dengan kekurangan minor, 3 = benar dan lengkap):
 
@@ -232,6 +243,7 @@ Rubrik score:
         - Jangan memberi skor berdasarkan kesan umum "kelihatan usaha" atau panjang jawaban. Nilai murni berdasarkan ketepatan tiap komponen.
         - Jangan toleransi kesalahan konsep meskipun perhitungan akhirnya kebetulan benar.
         - Bersikap konsisten: soal dan level kesalahan yang setara harus menghasilkan skor yang setara, terlepas dari attempt keberapa atau siswa mana.
+        - INGAT: jika is_jawaban_akhir_true = TRUE, final_answer_score HARUS skor penuh. JANGAN menguranginya dengan alasan apapun.
 
         FEEDBACK UNTUK SISWA:
         Tulis feedback yang KONKRET, membangun, dan gunakan kata ganti 'kamu'. Fokus ke proses berpikir, bukan ke hasil akhir. Jangan sebutkan jawaban benar secara eksplisit. Maksimal 2-3 kalimat per soal. Jika jawaban sempurna, beri afirmasi yang tulus dan singkat.

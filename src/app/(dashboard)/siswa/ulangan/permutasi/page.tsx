@@ -16,6 +16,7 @@ import { getDeviceType } from "@/lib/device";
 import type { DeviceType } from "@/lib/device";
 import IntegrityToast from "@/components/activity/IntegrityToast";
 import IntegrityBlockingModal from "@/components/activity/IntegrityBlockingModal";
+import { useEvaluationPersistence } from "@/hooks/useEvaluationPersistence";
 import RuleBox from "@/components/Quiz Ulangan/RuleBox";
 import IntroInfoCard from "@/components/Quiz Ulangan/IntroInfoCard";
 import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
@@ -27,8 +28,7 @@ const PETUNJUK = [
   "Baca setiap soal dengan teliti sebelum menjawab.",
   'Tuliskan langkah-langkah cara perhitungan secara lengkap pada kolom "Cara Hitung".',
   'Tuliskan hasil akhir jawaban pada kolom "Jawaban Akhir".',
-  "Pastikan semua soal telah dijawab sebelum menekan tombol Submit.",
-  "Latihan ini dapat dikerjakan lebih dari satu kali dengan jeda 5 menit",
+  "Pastikan semua soal telah dijawab sebelum menekan tombol Submit."
 ];
 
 const BOLEH = ["Menggunakan coretan / kertas buram", "Menghitung secara manual"];
@@ -139,6 +139,26 @@ export default function AsesmenPermutasiPage() {
   const [isFullyMastered, setIsFullyMastered] = useState(false);
   const [initialScore, setInitialScore] = useState<number | null>(null);
 
+  // ── Evaluation persistence (resume after refresh) ──────────────────────────
+  const { savePending } = useEvaluationPersistence({
+    phase,
+    moduleSlug: "permutasi",
+    onEvaluationComplete: (result: unknown) => {
+      setEvaluationResult(result as EvaluationResult);
+      setPhase("results");
+    },
+    onEvaluationError: (error: string) => {
+      setEvalError(error);
+      setPhase("submitted");
+    },
+    onResumeEvaluation: () => {
+      setPhase("evaluating");
+    },
+    onPendingResolved: () => {
+      // Handled in onEvaluationComplete/onEvaluationError
+    },
+  });
+
   // ── Access check state ────────────────────────────────────────────────────
   const [accessAllowed, setAccessAllowed] = useState<boolean | null>(null);
   const [missingSections, setMissingSections] = useState<
@@ -161,8 +181,11 @@ export default function AsesmenPermutasiPage() {
         if (cancelled) return;
 
         if (!res.ok) {
-          // TODO: update check-access API to support permutasi module
+          // API error — allow access with all questions as fallback
           setAccessAllowed(true);
+          const allQuestions = SOAL_DATA.map((s) => s.question_number);
+          setRemainingQuestions(allQuestions);
+          setAnswers(allQuestions.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
           return;
         }
 
@@ -173,19 +196,24 @@ export default function AsesmenPermutasiPage() {
         setMissingSections(data.missingSections);
         setAccessSummary(data.summary);
 
-        // Mastery tracking
-        if (data.remainingQuestions) setRemainingQuestions(data.remainingQuestions);
+        // Mastery tracking — fallback to all questions if API returns empty remainingQuestions
+        const allQns = SOAL_DATA.map((s) => s.question_number);
+        const remaining = (data.remainingQuestions && data.remainingQuestions.length > 0)
+          ? data.remainingQuestions
+          : allQns;
+        setRemainingQuestions(remaining);
         if (data.masteredQuestions) setMasteredQuestions(data.masteredQuestions);
         setIsFullyMastered(data.isFullyMastered ?? false);
         setInitialScore(data.initialScore ?? null);
 
-        // Initialize answers for remaining questions only
-        if (data.remainingQuestions && data.remainingQuestions.length > 0) {
-          setAnswers(data.remainingQuestions.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
-        }
+        // Initialize answers for remaining questions
+        setAnswers(remaining.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
       } catch {
         if (!cancelled) {
           setAccessAllowed(true);
+          const allQuestions = SOAL_DATA.map((s) => s.question_number);
+          setRemainingQuestions(allQuestions);
+          setAnswers(allQuestions.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
         }
       }
     }
@@ -300,6 +328,11 @@ export default function AsesmenPermutasiPage() {
       }
 
       const submissionData = await res.json();
+
+      // Save pending evaluation to sessionStorage (resume after refresh)
+      if (submissionData.submission_id) {
+        savePending(submissionData.submission_id);
+      }
 
       if (attemptId !== null) {
         const isTimedOut = timeLeft <= 0;
@@ -910,14 +943,14 @@ function IntroScreen({
           }}
         >
           <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7d5c", margin: "0 0 4px" }}>
-            📊 Skor Awal Kamu
+             Skor Awal Kamu
           </p>
           <p style={{ fontSize: 28, fontWeight: 800, color: "#1a3d1c", margin: 0 }}>
             {initialScore}/100
           </p>
           {!isFullyMastered && displayRemaining < displayTotal && (
             <p style={{ fontSize: 12, color: "#6b8f6d", margin: "6px 0 0" }}>
-              ✨ {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang
+             {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang
             </p>
           )}
         </div>
@@ -1975,24 +2008,6 @@ function ResultsScreen({
         </p>
       </div>
 
-      {/* Cooldown Notice */}
-      <div
-        style={{
-          marginBottom: 24,
-          backgroundColor: "#fff5f0",
-          borderRadius: 10,
-          border: "1.5px solid #fde68a",
-          padding: "12px 16px",
-          textAlign: "center",
-        }}
-      >
-        <p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>
-          ⏳ Kamu dapat memulai latihan kembali dalam <strong>5 menit</strong>.
-          Gunakan waktu ini untuk mempelajari feedback dan memperbaiki
-          pemahamanmu.
-        </p>
-      </div>
-
       {/* Per-Question Results */}
       <h2
         style={{
@@ -2018,11 +2033,13 @@ function ResultsScreen({
           const soalRef = SOAL_DATA.find(
             (s) => s.question_number === pq.question_number
           );
-          const userAnswer = answers[pq.question_number - 1];
-          const isUnanswered = pq.mistake_category === "tidak_diisi";
+          const answerIdx = _remainingQuestions.indexOf(pq.question_number);
+          const userAnswer = answerIdx >= 0 ? answers[answerIdx] : null;
+          const isUnanswered = pq.mistake_category === "tidak_diisi" || pq.mistake_category === "tidak_memadai";
           const hasMistake =
             pq.mistake_category !== null &&
-            pq.mistake_category !== "tidak_diisi";
+            pq.mistake_category !== "tidak_diisi" &&
+            pq.mistake_category !== "tidak_memadai";
           const itemColor = isUnanswered
             ? "#d97706"
             : hasMistake
@@ -2109,7 +2126,7 @@ function ResultsScreen({
                   }}
                 >
                   <span style={{ fontWeight: 600 }}>Jawabanmu: </span>
-                  {userAnswer.jawaban_akhir || "(tidak diisi)"}
+                  {userAnswer.jawaban_akhir || (pq.mistake_category === "tidak_memadai" ? "(terlalu singkat)" : "(tidak diisi)")}
                 </div>
               )}
 
@@ -2135,7 +2152,7 @@ function ResultsScreen({
                     padding: "6px 10px",
                   }}
                 >
-                  ⚠️ <strong>Tidak diisi</strong> — soal ini dikosongkan, skor
+                  ⚠️ <strong>{pq.mistake_category === "tidak_memadai" ? "Jawaban terlalu singkat" : "Tidak diisi"}</strong> — {pq.mistake_category === "tidak_memadai" ? "jawaban tidak cukup untuk dievaluasi, " : "soal ini dikosongkan, "}skor
                   otomatis 0.
                 </div>
               )}

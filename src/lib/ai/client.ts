@@ -242,6 +242,7 @@ export const AsesmenFormatifEvaluatePrompt = async (
 ): Promise<AsesmenFormatifItemResult> => {
   const response = await client.responses.parse({
     model: "gpt-4o",
+    temperature: 0.4,
     input: [
       { role: "system", content: PROMPTS.AsesmenFormatif.system },
       {

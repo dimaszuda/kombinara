@@ -78,13 +78,9 @@ export default function UlanganListPage() {
         </h1>
       </div>
 
-      {/* Grid 4 kolom */}
+      {/* Grid responsif: 1 kolom di mobile, 2 di tablet, 4 di desktop */}
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "16px",
-        }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         {MATERI.map((m) => (
           <Link

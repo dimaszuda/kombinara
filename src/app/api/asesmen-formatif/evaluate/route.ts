@@ -397,15 +397,71 @@ export async function POST(req: Request) {
         continue;
       }
 
-      const caraHitung = caraHitungRaw || "(tidak diisi)";
-      const jawabanAkhir = jawabanAkhirRaw || "(tidak diisi)";
-
-      // Check if final answer matches ground truth (normalize numbers)
-      const normalizedJawaban = jawabanAkhir.replace(/[.,\s]/g, "");
-      const normalizedGT = String(soalRef.answer);
+      // ── Compute isJawabanAkhirTrue early (before cara_hitung check) ─
+      const jawabanAkhirClean = jawabanAkhirRaw || "(tidak diisi)";
+      const normalizedJawaban = jawabanAkhirClean.replace(/[.,\s]/g, "");
+      const normalizedGT = String(soalRef.answer).replace(/[.,\s]/g, "");
       const isJawabanAkhirTrue =
         normalizedJawaban === normalizedGT ||
-        jawabanAkhir === String(soalRef.answer);
+        jawabanAkhirClean === String(soalRef.answer);
+
+      // ── Cara hitung terlalu singkat (< 7 karakter) ────────────────
+      // Hanya cek cara_hitung (proses), BUKAN jawaban_akhir.
+      // Jawaban akhir pendek seperti "120" atau "56" itu normal.
+      const caraLength = caraHitungRaw.length;
+
+      if (caraLength < 7) {
+        if (isJawabanAkhirTrue) {
+          // Jawaban akhir benar tapi proses terlalu singkat → 7/10
+          perQuestionResults.push({
+            question_number: answer.question_number,
+            step_by_step: {
+              identifikasi_kondisi: { score: 0, reasoning: "Cara hitung terlalu singkat — tidak bisa dinilai." },
+              pemilihan_rumus: { score: 0, reasoning: "Cara hitung terlalu singkat." },
+              eksekusi_perhitungan: { score: 0, reasoning: "Cara hitung terlalu singkat." },
+              justifikasi: { score: 0, reasoning: "Cara hitung terlalu singkat." },
+            },
+            process_raw_score: 0,
+            process_scaled_score: 0,
+            final_answer_score: 7,
+            total_score: 7,
+            guardrail_applied: null,
+            mistake_category: null,
+            mistake_detail: "Jawaban akhir benar, tetapi cara hitung terlalu singkat untuk dinilai prosesnya.",
+            feedback: "Jawaban akhirmu benar, tapi cara hitungnya terlalu singkat. Lain kali tuliskan langkah-langkah pengerjaan yang lengkap ya biar Kombi bisa nilai proses berpikirmu juga! 😊",
+          });
+          totalScoreSum += 7;
+        } else {
+          // Jawaban salah & proses singkat → 0
+          perQuestionResults.push({
+            question_number: answer.question_number,
+            step_by_step: {
+              identifikasi_kondisi: { score: 0, reasoning: "Cara hitung terlalu singkat untuk dinilai" },
+              pemilihan_rumus: { score: 0, reasoning: "Cara hitung terlalu singkat" },
+              eksekusi_perhitungan: { score: 0, reasoning: "Cara hitung terlalu singkat" },
+              justifikasi: { score: 0, reasoning: "Cara hitung terlalu singkat" },
+            },
+            process_raw_score: 0,
+            process_scaled_score: 0,
+            final_answer_score: 0,
+            total_score: 0,
+            guardrail_applied: null,
+            mistake_category: "tidak_memadai",
+            mistake_detail: "Cara hitung terlalu singkat untuk dievaluasi.",
+            feedback: "Cara hitungmu terlalu singkat untuk bisa dinilai. Coba tuliskan langkah-langkah pengerjaan yang lebih lengkap ya!",
+          });
+        }
+        continue;
+      }
+
+      const caraHitung = caraHitungRaw || "(tidak diisi)";
+      const jawabanAkhir = jawabanAkhirClean;
+
+      // ── Jawaban akhir benar + cara cukup → tetap kirim ke AI ─
+      // AI akan menilai proses secara detail. Prompt sudah dijamin:
+      // jika is_jawaban_akhir_true = TRUE → final_answer_score HARUS skor penuh,
+      // dan jika proses juga sesuai ground truth → total_score WAJIB 10/10.
+      // Jadi tidak ada fast-path skip — biar AI yang memutuskan.
 
       const levelLabel = LEVEL_MAP[soalRef.level] ?? soalRef.level;
 

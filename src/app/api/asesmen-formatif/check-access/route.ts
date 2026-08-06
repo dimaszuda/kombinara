@@ -31,7 +31,6 @@ import {
   MATERI_SECTIONS,
   PERMUTASI_SECTIONS,
   KOMBINASI_SECTIONS,
-  MATERI_CONCEPT_IDS,
   PERMUTASI_CONCEPT_IDS,
   KOMBINASI_CONCEPT_IDS,
 } from "@/lib/data/student-section-status";
@@ -39,14 +38,16 @@ import {
 // ─── Section maps per module_slug ──────────────────────────────────────────────
 
 const SECTION_MAP: Record<string, ReadonlyArray<{ conceptId: string; section: string }>> = {
-  "kaidah-pencacahan": MATERI_SECTIONS,          // 13 sections (kaidah_penjumlahan + kaidah_perkalian + faktorial)
-  faktorial: MATERI_SECTIONS.filter(s => s.conceptId === "faktorial"), // 6 sections
+  // Kaidah Pencacahan = kaidah_penjumlahan + kaidah_perkalian ONLY (13 sections).
+  // Faktorial has its own ulangan and is NOT included here.
+  "kaidah-pencacahan": MATERI_SECTIONS.filter(s => s.conceptId !== "faktorial"),
+  faktorial: MATERI_SECTIONS.filter(s => s.conceptId === "faktorial" && s.section !== "mengapa_corner"), // 5 sections (mengapa_corner not tracked)
   permutasi: PERMUTASI_SECTIONS,                  // 11 sections
   kombinasi: KOMBINASI_SECTIONS,                  // 6 sections
 };
 
 const CONCEPT_ID_MAP: Record<string, ReadonlyArray<string>> = {
-  "kaidah-pencacahan": MATERI_CONCEPT_IDS,
+  "kaidah-pencacahan": ["kaidah_penjumlahan", "kaidah_perkalian"],
   faktorial: ["faktorial"],
   permutasi: PERMUTASI_CONCEPT_IDS,
   kombinasi: KOMBINASI_CONCEPT_IDS,
@@ -130,11 +131,7 @@ export async function GET(req: Request) {
       },
     };
 
-    // ── Mastery tracking (only for faktorial/permutasi/kombinasi) ───
-    if (moduleSlug === "kaidah-pencacahan") {
-      return NextResponse.json(baseResponse);
-    }
-
+    // ── Mastery tracking (all modules) ───
     // Resolve moduleId
     const mod = await prisma.module.findUnique({
       where: { slug: moduleSlug },
@@ -145,6 +142,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ ...baseResponse, masteredQuestions: [], remainingQuestions: [], isFullyMastered: false, initialScore: null });
     }
 
+    // Determine total question count based on module
+    const totalQuestions =
+      moduleSlug === "kaidah-pencacahan" ? 10 :
+      moduleSlug === "faktorial" ? 7 :
+      moduleSlug === "permutasi" ? 10 :
+      moduleSlug === "kombinasi" ? 10 : 10;
+
     // Query all submissions for this student+module
     const submissions = await prisma.asesmenFormatifSubmission.findMany({
       where: { studentId: student.id, moduleId: mod.id },
@@ -153,10 +157,12 @@ export async function GET(req: Request) {
     });
 
     if (submissions.length === 0) {
+      // First attempt — all questions are remaining
+      const allQuestions = Array.from({ length: totalQuestions }, (_, i) => i + 1);
       return NextResponse.json({
         ...baseResponse,
         masteredQuestions: [],
-        remainingQuestions: [],
+        remainingQuestions: allQuestions,
         isFullyMastered: false,
         initialScore: null,
       });
@@ -165,13 +171,11 @@ export async function GET(req: Request) {
     // Initial score = first submission's totalScore
     const initialScore = submissions[0].totalScore ?? null;
 
-    // Determine total question count based on module
-    const totalQuestions =
-      moduleSlug === "faktorial" ? 7 :
-      moduleSlug === "permutasi" ? 10 :
-      moduleSlug === "kombinasi" ? 10 : 10;
-
-    // Build mastery map: question_number → ever been correct?
+    // Build mastery map: question_number → AI found NO mistake in ANY submission?
+    // A question is considered "mastered" if the AI evaluation returned
+    // mistake_category === null (no error) in at least one submission.
+    // If mistake_category is NOT null (konsep | formula | perhitungan | lainnya |
+    // tidak_diisi | tidak_memadai), the question still needs retry.
     const masteredSet = new Set<number>();
     for (const sub of submissions) {
       const results = sub.perQuestionResults as unknown as Array<{

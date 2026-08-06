@@ -179,7 +179,7 @@ export const SUB_PART_CONFIG: Record<number, string[]> = {
   4: ["a", "b", "c", "d"],
   5: ["a", "b", "c"],
   6: ["a", "b"],
-  7: ["a", "b", "c"],
+  // Soal 7 uses standard single Jawaban Akhir (jawabannya panjang, bukan per-huruf)
 };
 
 // ============================================================================

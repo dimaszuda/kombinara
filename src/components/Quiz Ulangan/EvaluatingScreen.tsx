@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 // ============================================================================
 // EvaluatingScreen — reusable AI evaluation loading screen
@@ -20,6 +20,16 @@ export default function EvaluatingScreen({
   description = "Kombi sedang memeriksa jawabanmu menggunakan AI. Proses ini memakan waktu beberapa detik.",
   infoText = "Setiap jawaban dinilai berdasarkan rubrik: proses pengerjaan (identifikasi kondisi, pemilihan rumus, eksekusi perhitungan) dan jawaban akhir.",
 }: EvaluatingScreenProps) {
+  // ── beforeunload warning ──────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
+
   return (
     <div
       style={{
@@ -77,6 +87,8 @@ export default function EvaluatingScreen({
       >
         {description}
       </p>
+
+      {/* Info card */}
       <div
         style={{
           marginTop: 24,
@@ -125,9 +137,79 @@ export default function EvaluatingScreen({
           </div>
         </div>
       </div>
-      <p style={{ marginTop: 20, fontSize: 12, color: "#9aada0" }}>
-        Mohon jangan menutup halaman ini.
-      </p>
+
+      {/* ⚠️ Warning: do not close or refresh */}
+      <div
+        style={{
+          marginTop: 24,
+          backgroundColor: "#fffbf0",
+          borderRadius: 12,
+          border: "2px solid #f59e0b",
+          padding: "18px 20px",
+        }}
+      >
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+          {/* Warning icon */}
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              backgroundColor: "#fef3c7",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#d97706"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div style={{ textAlign: "left" }}>
+            <p
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: "#92400e",
+                margin: "0 0 8px",
+              }}
+            >
+              Jangan Tutup atau Refresh Halaman!
+            </p>
+            <ul
+              style={{
+                margin: 0,
+                padding: "0 0 0 18px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+              }}
+            >
+              <li style={{ fontSize: 13, color: "#a16207", lineHeight: 1.6 }}>
+                Jangan <strong>menutup tab</strong> atau <strong>browser</strong>
+              </li>
+              <li style={{ fontSize: 13, color: "#a16207", lineHeight: 1.6 }}>
+                Jangan <strong>me-refresh</strong> halaman
+              </li>
+              <li style={{ fontSize: 13, color: "#a16207", lineHeight: 1.6 }}>
+                Jangan <strong>menekan tombol Back</strong>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -16,17 +16,17 @@ import { getDeviceType } from "@/lib/device";
 import type { DeviceType } from "@/lib/device";
 import IntegrityToast from "@/components/activity/IntegrityToast";
 import IntegrityBlockingModal from "@/components/activity/IntegrityBlockingModal";
+import { useEvaluationPersistence } from "@/hooks/useEvaluationPersistence";
+import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
 
 // ── Config ─────────────────────────────────────────────────────────────────────────────────
 const DURASI_DETIK = 120 * 60; // 120 menit (prod)
-const COOLDOWN_DETIK = 5 * 60; // 5 menit cooldown antar attempt
 
 const PETUNJUK = [
   "Baca setiap soal dengan teliti sebelum menjawab.",
   'Tuliskan langkah-langkah cara perhitungan secara lengkap pada kolom "Cara Hitung".',
   'Tuliskan hasil akhir jawaban pada kolom "Jawaban Akhir".',
-  "Pastikan semua soal telah dijawab sebelum menekan tombol Submit.",
-  "Latihan ini dapat dikerjakan lebih dari satu kali dengan jeda 5 menit",
+  "Pastikan semua soal telah dijawab sebelum menekan tombol Submit."
 ];
 
 const BOLEH = ["Menggunakan coretan / kertas buram", "Menghitung secara manual"];
@@ -66,6 +66,10 @@ interface AccessCheckResponse {
   allowed: boolean;
   missingSections: Array<{ conceptId: string; section: string }>;
   summary: { totalRequired: number; completed: number; missing: number };
+  masteredQuestions?: number[];
+  remainingQuestions?: number[];
+  isFullyMastered?: boolean;
+  initialScore?: number | null;
 }
 
 /** Human-readable labels for sections, used in the locked screen. */
@@ -125,8 +129,31 @@ export default function AsesmenKaidahPencacahanPage() {
   const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
   const [evalError, setEvalError] = useState<string | null>(null);
 
-  // ── Cooldown state ──────────────────────────────────────────────────────────
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
+  // ── Mastery / retry state ─────────────────────────────────────────────────
+  const [masteredQuestions, setMasteredQuestions] = useState<number[]>([]);
+  const [remainingQuestions, setRemainingQuestions] = useState<number[]>([]);
+  const [isFullyMastered, setIsFullyMastered] = useState(false);
+  const [initialScore, setInitialScore] = useState<number | null>(null);
+
+  // ── Evaluation persistence (resume after refresh) ──────────────────────────
+  const { savePending } = useEvaluationPersistence({
+    phase,
+    moduleSlug: "kaidah-pencacahan",
+    onEvaluationComplete: (result: unknown) => {
+      setEvaluationResult(result as EvaluationResult);
+      setPhase("results");
+    },
+    onEvaluationError: (error: string) => {
+      setEvalError(error);
+      setPhase("submitted");
+    },
+    onResumeEvaluation: () => {
+      setPhase("evaluating");
+    },
+    onPendingResolved: () => {
+      // Handled in onEvaluationComplete/onEvaluationError
+    },
+  });
 
   // ── Access check state ────────────────────────────────────────────────────
   const [accessAllowed, setAccessAllowed] = useState<boolean | null>(null);
@@ -162,6 +189,20 @@ export default function AsesmenKaidahPencacahanPage() {
         setAccessAllowed(data.allowed);
         setMissingSections(data.missingSections);
         setAccessSummary(data.summary);
+
+        // Mastery tracking — kaidah-pencacahan API doesn't return mastery fields,
+        // so fall back to all questions
+        const allQns = SOAL_DATA.map((s) => s.question_number);
+        const remaining = (data.remainingQuestions && data.remainingQuestions.length > 0)
+          ? data.remainingQuestions
+          : allQns;
+        setRemainingQuestions(remaining);
+        if (data.masteredQuestions) setMasteredQuestions(data.masteredQuestions);
+        setIsFullyMastered(data.isFullyMastered ?? false);
+        setInitialScore(data.initialScore ?? null);
+
+        // Initialize answers for remaining questions
+        setAnswers(remaining.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
       } catch {
         if (!cancelled) {
           // Network error -- deny access for safety.
@@ -226,14 +267,6 @@ export default function AsesmenKaidahPencacahanPage() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Unknown error" }));
-
-        // Handle cooldown (429)
-        if (res.status === 429 && err.cooldown_remaining_seconds) {
-          setCooldownSeconds(err.cooldown_remaining_seconds);
-          setAttemptError(err.message ?? "Silakan tunggu sebelum memulai latihan kembali.");
-          return;
-        }
-
         setAttemptError(
           err.error ?? "Gagal memulai latihan. Silakan coba lagi."
         );
@@ -242,7 +275,6 @@ export default function AsesmenKaidahPencacahanPage() {
 
       const data = await res.json();
       setAttemptId(data.attempt_id);
-      setCooldownSeconds(null); // Clear cooldown on success
 
       // Request fullscreen — graceful fallback if denied
       try {
@@ -276,7 +308,7 @@ export default function AsesmenKaidahPencacahanPage() {
 
       // Build the answers payload
       const answersPayload = answers.map((a, i) => ({
-        question_number: i + 1,
+        question_number: remainingQuestions[i] ?? (i + 1),
         cara_mengerjakan: a.cara_hitung,
         jawaban_akhir: a.jawaban_akhir,
       }));
@@ -297,6 +329,11 @@ export default function AsesmenKaidahPencacahanPage() {
       }
 
       const submissionData = await res.json();
+
+      // Save pending evaluation to sessionStorage (resume after refresh)
+      if (submissionData.submission_id) {
+        savePending(submissionData.submission_id);
+      }
 
       // Update attempt status to 'submitted' (or 'timed_out' if triggered by timer)
       if (attemptId !== null) {
@@ -357,22 +394,6 @@ export default function AsesmenKaidahPencacahanPage() {
     handleSubmitRef.current = handleSubmit;
   });
 
-  // ── Cooldown countdown timer ──────────────────────────────────────────────
-  useEffect(() => {
-    if (cooldownSeconds === null || cooldownSeconds <= 0) return;
-    const interval = setInterval(() => {
-      setCooldownSeconds((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(interval);
-          setAttemptError(null);
-          return null;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [cooldownSeconds]);
-
   function updateAnswer(idx: number, field: keyof AnswerPair, value: string) {
     setAnswers((prev) =>
       prev.map((a, i) => (i === idx ? { ...a, [field]: value } : a))
@@ -412,21 +433,16 @@ export default function AsesmenKaidahPencacahanPage() {
           <div style={{ maxWidth: 700, margin: "0 auto", padding: "12px 24px 0" }}>
             <div style={{ backgroundColor: "#fff5f5", borderRadius: 10, border: "1.5px solid #fecaca", padding: "12px 16px", textAlign: "center" }}>
               <p style={{ fontSize: 13, color: "#b91c1c", margin: 0 }}>{attemptError}</p>
-              {cooldownSeconds !== null && cooldownSeconds > 0 && (
-                <p style={{ fontSize: 12, color: "#9a7b5c", margin: "6px 0 0" }}>
-                  ⏳ {formatTime(cooldownSeconds)} hingga dapat memulai kembali
-                </p>
-              )}
             </div>
           </div>
         )}
-        <IntroScreen onStart={handleStart} isOnCooldown={cooldownSeconds !== null && cooldownSeconds > 0} cooldownSeconds={cooldownSeconds} />
+        <IntroScreen onStart={handleStart} isFullyMastered={isFullyMastered} initialScore={initialScore} remainingCount={remainingQuestions.length} totalCount={SOAL_DATA.length} />
       </>
     );
   }
-  if (phase === "submitted") return <SubmittedScreen answers={answers} />;
+  if (phase === "submitted") return <SubmittedScreen answers={answers} remainingQuestions={remainingQuestions} />;
   if (phase === "evaluating") return <EvaluatingScreen />;
-  if (phase === "results") return <ResultsScreen evaluationResult={evaluationResult} answers={answers} evalError={evalError} onRetry={() => setPhase("submitted")} />;
+  if (phase === "results") return <ResultsScreen evaluationResult={evaluationResult} answers={answers} evalError={evalError} onRetry={() => setPhase("submitted")} remainingQuestions={remainingQuestions} />;
   return (
     <ActiveScreen
       answers={answers}
@@ -438,6 +454,7 @@ export default function AsesmenKaidahPencacahanPage() {
       onDismissSubmitError={() => { setSubmitError(null); hasSubmittedRef.current = false; }}
       attemptId={attemptId!}
       deviceType={deviceType!}
+      remainingQuestions={remainingQuestions}
     />
   );
 }
@@ -716,7 +733,11 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
 }
 
 // ── Intro Screen ────────────────────────────────────────────────────────────────────────────
-function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () => void; isOnCooldown?: boolean; cooldownSeconds?: number | null }) {
+function IntroScreen({ onStart, isFullyMastered, initialScore, remainingCount, totalCount }: { onStart: () => void; isFullyMastered?: boolean; initialScore?: number | null; remainingCount?: number; totalCount?: number }) {
+  const hasAttemptedBefore = initialScore !== null && initialScore !== undefined;
+  const displayRemaining = remainingCount ?? totalCount ?? 10;
+  const displayTotal = totalCount ?? 10;
+
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "36px 24px" }}>
       <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#346739", opacity: 0.7, margin: "0 0 6px" }}>
@@ -726,10 +747,29 @@ function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () =
         Kaidah Pencacahan
       </h1>
 
+      {/* Initial score banner */}
+      {hasAttemptedBefore && (
+        <div style={{ backgroundColor: "#f0faf0", borderRadius: 12, border: "1.5px solid #c3e6c3", padding: "14px 18px", marginBottom: 20, textAlign: "center" }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7d5c", margin: "0 0 4px" }}> Skor Awal Kamu</p>
+          <p style={{ fontSize: 28, fontWeight: 800, color: "#1a3d1c", margin: 0 }}>{initialScore}/100</p>
+          {!isFullyMastered && displayRemaining < displayTotal && (
+            <p style={{ fontSize: 12, color: "#6b8f6d", margin: "6px 0 0" }}> {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang</p>
+          )}
+        </div>
+      )}
+
+      {/* Fully mastered banner */}
+      {isFullyMastered && (
+        <div style={{ backgroundColor: "#f0faf0", borderRadius: 12, border: "2px solid #346739", padding: "18px 20px", marginBottom: 20, textAlign: "center" }}>
+          <p style={{ fontSize: 16, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>🎉 Semua Soal Sudah Terjawab Benar!</p>
+          <p style={{ fontSize: 13, color: "#5a7d5c", margin: 0 }}>Kamu sudah menguasai seluruh materi Kaidah Pencacahan. Tidak ada soal yang perlu diulang.</p>
+        </div>
+      )}
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
         {[
           { icon: "⏱", label: "Durasi", value: "120 Menit", color: "#346739", bg: "#DBFFD5" },
-          { icon: "📄", label: "Jumlah Soal", value: "10 Soal", color: "#346739", bg: "#DBFFD5" },
+          { icon: "📄", label: "Jumlah Soal", value: `${displayRemaining} Soal`, color: "#346739", bg: "#DBFFD5" },
           { icon: "✍️", label: "Jenis", value: "Uraian", color: "#663362", bg: "#f3e8f2" },
           { icon: "🔒", label: "Pengerjaan", value: "Dapat diulang", color: "#663362", bg: "#f3e8f2" },
         ].map((info) => (
@@ -757,35 +797,24 @@ function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () =
         <RuleBox title="Yang Tidak Diperbolehkan" items={TIDAK_BOLEH} type="forbidden" />
       </div>
 
-      {/* Cooldown notice */}
-      {isOnCooldown && cooldownSeconds != null && cooldownSeconds > 0 && (
-        <div style={{ textAlign: "center", marginBottom: 16, backgroundColor: "#fff5f0", borderRadius: 10, border: "1.5px solid #fde68a", padding: "12px 16px" }}>
-          <p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>
-            ⏳ Silakan tunggu <strong>{formatTime(cooldownSeconds)}</strong> sebelum dapat memulai latihan kembali.
-          </p>
-        </div>
-      )}
-
       <div style={{ textAlign: "center" }}>
-        <button
-          onClick={onStart}
-          disabled={isOnCooldown}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 40px",
-            backgroundColor: isOnCooldown ? "#9aada0" : "#346739", color: "#fff",
-            borderRadius: 12, fontSize: 15, fontWeight: 700, border: "none",
-            cursor: isOnCooldown ? "not-allowed" : "pointer",
-            opacity: isOnCooldown ? 0.7 : 1,
-          }}
-        >
-          Siap, Mulai latihan
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-        <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>
-          {isOnCooldown ? "Timer cooldown sedang berjalan..." : "Timer akan mulai berjalan setelah kamu klik tombol di atas."}
-        </p>
+        {isFullyMastered ? (
+          <>
+            <Link href="/siswa/materi/kaidah-pencacahan" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 40px", backgroundColor: "#346739", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, textDecoration: "none" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+              Kembali ke Materi
+            </Link>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>Semua soal sudah dikuasai. Tidak perlu mengulang latihan.</p>
+          </>
+        ) : (
+          <>
+            <button onClick={onStart} style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 40px", backgroundColor: "#346739", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer" }}>
+              Siap, Mulai latihan
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>Timer akan mulai berjalan setelah kamu klik tombol di atas.</p>
+          </>
+        )}
       </div>
     </div>
   );
@@ -822,6 +851,7 @@ interface ActiveScreenProps {
   onDismissSubmitError: () => void;
   attemptId: number;
   deviceType: DeviceType;
+  remainingQuestions: number[];
 }
 
 function ActiveScreen({
@@ -834,11 +864,17 @@ function ActiveScreen({
   onDismissSubmitError,
   attemptId,
   deviceType,
+  remainingQuestions,
 }: ActiveScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const color = timerColor(timeLeft);
   const pct = (timeLeft / DURASI_DETIK) * 100;
   const answeredCount = answers.filter(isAnswered).length;
+
+  // Build filtered soal list
+  const filteredSoal = remainingQuestions
+    .map((qn) => SOAL_DATA.find((s) => s.question_number === qn))
+    .filter((s): s is typeof SOAL_DATA[number] => s !== undefined);
 
   // ── Integrity monitor ─────────────────────────────────────────────────────
   const integrity = useIntegrityMonitor({
@@ -892,7 +928,7 @@ function ActiveScreen({
             <p style={{ fontSize: 11, fontWeight: 600, color: "#346739", opacity: 0.7, margin: 0, textTransform: "uppercase", letterSpacing: "0.1em" }}>
               Latihan Pemahaman — Kaidah Pencacahan
             </p>
-            <p style={{ fontSize: 12, color: "#6b8f6d", margin: "2px 0 0" }}>{answeredCount}/{SOAL_DATA.length} soal terjawab</p>
+            <p style={{ fontSize: 12, color: "#6b8f6d", margin: "2px 0 0" }}>{answeredCount}/{answers.length} soal terjawab</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, backgroundColor: color + "18", borderRadius: 10, padding: "8px 14px", border: `1.5px solid ${color}30` }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -912,12 +948,12 @@ function ActiveScreen({
       <div style={{ marginBottom: 24, backgroundColor: "#f8fdf8", borderRadius: 12, border: "1px solid #e2ede2", padding: "14px 16px" }}>
         <p style={{ fontSize: 11, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 10px" }}>Navigasi Soal</p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {SOAL_DATA.map((soal, i) => {
+          {filteredSoal.map((soal, i) => {
             const answered = isAnswered(answers[i]);
             return (
-              <a key={soal.question_number} href={`#soal-${i + 1}`} title={LEVEL_META[soal.level].label}
+              <a key={soal.question_number} href={`#soal-${soal.question_number}`} title={LEVEL_META[soal.level].label}
                 style={{ width: 36, height: 36, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, textDecoration: "none", backgroundColor: answered ? "#346739" : "#fff", color: answered ? "#fff" : "#346739", border: `2px solid ${answered ? "#346739" : "#d4e8d4"}`, transition: "all 0.15s ease" }}>
-                {i + 1}
+                {soal.question_number}
               </a>
             );
           })}
@@ -940,11 +976,11 @@ function ActiveScreen({
           transition: "opacity 0.2s ease",
         }}
       >
-        {SOAL_DATA.map((soal, i) => {
+        {filteredSoal.map((soal, i) => {
           const answered = isAnswered(answers[i]);
           const lm = LEVEL_META[soal.level];
           return (
-            <div key={soal.question_number} id={`soal-${i + 1}`}
+            <div key={soal.question_number} id={`soal-${soal.question_number}`}
               style={{ backgroundColor: "#fff", borderRadius: 14, border: `2px solid ${answered ? "#346739" : "#e2ede2"}`, overflow: "hidden", transition: "border-color 0.2s ease" }}>
               <div style={{ height: 4, backgroundColor: answered ? "#346739" : "#e2ede2", transition: "background-color 0.2s ease" }} />
               <div style={{ padding: "18px 20px" }}>
@@ -1021,7 +1057,7 @@ function ActiveScreen({
           <div style={{ textAlign: "center", backgroundColor: "#fff5f5", borderRadius: 12, border: "1.5px solid #fecaca", padding: "20px 24px" }}>
             <p style={{ fontSize: 15, fontWeight: 700, color: "#b91c1c", margin: "0 0 6px" }}>Konfirmasi Submit</p>
             <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 16px" }}>
-              Kamu telah menjawab <strong style={{ color: "#1a3d1c" }}>{answeredCount}</strong> dari <strong>{SOAL_DATA.length}</strong> soal. Setelah di-submit, jawaban tidak dapat diubah.
+              Kamu telah menjawab <strong style={{ color: "#1a3d1c" }}>{answeredCount}</strong> dari <strong>{answers.length}</strong> soal. Setelah di-submit, jawaban tidak dapat diubah.
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
               <button onClick={() => setShowConfirm(false)} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #d1d5db", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#6b7280", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.6 : 1 }}>Batal</button>
@@ -1037,9 +1073,12 @@ function ActiveScreen({
 }
 
 // ── Submitted Screen ────────────────────────────────────────────────────────────────────────
-function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
+function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[]; remainingQuestions: number[] }) {
+  const filteredSoal = remainingQuestions
+    .map((qn) => SOAL_DATA.find((s) => s.question_number === qn))
+    .filter((s): s is typeof SOAL_DATA[number] => s !== undefined);
   const answeredCount = answers.filter(isAnswered).length;
-  const allAnswered = answeredCount === SOAL_DATA.length;
+  const allAnswered = answeredCount === answers.length;
 
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 24px 48px" }}>
@@ -1051,7 +1090,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1a3d1c", margin: "0 0 8px" }}>Jawaban Terkirim!</h1>
         <p style={{ fontSize: 15, color: "#5a7d5c", margin: 0, lineHeight: 1.7 }}>
-          {allAnswered ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan latihan ini!" : `Kamu menjawab ${answeredCount} dari ${SOAL_DATA.length} soal. Jawaban telah dikirimkan.`}
+          {allAnswered ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan latihan ini!" : `Kamu menjawab ${answeredCount} dari ${answers.length} soal. Jawaban telah dikirimkan.`}
         </p>
 
         {/* Status: jawaban tersimpan & sedang dikoreksi */}
@@ -1075,7 +1114,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20, pointerEvents: "none" }}>
-        {SOAL_DATA.map((soal, i) => {
+        {filteredSoal.map((soal, i) => {
           const answered = isAnswered(answers[i]);
           return (
             <div key={soal.question_number}>
@@ -1111,51 +1150,6 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
   );
 }
 
-// ── Evaluating Screen ──────────────────────────────────────────────────────────────────────
-
-function EvaluatingScreen() {
-  return (
-    <div style={{ maxWidth: 680, margin: "0 auto", padding: "60px 24px 48px", textAlign: "center" }}>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-      <div style={{ width: 80, height: 80, borderRadius: "50%", backgroundColor: "#f3e8f2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", position: "relative" }}>
-        <svg
-          width="36"
-          height="36"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#663362"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ animation: "spin 1.5s linear infinite" }}
-        >
-          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-        </svg>
-      </div>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1a3d1c", margin: "0 0 10px" }}>
-        Mengevaluasi Jawaban
-      </h1>
-      <p style={{ fontSize: 14, color: "#5a7d5c", margin: 0, lineHeight: 1.7 }}>
-        Kombi sedang memeriksa jawabanmu menggunakan AI. Proses ini memakan waktu beberapa detik.
-      </p>
-      <div style={{ marginTop: 24, backgroundColor: "#f8fdf8", borderRadius: 10, border: "1px solid #d4e8d4", padding: "14px 18px" }}>
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#346739" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
-            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-          </svg>
-          <div style={{ textAlign: "left" }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>AI Evaluation in progress</p>
-            <p style={{ fontSize: 11, color: "#6b8f6d", margin: 0, lineHeight: 1.6 }}>
-              Setiap jawaban dinilai berdasarkan rubrik: proses pengerjaan (identifikasi kondisi, pemilihan rumus, eksekusi perhitungan) dan jawaban akhir.
-            </p>
-          </div>
-        </div>
-      </div>
-      <p style={{ marginTop: 20, fontSize: 12, color: "#9aada0" }}>Mohon jangan menutup halaman ini.</p>
-    </div>
-  );
-}
-
 // ── Results Screen ──────────────────────────────────────────────────────────────────────────
 
 interface ResultsScreenProps {
@@ -1163,9 +1157,10 @@ interface ResultsScreenProps {
   answers: AnswerPair[];
   evalError: string | null;
   onRetry: () => void;
+  remainingQuestions: number[];
 }
 
-function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: ResultsScreenProps) {
+function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainingQuestions: _remainingQuestions }: ResultsScreenProps) {
   if (evalError) {
     return (
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "60px 24px 48px", textAlign: "center" }}>
@@ -1219,13 +1214,6 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: Result
         </p>
       </div>
 
-      {/* Cooldown Notice */}
-      <div style={{ marginBottom: 24, backgroundColor: "#fff5f0", borderRadius: 10, border: "1.5px solid #fde68a", padding: "12px 16px", textAlign: "center" }}>
-        <p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>
-          ⏳ Kamu dapat memulai latihan kembali dalam <strong>5 menit</strong>. Gunakan waktu ini untuk mempelajari feedback dan memperbaiki pemahamanmu.
-        </p>
-      </div>
-
       {/* Per-Question Results */}
       <h2 style={{ fontSize: 13, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>
         Detail Per Soal
@@ -1233,9 +1221,10 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: Result
       <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
         {per_question.map((pq) => {
           const soalRef = SOAL_DATA.find((s) => s.question_number === pq.question_number);
-          const userAnswer = answers[pq.question_number - 1];
-          const isUnanswered = pq.mistake_category === "tidak_diisi";
-          const hasMistake = pq.mistake_category !== null && pq.mistake_category !== "tidak_diisi";
+          const answerIdx = _remainingQuestions.indexOf(pq.question_number);
+          const userAnswer = answerIdx >= 0 ? answers[answerIdx] : null;
+          const isUnanswered = pq.mistake_category === "tidak_diisi" || pq.mistake_category === "tidak_memadai";
+          const hasMistake = pq.mistake_category !== null && pq.mistake_category !== "tidak_diisi" && pq.mistake_category !== "tidak_memadai";
           const itemColor = isUnanswered ? "#d97706" : hasMistake ? "#b91c1c" : "#346739";
           const itemBg = isUnanswered ? "#fff5f0" : hasMistake ? "#fff5f5" : "#f0faf0";
           const itemBorder = isUnanswered ? "#fde68a" : hasMistake ? "#fecaca" : "#c3e6c3";
@@ -1270,7 +1259,7 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: Result
               {userAnswer && (
                 <div style={{ marginBottom: 8, fontSize: 12, color: "#5a7d5c", lineHeight: 1.5 }}>
                   <span style={{ fontWeight: 600 }}>Jawabanmu: </span>
-                  {userAnswer.jawaban_akhir || "(tidak diisi)"}
+                  {userAnswer.jawaban_akhir || (pq.mistake_category === "tidak_memadai" ? "(terlalu singkat)" : "(tidak diisi)")}
                 </div>
               )}
 
@@ -1282,7 +1271,7 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: Result
               {/* Mistake / Unanswered info */}
               {isUnanswered && (
                 <div style={{ fontSize: 11, color: "#92400e", backgroundColor: "#fffbeb", borderRadius: 6, padding: "6px 10px" }}>
-                  ⚠️ <strong>Tidak diisi</strong> — soal ini dikosongkan, skor otomatis 0.
+                  ⚠️ <strong>{pq.mistake_category === "tidak_memadai" ? "Jawaban terlalu singkat" : "Tidak diisi"}</strong> — {pq.mistake_category === "tidak_memadai" ? "jawaban tidak cukup untuk dievaluasi, " : "soal ini dikosongkan, "}skor otomatis 0.
                 </div>
               )}
               {hasMistake && (

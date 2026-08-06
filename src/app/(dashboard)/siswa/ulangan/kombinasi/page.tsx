@@ -16,6 +16,7 @@ import { getDeviceType } from "@/lib/device";
 import type { DeviceType } from "@/lib/device";
 import IntegrityToast from "@/components/activity/IntegrityToast";
 import IntegrityBlockingModal from "@/components/activity/IntegrityBlockingModal";
+import { useEvaluationPersistence } from "@/hooks/useEvaluationPersistence";
 import RuleBox from "@/components/Quiz Ulangan/RuleBox";
 import IntroInfoCard from "@/components/Quiz Ulangan/IntroInfoCard";
 import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
@@ -27,8 +28,7 @@ const PETUNJUK = [
   "Baca setiap soal dengan teliti sebelum menjawab.",
   'Tuliskan langkah-langkah cara perhitungan secara lengkap pada kolom "Cara Hitung".',
   'Tuliskan hasil akhir jawaban pada kolom "Jawaban Akhir".',
-  "Pastikan semua soal telah dijawab sebelum menekan tombol Submit.",
-  "Latihan ini dapat dikerjakan lebih dari satu kali dengan jeda 5 menit",
+  "Pastikan semua soal telah dijawab sebelum menekan tombol Submit."
 ];
 
 const BOLEH = ["Menggunakan coretan / kertas buram", "Menghitung secara manual"];
@@ -123,7 +123,33 @@ export default function AsesmenKombinasiPage() {
   const [attemptError, setAttemptError] = useState<string | null>(null);
   const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
   const [evalError, setEvalError] = useState<string | null>(null);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
+
+  // ── Mastery / retry state ─────────────────────────────────────────────────
+  const [masteredQuestions, setMasteredQuestions] = useState<number[]>([]);
+  const [remainingQuestions, setRemainingQuestions] = useState<number[]>([]);
+  const [isFullyMastered, setIsFullyMastered] = useState(false);
+  const [initialScore, setInitialScore] = useState<number | null>(null);
+
+  // ── Evaluation persistence (resume after refresh) ──────────────────────────
+  const { savePending } = useEvaluationPersistence({
+    phase,
+    moduleSlug: "kombinasi",
+    onEvaluationComplete: (result: unknown) => {
+      setEvaluationResult(result as EvaluationResult);
+      setPhase("results");
+    },
+    onEvaluationError: (error: string) => {
+      setEvalError(error);
+      setPhase("submitted");
+    },
+    onResumeEvaluation: () => {
+      setPhase("evaluating");
+    },
+    onPendingResolved: () => {
+      // Handled in onEvaluationComplete/onEvaluationError
+    },
+  });
+
   const [accessAllowed, setAccessAllowed] = useState<boolean | null>(null);
   const [missingSections, setMissingSections] = useState<Array<{ conceptId: string; section: string }>>([]);
   const [accessSummary, setAccessSummary] = useState<{ totalRequired: number; completed: number; missing: number } | null>(null);
@@ -135,20 +161,35 @@ export default function AsesmenKombinasiPage() {
       try {
         const res = await fetch("/api/asesmen-formatif/check-access?module_slug=kombinasi");
         if (cancelled) return;
-        if (!res.ok) { setAccessAllowed(true); return; }
+        if (!res.ok) {
+          setAccessAllowed(true);
+          const allQuestions = SOAL_DATA.map((s) => s.question_number);
+          setRemainingQuestions(allQuestions);
+          setAnswers(allQuestions.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
+          return;
+        }
         const data: AccessCheckResponse = await res.json();
         if (cancelled) return;
         setAccessAllowed(data.allowed);
         setMissingSections(data.missingSections);
         setAccessSummary(data.summary);
-        if (data.remainingQuestions) setRemainingQuestions(data.remainingQuestions);
+        const allQns = SOAL_DATA.map((s) => s.question_number);
+        const remaining = (data.remainingQuestions && data.remainingQuestions.length > 0)
+          ? data.remainingQuestions
+          : allQns;
+        setRemainingQuestions(remaining);
         if (data.masteredQuestions) setMasteredQuestions(data.masteredQuestions);
         setIsFullyMastered(data.isFullyMastered ?? false);
         setInitialScore(data.initialScore ?? null);
-        if (data.remainingQuestions && data.remainingQuestions.length > 0) {
-          setAnswers(data.remainingQuestions.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
+        setAnswers(remaining.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
+      } catch {
+        if (!cancelled) {
+          setAccessAllowed(true);
+          const allQuestions = SOAL_DATA.map((s) => s.question_number);
+          setRemainingQuestions(allQuestions);
+          setAnswers(allQuestions.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
         }
-      } catch { if (!cancelled) setAccessAllowed(true); }
+      }
     }
     checkAccess();
     return () => { cancelled = true; };
@@ -202,6 +243,8 @@ export default function AsesmenKombinasiPage() {
       const res = await fetch("/api/asesmen-formatif/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ module_slug: "kombinasi", concept_id: "kombinasi", answers: answersPayload }) });
       if (!res.ok) { const err = await res.json().catch(() => ({ error: "Unknown error" })); throw new Error(err.error ?? "Gagal menyimpan jawaban"); }
       const submissionData = await res.json();
+      // Save pending evaluation to sessionStorage (resume after refresh)
+      if (submissionData.submission_id) savePending(submissionData.submission_id);
       if (attemptId !== null) { fetch("/api/asesmen-formatif/start-attempt", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attempt_id: attemptId, status: timeLeft <= 0 ? "timed_out" : "submitted", submission_id: submissionData.submission_id ?? undefined }) }).catch(() => {}); }
       setPhase("evaluating"); setEvalError(null);
       try {
@@ -295,9 +338,9 @@ function IntroScreen({ onStart, isFullyMastered, initialScore, remainingCount, t
       <h1 style={{ fontSize: 26, fontWeight: 700, color: "#1a3d1c", margin: "0 0 28px" }}>Kombinasi</h1>
       {hasAttemptedBefore && (
         <div style={{ backgroundColor: "#f0faf0", borderRadius: 12, border: "1.5px solid #c3e6c3", padding: "14px 18px", marginBottom: 20, textAlign: "center" }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7d5c", margin: "0 0 4px" }}>📊 Skor Awal Kamu</p>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7d5c", margin: "0 0 4px" }}>Skor Awal Kamu</p>
           <p style={{ fontSize: 28, fontWeight: 800, color: "#1a3d1c", margin: 0 }}>{initialScore}/100</p>
-          {!isFullyMastered && displayRemaining < displayTotal && (<p style={{ fontSize: 12, color: "#6b8f6d", margin: "6px 0 0" }}>✨ {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang</p>)}
+          {!isFullyMastered && displayRemaining < displayTotal && (<p style={{ fontSize: 12, color: "#6b8f6d", margin: "6px 0 0" }}> {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang</p>)}
         </div>
       )}
       {isFullyMastered && (
@@ -479,12 +522,11 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1a3d1c", margin: "0 0 6px" }}>{total_score >= 90 ? "Luar Biasa! 🎉" : total_score >= 75 ? "Kerja Bagus! 👏" : total_score >= 50 ? "Lumayan! 💪" : "Tetap Semangat! 📚"}</h1>
         <p style={{ fontSize: 13, color: "#5a7d5c", margin: 0, lineHeight: 1.6, maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>{ai_feedback}</p>
       </div>
-      <div style={{ marginBottom: 24, backgroundColor: "#fff5f0", borderRadius: 10, border: "1.5px solid #fde68a", padding: "12px 16px", textAlign: "center" }}><p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>⏳ Kamu dapat memulai latihan kembali dalam <strong>5 menit</strong>. Gunakan waktu ini untuk mempelajari feedback dan memperbaiki pemahamanmu.</p></div>
       <h2 style={{ fontSize: 13, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>Detail Per Soal</h2>
       <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
         {per_question.map((pq) => {
-          const soalRef = SOAL_DATA.find((s) => s.question_number === pq.question_number); const userAnswer = answers[pq.question_number - 1];
-          const isUnanswered = pq.mistake_category === "tidak_diisi"; const hasMistake = pq.mistake_category !== null && pq.mistake_category !== "tidak_diisi";
+          const soalRef = SOAL_DATA.find((s) => s.question_number === pq.question_number); const answerIdx = _remainingQuestions.indexOf(pq.question_number); const userAnswer = answerIdx >= 0 ? answers[answerIdx] : null;
+          const isUnanswered = pq.mistake_category === "tidak_diisi" || pq.mistake_category === "tidak_memadai"; const hasMistake = pq.mistake_category !== null && pq.mistake_category !== "tidak_diisi" && pq.mistake_category !== "tidak_memadai";
           const itemColor = isUnanswered ? "#d97706" : hasMistake ? "#b91c1c" : "#346739";
           const itemBg = isUnanswered ? "#fff5f0" : hasMistake ? "#fff5f5" : "#f0faf0";
           const itemBorder = isUnanswered ? "#fde68a" : hasMistake ? "#fecaca" : "#c3e6c3";
@@ -494,9 +536,9 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ width: 26, height: 26, borderRadius: "50%", backgroundColor: itemColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{pq.question_number}</span><span style={{ fontSize: 12, fontWeight: 700, color: itemColor }}>Skor: {pq.total_score.toFixed(1)}/10</span></div>
                 {soalRef && <span style={{ fontSize: 10, fontWeight: 600, backgroundColor: LEVEL_META[soalRef.level].bg, color: LEVEL_META[soalRef.level].text, padding: "2px 8px", borderRadius: 99 }}>{LEVEL_META[soalRef.level].label}</span>}
               </div>
-              {userAnswer && <div style={{ marginBottom: 8, fontSize: 12, color: "#5a7d5c", lineHeight: 1.5 }}><span style={{ fontWeight: 600 }}>Jawabanmu: </span>{userAnswer.jawaban_akhir || "(tidak diisi)"}</div>}
+              {userAnswer && <div style={{ marginBottom: 8, fontSize: 12, color: "#5a7d5c", lineHeight: 1.5 }}><span style={{ fontWeight: 600 }}>Jawabanmu: </span>{userAnswer.jawaban_akhir || (pq.mistake_category === "tidak_memadai" ? "(terlalu singkat)" : "(tidak diisi)")}</div>}
               <p style={{ fontSize: 13, color: "#3b5e3d", margin: "0 0 8px", lineHeight: 1.6, fontStyle: "italic" }}>💬 {pq.feedback}</p>
-              {isUnanswered && <div style={{ fontSize: 11, color: "#92400e", backgroundColor: "#fffbeb", borderRadius: 6, padding: "6px 10px" }}>⚠️ <strong>Tidak diisi</strong> — soal ini dikosongkan, skor otomatis 0.</div>}
+              {isUnanswered && <div style={{ fontSize: 11, color: "#92400e", backgroundColor: "#fffbeb", borderRadius: 6, padding: "6px 10px" }}>⚠️ <strong>{pq.mistake_category === "tidak_memadai" ? "Jawaban terlalu singkat" : "Tidak diisi"}</strong> — {pq.mistake_category === "tidak_memadai" ? "jawaban tidak cukup untuk dievaluasi, " : "soal ini dikosongkan, "}skor otomatis 0.</div>}
               {hasMistake && <div style={{ fontSize: 11, color: "#b91c1c", backgroundColor: "#fff", borderRadius: 6, padding: "6px 10px" }}><strong>Kesalahan:</strong> {pq.mistake_category === "konsep" ? "Konsep" : pq.mistake_category === "formula" ? "Formula/Rumus" : pq.mistake_category === "perhitungan" ? "Perhitungan" : "Lainnya"}</div>}
             </div>
           );
