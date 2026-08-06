@@ -218,10 +218,10 @@ const AsesmenFormatifItemSchema = z.object({
     eksekusi_perhitungan: StepByStepItemSchema,
     justifikasi: StepByStepItemSchema,
   }),
-  process_raw_score: z.number(),
-  process_scaled_score: z.number(),
-  final_answer_score: z.number(),
-  total_score: z.number(),
+  process_raw_score: z.number().min(0).max(12),
+  process_scaled_score: z.number().min(0).max(10),
+  final_answer_score: z.number().min(0).max(10),
+  total_score: z.number().min(0).max(10),
   guardrail_applied: z.string().nullable(),
   mistake_category: z
     .enum(["konsep", "formula", "perhitungan", "lainnya"])

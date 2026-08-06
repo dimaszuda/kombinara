@@ -1,72 +1,72 @@
 /**
- * Asesmen Formatif -- Check Access API
+ * Asesmen Formatif — Check Access API
  *
- * GET /api/asesmen-formatif/check-access?module_slug=kaidah-pencacahan
- *   -> Checks whether the student has completed ALL 14 sections
- *      across both concept_ids required for asesmen_formatif access.
+ * GET /api/asesmen-formatif/check-access?module_slug=...
+ *   → Checks whether the student has completed all required sections
+ *     AND returns mastery/retry info for incremental retry.
  *
- * Required sections:
- *   kaidah_penjumlahan (8): apersepsi, pemantik, refleksi_sebelum_mulai,
- *     eksplorasi_kontekstual, aktivitas_deep_learning, penjelasan_konsep,
- *     contoh_soal, refleksi_mini
- *   kaidah_perkalian (5): eksplorasi_kontekstual, aktivitas_deep_learning,
- *     penjelasan_konsep, contoh_soal, refleksi_mini
- *
- * NOTES:
- *   - aktivitas_siswa is NOT checked here; it is transitively gated
- *     by kaidah_perkalian.refleksi_mini (see assumptions).
- *   - Uses a SINGLE query for all 13 sections, no per-section looping.
+ * Supported module_slugs:
+ *   kaidah-pencacahan — 13 sections (kaidah_penjumlahan + kaidah_perkalian)
+ *   faktorial         — 6  sections + mastery tracking
+ *   permutasi         — 11 sections + mastery tracking
+ *   kombinasi         — 6  sections + mastery tracking
  *
  * Response (200):
  * {
  *   allowed: boolean,
  *   missingSections: Array<{ conceptId: string, section: string }>,
- *   summary: { totalRequired: number, completed: number, missing: number }
+ *   summary: { totalRequired: number, completed: number, missing: number },
+ *
+ *   // Mastery tracking (only for faktorial/permutasi/kombinasi):
+ *   masteredQuestions: number[],
+ *   remainingQuestions: number[],
+ *   isFullyMastered: boolean,
+ *   initialScore: number | null
  * }
  */
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
+import {
+  MATERI_SECTIONS,
+  PERMUTASI_SECTIONS,
+  KOMBINASI_SECTIONS,
+  MATERI_CONCEPT_IDS,
+  PERMUTASI_CONCEPT_IDS,
+  KOMBINASI_CONCEPT_IDS,
+} from "@/lib/data/student-section-status";
 
-// ─── Constants ──────────────────────────────────────────────────────────────
+// ─── Section maps per module_slug ──────────────────────────────────────────────
 
-/** All 13 sections across both concept_ids that must be completed. */
-const REQUIRED_SECTIONS: Array<{ conceptId: string; section: string }> = [
-  // kaidah_penjumlahan (8 sections)
-  { conceptId: "kaidah_penjumlahan", section: "apersepsi" },
-  { conceptId: "kaidah_penjumlahan", section: "pemantik" },
-  { conceptId: "kaidah_penjumlahan", section: "refleksi_sebelum_mulai" },
-  { conceptId: "kaidah_penjumlahan", section: "eksplorasi_kontekstual" },
-  { conceptId: "kaidah_penjumlahan", section: "aktivitas_deep_learning" },
-  { conceptId: "kaidah_penjumlahan", section: "penjelasan_konsep" },
-  { conceptId: "kaidah_penjumlahan", section: "contoh_soal" },
-  { conceptId: "kaidah_penjumlahan", section: "refleksi_mini" },
+const SECTION_MAP: Record<string, ReadonlyArray<{ conceptId: string; section: string }>> = {
+  "kaidah-pencacahan": MATERI_SECTIONS,          // 13 sections (kaidah_penjumlahan + kaidah_perkalian + faktorial)
+  faktorial: MATERI_SECTIONS.filter(s => s.conceptId === "faktorial"), // 6 sections
+  permutasi: PERMUTASI_SECTIONS,                  // 11 sections
+  kombinasi: KOMBINASI_SECTIONS,                  // 6 sections
+};
 
-  // kaidah_perkalian (5 sections)
-  { conceptId: "kaidah_perkalian", section: "eksplorasi_kontekstual" },
-  { conceptId: "kaidah_perkalian", section: "aktivitas_deep_learning" },
-  { conceptId: "kaidah_perkalian", section: "penjelasan_konsep" },
-  { conceptId: "kaidah_perkalian", section: "contoh_soal" },
-  { conceptId: "kaidah_perkalian", section: "refleksi_mini" },
-];
+const CONCEPT_ID_MAP: Record<string, ReadonlyArray<string>> = {
+  "kaidah-pencacahan": MATERI_CONCEPT_IDS,
+  faktorial: ["faktorial"],
+  permutasi: PERMUTASI_CONCEPT_IDS,
+  kombinasi: KOMBINASI_CONCEPT_IDS,
+};
 
-const REQUIRED_CONCEPT_IDS = ["kaidah_penjumlahan", "kaidah_perkalian"];
+const SUPPORTED_MODULES = new Set(Object.keys(SECTION_MAP));
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
 function buildSectionKey(conceptId: string, section: string): string {
   return `${conceptId}::${section}`;
 }
 
-// ─── GET ────────────────────────────────────────────────────────────────────
+// ─── GET ───────────────────────────────────────────────────────────────────────
 
 export async function GET(req: Request) {
   try {
     // ── Auth ────────────────────────────────────────────────────────
     const supabase = await createSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -81,61 +81,122 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // ── Optional module_slug query param ────────────────────────────
+    // ── Parse module_slug ───────────────────────────────────────────
     const { searchParams } = new URL(req.url);
     const moduleSlug = searchParams.get("module_slug");
 
-    // Future: validate module_slug maps to a supported module.
-    // For now, only kaidah-pencacahan is supported.
-    if (moduleSlug && moduleSlug !== "kaidah-pencacahan") {
+    if (!moduleSlug || !SUPPORTED_MODULES.has(moduleSlug)) {
       return NextResponse.json(
-        { error: `Unsupported module_slug: ${moduleSlug}. Only "kaidah-pencacahan" is supported.` },
+        { error: `Invalid or missing module_slug. Supported: ${[...SUPPORTED_MODULES].join(", ")}` },
         { status: 400 }
       );
     }
 
-    // ── Single query: fetch ALL sections for both concept_ids ───────
+    const requiredSections = SECTION_MAP[moduleSlug];
+    const conceptIds = CONCEPT_ID_MAP[moduleSlug];
+
+    // ── Section completion check ────────────────────────────────────
     const rows = await prisma.studentSectionStatus.findMany({
       where: {
         studentId: student.id,
-        conceptId: { in: REQUIRED_CONCEPT_IDS },
+        conceptId: { in: [...conceptIds] },
       },
-      select: {
-        conceptId: true,
-        section: true,
-        status: true,
-      },
+      select: { conceptId: true, section: true, status: true },
     });
 
-    // Build a lookup map: "conceptId::section" -> status
     const statusMap = new Map<string, string>();
     for (const row of rows) {
       statusMap.set(buildSectionKey(row.conceptId, row.section), row.status);
     }
 
-    // ── Check each required section ─────────────────────────────────
     const missingSections: Array<{ conceptId: string; section: string }> = [];
-
-    for (const req of REQUIRED_SECTIONS) {
+    for (const req of requiredSections) {
       const key = buildSectionKey(req.conceptId, req.section);
-      const status = statusMap.get(key);
-
-      if (status !== "completed") {
+      if (statusMap.get(key) !== "completed") {
         missingSections.push({ conceptId: req.conceptId, section: req.section });
       }
     }
 
-    const completedCount = REQUIRED_SECTIONS.length - missingSections.length;
+    const completedCount = requiredSections.length - missingSections.length;
     const allowed = missingSections.length === 0;
 
-    return NextResponse.json({
+    const baseResponse = {
       allowed,
       missingSections,
       summary: {
-        totalRequired: REQUIRED_SECTIONS.length,
+        totalRequired: requiredSections.length,
         completed: completedCount,
         missing: missingSections.length,
       },
+    };
+
+    // ── Mastery tracking (only for faktorial/permutasi/kombinasi) ───
+    if (moduleSlug === "kaidah-pencacahan") {
+      return NextResponse.json(baseResponse);
+    }
+
+    // Resolve moduleId
+    const mod = await prisma.module.findUnique({
+      where: { slug: moduleSlug },
+      select: { id: true },
+    });
+
+    if (!mod) {
+      return NextResponse.json({ ...baseResponse, masteredQuestions: [], remainingQuestions: [], isFullyMastered: false, initialScore: null });
+    }
+
+    // Query all submissions for this student+module
+    const submissions = await prisma.asesmenFormatifSubmission.findMany({
+      where: { studentId: student.id, moduleId: mod.id },
+      orderBy: { submittedAt: "asc" },
+      select: { totalScore: true, perQuestionResults: true },
+    });
+
+    if (submissions.length === 0) {
+      return NextResponse.json({
+        ...baseResponse,
+        masteredQuestions: [],
+        remainingQuestions: [],
+        isFullyMastered: false,
+        initialScore: null,
+      });
+    }
+
+    // Initial score = first submission's totalScore
+    const initialScore = submissions[0].totalScore ?? null;
+
+    // Determine total question count based on module
+    const totalQuestions =
+      moduleSlug === "faktorial" ? 7 :
+      moduleSlug === "permutasi" ? 10 :
+      moduleSlug === "kombinasi" ? 10 : 10;
+
+    // Build mastery map: question_number → ever been correct?
+    const masteredSet = new Set<number>();
+    for (const sub of submissions) {
+      const results = sub.perQuestionResults as unknown as Array<{
+        question_number: number;
+        mistake_category: string | null;
+      }> | null;
+      if (!results || !Array.isArray(results)) continue;
+      for (const r of results) {
+        if (r.mistake_category === null) {
+          masteredSet.add(r.question_number);
+        }
+      }
+    }
+
+    const allQuestions = Array.from({ length: totalQuestions }, (_, i) => i + 1);
+    const masteredQuestions = allQuestions.filter(q => masteredSet.has(q));
+    const remainingQuestions = allQuestions.filter(q => !masteredSet.has(q));
+    const isFullyMastered = masteredQuestions.length >= totalQuestions;
+
+    return NextResponse.json({
+      ...baseResponse,
+      masteredQuestions,
+      remainingQuestions,
+      isFullyMastered,
+      initialScore,
     });
   } catch (error) {
     console.error("[GET /api/asesmen-formatif/check-access] Error:", error);

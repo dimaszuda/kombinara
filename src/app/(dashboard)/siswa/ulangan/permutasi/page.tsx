@@ -22,7 +22,6 @@ import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const DURASI_DETIK = 120 * 60; // 120 menit
-const COOLDOWN_DETIK = 5 * 60; // 5 menit cooldown antar attempt
 
 const PETUNJUK = [
   "Baca setiap soal dengan teliti sebelum menjawab.",
@@ -66,6 +65,10 @@ interface AccessCheckResponse {
   allowed: boolean;
   missingSections: Array<{ conceptId: string; section: string }>;
   summary: { totalRequired: number; completed: number; missing: number };
+  masteredQuestions?: number[];
+  remainingQuestions?: number[];
+  isFullyMastered?: boolean;
+  initialScore?: number | null;
 }
 
 // ── Module-specific labels ───────────────────────────────────────────────────
@@ -130,8 +133,11 @@ export default function AsesmenPermutasiPage() {
     useState<EvaluationResult | null>(null);
   const [evalError, setEvalError] = useState<string | null>(null);
 
-  // ── Cooldown state ────────────────────────────────────────────────────────
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
+  // ── Mastery / retry state ─────────────────────────────────────────────────
+  const [masteredQuestions, setMasteredQuestions] = useState<number[]>([]);
+  const [remainingQuestions, setRemainingQuestions] = useState<number[]>([]);
+  const [isFullyMastered, setIsFullyMastered] = useState(false);
+  const [initialScore, setInitialScore] = useState<number | null>(null);
 
   // ── Access check state ────────────────────────────────────────────────────
   const [accessAllowed, setAccessAllowed] = useState<boolean | null>(null);
@@ -166,6 +172,17 @@ export default function AsesmenPermutasiPage() {
         setAccessAllowed(data.allowed);
         setMissingSections(data.missingSections);
         setAccessSummary(data.summary);
+
+        // Mastery tracking
+        if (data.remainingQuestions) setRemainingQuestions(data.remainingQuestions);
+        if (data.masteredQuestions) setMasteredQuestions(data.masteredQuestions);
+        setIsFullyMastered(data.isFullyMastered ?? false);
+        setInitialScore(data.initialScore ?? null);
+
+        // Initialize answers for remaining questions only
+        if (data.remainingQuestions && data.remainingQuestions.length > 0) {
+          setAnswers(data.remainingQuestions.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
+        }
       } catch {
         if (!cancelled) {
           setAccessAllowed(true);
@@ -226,15 +243,6 @@ export default function AsesmenPermutasiPage() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Unknown error" }));
-
-        if (res.status === 429 && err.cooldown_remaining_seconds) {
-          setCooldownSeconds(err.cooldown_remaining_seconds);
-          setAttemptError(
-            err.message ?? "Silakan tunggu sebelum memulai latihan kembali."
-          );
-          return;
-        }
-
         setAttemptError(
           err.error ?? "Gagal memulai latihan. Silakan coba lagi."
         );
@@ -243,7 +251,6 @@ export default function AsesmenPermutasiPage() {
 
       const data = await res.json();
       setAttemptId(data.attempt_id);
-      setCooldownSeconds(null);
 
       try {
         await document.documentElement.requestFullscreen();
@@ -272,7 +279,7 @@ export default function AsesmenPermutasiPage() {
       await saveAllDrafts();
 
       const answersPayload = answers.map((a, i) => ({
-        question_number: i + 1,
+        question_number: remainingQuestions[i] ?? (i + 1),
         cara_mengerjakan: a.cara_hitung,
         jawaban_akhir: a.jawaban_akhir,
       }));
@@ -358,22 +365,6 @@ export default function AsesmenPermutasiPage() {
     handleSubmitRef.current = handleSubmit;
   });
 
-  // ── Cooldown countdown timer ──────────────────────────────────────────────
-  useEffect(() => {
-    if (cooldownSeconds === null || cooldownSeconds <= 0) return;
-    const interval = setInterval(() => {
-      setCooldownSeconds((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(interval);
-          setAttemptError(null);
-          return null;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [cooldownSeconds]);
-
   function updateAnswer(idx: number, field: keyof AnswerPair, value: string) {
     setAnswers((prev) =>
       prev.map((a, i) => (i === idx ? { ...a, [field]: value } : a))
@@ -443,30 +434,21 @@ export default function AsesmenPermutasiPage() {
               <p style={{ fontSize: 13, color: "#b91c1c", margin: 0 }}>
                 {attemptError}
               </p>
-              {cooldownSeconds !== null && cooldownSeconds > 0 && (
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "#9a7b5c",
-                    margin: "6px 0 0",
-                  }}
-                >
-                  ⏳ {formatTime(cooldownSeconds)} hingga dapat memulai kembali
-                </p>
-              )}
             </div>
           </div>
         )}
         <IntroScreen
           onStart={handleStart}
-          isOnCooldown={cooldownSeconds !== null && cooldownSeconds > 0}
-          cooldownSeconds={cooldownSeconds}
+          isFullyMastered={isFullyMastered}
+          initialScore={initialScore}
+          remainingCount={remainingQuestions.length}
+          totalCount={SOAL_DATA.length}
         />
       </>
     );
   }
   if (phase === "submitted")
-    return <SubmittedScreen answers={answers} />;
+    return <SubmittedScreen answers={answers} remainingQuestions={remainingQuestions} />;
   if (phase === "evaluating")
     return <EvaluatingScreen />;
   if (phase === "results")
@@ -476,6 +458,7 @@ export default function AsesmenPermutasiPage() {
         answers={answers}
         evalError={evalError}
         onRetry={() => setPhase("submitted")}
+        remainingQuestions={remainingQuestions}
       />
     );
   return (
@@ -492,6 +475,7 @@ export default function AsesmenPermutasiPage() {
       }}
       attemptId={attemptId!}
       deviceType={deviceType!}
+      remainingQuestions={remainingQuestions}
     />
   );
 }
@@ -780,13 +764,21 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
 
 function IntroScreen({
   onStart,
-  isOnCooldown,
-  cooldownSeconds,
+  isFullyMastered,
+  initialScore,
+  remainingCount,
+  totalCount,
 }: {
   onStart: () => void;
-  isOnCooldown?: boolean;
-  cooldownSeconds?: number | null;
+  isFullyMastered?: boolean;
+  initialScore?: number | null;
+  remainingCount?: number;
+  totalCount?: number;
 }) {
+  const hasAttemptedBefore = initialScore !== null && initialScore !== undefined;
+  const displayRemaining = remainingCount ?? totalCount ?? SOAL_DATA.length;
+  const displayTotal = totalCount ?? SOAL_DATA.length;
+
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "36px 24px" }}>
       <p
@@ -831,7 +823,7 @@ function IntroScreen({
         <IntroInfoCard
           icon="📄"
           label="Jumlah Soal"
-          value={`${SOAL_DATA.length} Soal`}
+          value={`${displayRemaining} Soal`}
           color="#346739"
           bg="#DBFFD5"
         />
@@ -905,64 +897,108 @@ function IntroScreen({
         />
       </div>
 
-      {/* Cooldown notice */}
-      {isOnCooldown && cooldownSeconds != null && cooldownSeconds > 0 && (
+      {/* Initial score banner (only on retry) */}
+      {hasAttemptedBefore && (
         <div
           style={{
+            backgroundColor: "#f0faf0",
+            borderRadius: 12,
+            border: "1.5px solid #c3e6c3",
+            padding: "14px 18px",
+            marginBottom: 20,
             textAlign: "center",
-            marginBottom: 16,
-            backgroundColor: "#fff5f0",
-            borderRadius: 10,
-            border: "1.5px solid #fde68a",
-            padding: "12px 16px",
           }}
         >
-          <p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>
-            ⏳ Silakan tunggu{" "}
-            <strong>{formatTime(cooldownSeconds)}</strong> sebelum dapat memulai
-            latihan kembali.
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7d5c", margin: "0 0 4px" }}>
+            📊 Skor Awal Kamu
+          </p>
+          <p style={{ fontSize: 28, fontWeight: 800, color: "#1a3d1c", margin: 0 }}>
+            {initialScore}/100
+          </p>
+          {!isFullyMastered && displayRemaining < displayTotal && (
+            <p style={{ fontSize: 12, color: "#6b8f6d", margin: "6px 0 0" }}>
+              ✨ {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Fully mastered banner */}
+      {isFullyMastered && (
+        <div
+          style={{
+            backgroundColor: "#f0faf0",
+            borderRadius: 12,
+            border: "2px solid #346739",
+            padding: "18px 20px",
+            marginBottom: 20,
+            textAlign: "center",
+          }}
+        >
+          <p style={{ fontSize: 16, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>
+            🎉 Semua Soal Sudah Terjawab Benar!
+          </p>
+          <p style={{ fontSize: 13, color: "#5a7d5c", margin: 0 }}>
+            Kamu sudah menguasai seluruh materi Permutasi. Tidak ada soal yang perlu diulang.
           </p>
         </div>
       )}
 
       <div style={{ textAlign: "center" }}>
-        <button
-          onClick={onStart}
-          disabled={isOnCooldown}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "14px 40px",
-            backgroundColor: isOnCooldown ? "#9aada0" : "#346739",
-            color: "#fff",
-            borderRadius: 12,
-            fontSize: 15,
-            fontWeight: 700,
-            border: "none",
-            cursor: isOnCooldown ? "not-allowed" : "pointer",
-            opacity: isOnCooldown ? 0.7 : 1,
-          }}
-        >
-          Siap, Mulai latihan
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-        <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>
-          {isOnCooldown
-            ? "Timer cooldown sedang berjalan..."
-            : "Timer akan mulai berjalan setelah kamu klik tombol di atas."}
-        </p>
+        {isFullyMastered ? (
+          <>
+            <Link
+              href="/siswa/materi/permutasi"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "14px 40px",
+                backgroundColor: "#346739",
+                color: "#fff",
+                borderRadius: 12,
+                fontSize: 15,
+                fontWeight: 700,
+                textDecoration: "none",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              Kembali ke Materi
+            </Link>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>
+              Semua soal sudah dikuasai. Tidak perlu mengulang latihan.
+            </p>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={onStart}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "14px 40px",
+                backgroundColor: "#346739",
+                color: "#fff",
+                borderRadius: 12,
+                fontSize: 15,
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Siap, Mulai latihan
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>
+              Timer akan mulai berjalan setelah kamu klik tombol di atas.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
@@ -980,6 +1016,7 @@ interface ActiveScreenProps {
   onDismissSubmitError: () => void;
   attemptId: number;
   deviceType: DeviceType;
+  remainingQuestions: number[];
 }
 
 function ActiveScreen({
@@ -992,11 +1029,17 @@ function ActiveScreen({
   onDismissSubmitError,
   attemptId,
   deviceType,
+  remainingQuestions,
 }: ActiveScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const color = timerColor(timeLeft);
   const pct = (timeLeft / DURASI_DETIK) * 100;
   const answeredCount = answers.filter(isAnswered).length;
+
+  // Build filtered soal list
+  const filteredSoal = remainingQuestions
+    .map((qn) => SOAL_DATA.find((s) => s.question_number === qn))
+    .filter((s): s is typeof SOAL_DATA[number] => s !== undefined);
 
   // ── Integrity monitor ────────────────────────────────────────────────────
   const integrity = useIntegrityMonitor({
@@ -1082,7 +1125,7 @@ function ActiveScreen({
             <p
               style={{ fontSize: 12, color: "#6b8f6d", margin: "2px 0 0" }}
             >
-              {answeredCount}/{SOAL_DATA.length} soal terjawab
+              {answeredCount}/{answers.length} soal terjawab
             </p>
           </div>
           <div
@@ -1165,12 +1208,12 @@ function ActiveScreen({
           Navigasi Soal
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {SOAL_DATA.map((soal, i) => {
+          {filteredSoal.map((soal, i) => {
             const answered = isAnswered(answers[i]);
             return (
               <a
                 key={soal.question_number}
-                href={`#soal-${i + 1}`}
+                href={`#soal-${soal.question_number}`}
                 title={LEVEL_META[soal.level].label}
                 style={{
                   width: 36,
@@ -1230,13 +1273,13 @@ function ActiveScreen({
           transition: "opacity 0.2s ease",
         }}
       >
-        {SOAL_DATA.map((soal, i) => {
+        {filteredSoal.map((soal, i) => {
           const answered = isAnswered(answers[i]);
           const lm = LEVEL_META[soal.level];
           return (
             <div
               key={soal.question_number}
-              id={`soal-${i + 1}`}
+              id={`soal-${soal.question_number}`}
               style={{
                 backgroundColor: "#fff",
                 borderRadius: 14,
@@ -1488,7 +1531,7 @@ function ActiveScreen({
             >
               Kamu telah menjawab{" "}
               <strong style={{ color: "#1a3d1c" }}>{answeredCount}</strong> dari{" "}
-              <strong>{SOAL_DATA.length}</strong> soal. Setelah di-submit,
+              <strong>{answers.length}</strong> soal. Setelah di-submit,
               jawaban tidak dapat diubah.
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
@@ -1536,9 +1579,12 @@ function ActiveScreen({
 
 // ── Submitted Screen ─────────────────────────────────────────────────────────
 
-function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
+function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[]; remainingQuestions: number[] }) {
+  const filteredSoal = remainingQuestions
+    .map((qn) => SOAL_DATA.find((s) => s.question_number === qn))
+    .filter((s): s is typeof SOAL_DATA[number] => s !== undefined);
   const answeredCount = answers.filter(isAnswered).length;
-  const allAnswered = answeredCount === SOAL_DATA.length;
+  const allAnswered = answeredCount === answers.length;
 
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 24px 48px" }}>
@@ -1589,7 +1635,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
         >
           {allAnswered
             ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan latihan ini!"
-            : `Kamu menjawab ${answeredCount} dari ${SOAL_DATA.length} soal. Jawaban telah dikirimkan.`}
+            : `Kamu menjawab ${answeredCount} dari ${answers.length} soal. Jawaban telah dikirimkan.`}
         </p>
 
         <div
@@ -1666,7 +1712,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
           pointerEvents: "none",
         }}
       >
-        {SOAL_DATA.map((soal, i) => {
+        {filteredSoal.map((soal, i) => {
           const answered = isAnswered(answers[i]);
           return (
             <div key={soal.question_number}>
@@ -1758,6 +1804,7 @@ interface ResultsScreenProps {
   answers: AnswerPair[];
   evalError: string | null;
   onRetry: () => void;
+  remainingQuestions: number[];
 }
 
 function ResultsScreen({
@@ -1765,6 +1812,7 @@ function ResultsScreen({
   answers,
   evalError,
   onRetry,
+  remainingQuestions: _remainingQuestions,
 }: ResultsScreenProps) {
   if (evalError) {
     return (

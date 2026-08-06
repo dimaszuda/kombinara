@@ -30,10 +30,13 @@ export function calculateActivityScore(
   const normalizedDepth = ((components.questionDepth - 1) / 4) * 100;
   const normalizedFrequency = Math.min(components.questionFrequency * 10, 100);
 
-  return (
+  const raw = (
     components.readingEngagement * weights.reading +
     normalizedFrequency * weights.frequency +
     normalizedDepth * weights.depth +
     components.quizScore * weights.quiz
   ) * 100;
+
+  // Clamp to 0-100
+  return Math.min(100, Math.max(0, raw));
 }

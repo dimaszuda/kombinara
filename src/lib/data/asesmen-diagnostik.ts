@@ -473,7 +473,7 @@ export async function gradeAnswers(answers: StudentAnswers): Promise<GradingResu
   const correctCount = questions.filter((q) => q.correct).length;
 
   const totalQuestions = ANSWER_KEY.length;
-  const score = Math.round((correctCount / totalQuestions) * 100);
+  const score = Math.min(100, Math.max(0, Math.round((correctCount / totalQuestions) * 100)));
   const isPass = correctCount >= 7;
 
   const baseResult: GradingResult = {

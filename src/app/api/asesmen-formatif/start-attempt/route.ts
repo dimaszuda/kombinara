@@ -6,7 +6,7 @@
  *     "Siap, Mulai Asesmen".
  *   → Body: { module_slug: string, device_type: 'mobile' | 'tablet' | 'desktop' }
  *   → Returns: { attempt_id: number }
- *   → Cooldown: 5 minutes since the last completed attempt.
+ *   → NO cooldown — students can retry immediately.
  *
  * PUT /api/asesmen-formatif/start-attempt
  *   → Updates the attempt status to 'submitted' or 'timed_out'
@@ -16,9 +16,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma/client";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const COOLDOWN_MINUTES = 5;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -72,7 +69,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Module not found" }, { status: 404 });
     }
 
-    // 1. Check if there's an existing in_progress attempt (page refresh scenario)
+    // Check if there's an existing in_progress attempt (page refresh scenario)
     const inProgress = await prisma.asesmenFormatifAttempt.findFirst({
       where: {
         studentId,
@@ -86,36 +83,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ attempt_id: inProgress.attemptId });
     }
 
-    // 2. Check cooldown — 5 minutes since last completed attempt
-    const lastCompleted = await prisma.asesmenFormatifAttempt.findFirst({
-      where: {
-        studentId,
-        moduleId,
-        status: { in: ["submitted", "timed_out"] },
-        completedAt: { not: null },
-      },
-      orderBy: { completedAt: "desc" },
-      select: { completedAt: true },
-    });
-
-    if (lastCompleted?.completedAt) {
-      const now = new Date();
-      const cooldownUntil = new Date(lastCompleted.completedAt.getTime() + COOLDOWN_MINUTES * 60 * 1000);
-
-      if (now < cooldownUntil) {
-        const remainingSeconds = Math.ceil((cooldownUntil.getTime() - now.getTime()) / 1000);
-        return NextResponse.json(
-          {
-            error: "cooldown",
-            message: `Silakan tunggu ${Math.ceil(remainingSeconds / 60)} menit lagi sebelum memulai asesmen kembali.`,
-            cooldown_remaining_seconds: remainingSeconds,
-          },
-          { status: 429 }
-        );
-      }
-    }
-
-    // 3. Create new attempt
+    // Create new attempt (no cooldown)
     const attempt = await prisma.asesmenFormatifAttempt.create({
       data: {
         studentId,

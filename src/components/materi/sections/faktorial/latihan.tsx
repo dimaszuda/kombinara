@@ -15,7 +15,7 @@ export const LEVEL_META: Record<string, { label: string; bg: string; text: strin
 };
 
 // ============================================================================
-// Soal Data — 7 soal uraian Faktorial
+// Soal Data — 7 soal uraian Faktorial (sesuai Ground Truth)
 // ============================================================================
 
 export const SOAL_DATA: Array<{
@@ -36,7 +36,11 @@ export const SOAL_DATA: Array<{
       "b. 3! + 4! = ...\n" +
       "c. 3! × 2! = ...\n" +
       "d. 0! + 1! + 2! = ...",
-    answer: "a) 120, b) 30, c) 12, d) 4",
+    answer:
+      "a) 5! = 120\n" +
+      "b) 3!+4! = 6+24 = 30\n" +
+      "c) 3!×2! = 6×2 = 12\n" +
+      "d) 0!+1!+2! = 1+1+2 = 4",
     cara:
       "a) 5! = 5 × 4 × 3 × 2 × 1 = 120\n" +
       "b) 3! = 6, 4! = 24 → 6 + 24 = 30\n" +
@@ -51,7 +55,10 @@ export const SOAL_DATA: Array<{
       "a. 7! / 5! = ...\n" +
       "b. 9! / 7! = ...\n" +
       "c. 6! / (4! · 2!) = ...",
-    answer: "a) 42, b) 72, c) 15",
+    answer:
+      "a) 7!/5! = 42\n" +
+      "b) 9!/7! = 72\n" +
+      "c) 6!/(4!·2!) = 15",
     cara:
       "a) 7!/5! = (7 × 6 × 5!) / 5! = 7 × 6 = 42\n" +
       "b) 9!/7! = (9 × 8 × 7!) / 7! = 9 × 8 = 72\n" +
@@ -65,7 +72,10 @@ export const SOAL_DATA: Array<{
       "a. n! = 24 → n = ...\n" +
       "b. n! = 720 → n = ...\n" +
       "c. (n+1)! = 120 → n = ...",
-    answer: "a) n = 4, b) n = 6, c) n = 4",
+    answer:
+      "a) n! = 24 → n = 4\n" +
+      "b) n! = 720 → n = 6\n" +
+      "c) (n+1)! = 120 → n+1=5 → n = 4",
     cara:
       "a) 4! = 4 × 3 × 2 × 1 = 24, jadi n = 4\n" +
       "b) 6! = 6 × 5 × 4 × 3 × 2 × 1 = 720, jadi n = 6\n" +
@@ -77,18 +87,16 @@ export const SOAL_DATA: Array<{
     question_number: 4,
     level: "menengah",
     question:
-      "Manakah pernyataan berikut yang benar? Beri tanda ✅ atau ❌, lalu jelaskan alasanmu!\n\n" +
-      "| No. | Pernyataan | Benar/Salah | Alasan |\n" +
-      "|-----|-----------|-------------|--------|\n" +
-      "| a   | 0! = 0    |             |        |\n" +
-      "| b   | 5! / 3! = 2! |          |        |\n" +
-      "| c   | 5! = 5 × 4! |           |        |\n" +
-      "| d   | n! / (n-1)! = n |       |        |",
+      "Manakah pernyataan berikut yang benar? Beri tanda ✅ atau ❌, lalu jelaskan alasanmu!\n" +
+      "a. 0! = 0\n" +
+      "b. 5! / 3! = 2!\n" +
+      "c. 5! = 5 × 4!\n" +
+      "d. n! / (n-1)! = n",
     answer:
-      "a) ❌, 0! = 1 (definisi)\n" +
-      "b) ❌, 5!/3! = 20, sedangkan 2! = 2\n" +
-      "c) ✅, 5! = 5 × 4 × 3 × 2 × 1 = 5 × (4 × 3 × 2 × 1) = 5 × 4!\n" +
-      "d) ✅, n!/(n-1)! = n × (n-1)!/(n-1)! = n",
+      "a) Salah — 0! = 1, bukan 0\n" +
+      "b) Salah — 5!/3! = 20, bukan 2! (=2)\n" +
+      "c) Benar — sesuai sifat rekursif n!=n×(n-1)!\n" +
+      "d) Benar — n!/(n-1)! = n",
     cara:
       "a) Salah. Berdasarkan definisi, 0! = 1.\n" +
       "b) Salah. 5!/3! = (5×4×3!)/3! = 20, bukan 2! (= 2).\n" +
@@ -104,84 +112,75 @@ export const SOAL_DATA: Array<{
       "b. (n+1)! / (n-1)! = ...\n" +
       "c. n! / ((n-3)! · 3!) = ...",
     answer:
-      "a) (n+2)(n+1), b) (n+1)n, c) n(n-1)(n-2)/6",
+      "a) (n+2)(n+1)\n" +
+      "b) (n+1)n\n" +
+      "c) C(n,3), bentuk umum",
     cara:
       "a) (n+2)!/n! = (n+2)(n+1)n!/n! = (n+2)(n+1)\n" +
       "b) (n+1)!/(n-1)! = (n+1)n(n-1)!/(n-1)! = (n+1)n\n" +
-      "c) n!/((n-3)!·3!) = n(n-1)(n-2)(n-3)!/((n-3)!·6) = n(n-1)(n-2)/6",
+      "c) n!/((n-3)!·3!) = n(n-1)(n-2)(n-3)!/((n-3)!·6) = n(n-1)(n-2)/6 = C(n,3)",
   },
   {
     question_number: 6,
     level: "menengah",
     question:
       "Tentukan nilai n yang memenuhi:\n" +
-      "n! / (n-2)! = 30\n\n" +
-      "Tuliskan langkah penyelesaiannya!",
-    answer: "n = 6",
+      "a. n! / (n-2)! = 30\n" +
+      "b. (n+1)! / (n-1)! = 56",
+    answer:
+      "a) n!/(n-2)! = 30 → n(n-1)=30 → n = 6\n" +
+      "b) (n+1)!/(n-1)! = 56 → (n+1)n=56 → n = 7",
     cara:
-      "n!/(n-2)! = n(n-1)(n-2)!/(n-2)! = n(n-1)\n" +
-      "n(n-1) = 30\n" +
-      "n² - n - 30 = 0\n" +
-      "(n-6)(n+5) = 0\n" +
+      "a) n!/(n-2)! = n(n-1)(n-2)!/(n-2)! = n(n-1)\n" +
+      "n(n-1) = 30 → n² - n - 30 = 0 → (n-6)(n+5) = 0\n" +
       "n = 6 atau n = -5\n" +
-      "Karena n ≥ 2 (agar (n-2)! terdefinisi), maka n = 6.",
+      "Karena n ≥ 2, maka n = 6.\n\n" +
+      "b) (n+1)!/(n-1)! = (n+1)n(n-1)!/(n-1)! = (n+1)n\n" +
+      "(n+1)n = 56 → n² + n - 56 = 0 → (n-7)(n+8) = 0\n" +
+      "n = 7 atau n = -8\n" +
+      "Karena n ≥ 1, maka n = 7.",
   },
+
+  // ── Level Menengah: Aplikasi faktorial dalam konteks pencacahan ──────────
   {
     question_number: 7,
     level: "menengah",
     question:
-      "Tentukan nilai n yang memenuhi:\n" +
-      "(n+1)! / (n-1)! = 56\n\n" +
-      "Tuliskan langkah penyelesaiannya!",
-    answer: "n = 7",
-    cara:
-      "(n+1)!/(n-1)! = (n+1)n(n-1)!/(n-1)! = (n+1)n\n" +
-      "(n+1)n = 56\n" +
-      "n² + n - 56 = 0\n" +
-      "(n-7)(n+8) = 0\n" +
-      "n = 7 atau n = -8\n" +
-      "Karena n ≥ 1 (agar (n-1)! terdefinisi), maka n = 7.",
-  },
-
-  // ── Level HOTS: Aplikasi faktorial dalam konteks pencacahan ─────────────
-  {
-    question_number: 8,
-    level: "hots",
-    question:
       "Lima siswa (Aldi, Bella, Citra, Dani, Eka) akan berfoto berjajar untuk kenang-kenangan.\n\n" +
-      "a. Berapa banyak cara mereka bisa berjajar? Tuliskan dalam bentuk faktorial dan hitung nilainya.",
-    answer: "120 cara (5! = 120)",
-    cara:
-      "Menyusun 5 orang berjajar = permutasi 5 objek = 5!\n" +
-      "5! = 5 × 4 × 3 × 2 × 1 = 120\n" +
-      "Jadi, ada 120 cara mereka bisa berjajar.",
-  },
-  {
-    question_number: 9,
-    level: "hots",
-    question:
-      "Lima siswa (Aldi, Bella, Citra, Dani, Eka) akan berfoto berjajar.\n\n" +
-      "b. Jika Aldi sudah pasti berada di posisi paling kiri, berapa banyak cara tersisa untuk menyusun keempat orang lainnya?",
-    answer: "24 cara (4! = 24)",
-    cara:
-      "Aldi tetap di posisi paling kiri, maka 4 orang tersisa (Bella, Citra, Dani, Eka) disusun bebas.\n" +
-      "Banyak cara = 4! = 4 × 3 × 2 × 1 = 24\n" +
-      "Jadi, ada 24 cara menyusun keempat orang lainnya.",
-  },
-  {
-    question_number: 10,
-    level: "hots",
-    question:
-      "Lima siswa (Aldi, Bella, Citra, Dani, Eka) akan berfoto berjajar.\n\n" +
+      "a. Berapa banyak cara mereka bisa berjajar? Tuliskan dalam bentuk faktorial dan hitung nilainya.\n\n" +
+      "b. Jika Aldi sudah pasti berada di posisi paling kiri, berapa banyak cara tersisa untuk menyusun keempat orang lainnya?\n\n" +
       "c. Berapakah perbandingan antara jawaban a. dan b.? Apa artinya?",
-    answer: "5 : 1, artinya peluang Aldi di posisi paling kiri adalah 1/5",
+    answer:
+      "a) 5! = 120 cara\n" +
+      "b) 4! = 24 cara (Aldi tetap di kiri)\n" +
+      "c) Perbandingan a:b = 120:24 = 5:1. Artinya hanya 1/5 dari seluruh kemungkinan yang memenuhi syarat Aldi di posisi kiri — masuk akal karena Aldi hanya menempati 1 dari 5 posisi yang mungkin.",
     cara:
-      "Perbandingan = 120 : 24 = 5 : 1\n" +
+      "a) Menyusun 5 orang berjajar = permutasi 5 objek = 5!\n" +
+      "5! = 5 × 4 × 3 × 2 × 1 = 120\n" +
+      "Jadi, ada 120 cara mereka bisa berjajar.\n\n" +
+      "b) Aldi tetap di posisi paling kiri, maka 4 orang tersisa disusun bebas.\n" +
+      "Banyak cara = 4! = 4 × 3 × 2 × 1 = 24\n" +
+      "Jadi, ada 24 cara menyusun keempat orang lainnya.\n\n" +
+      "c) Perbandingan = 120 : 24 = 5 : 1\n" +
       "Artinya: Dari 120 kemungkinan susunan, hanya 24 di antaranya Aldi berada di posisi paling kiri.\n" +
       "Atau: Peluang Aldi di posisi paling kiri = 24/120 = 1/5.\n" +
       "Secara intuitif, karena ada 5 posisi yang equally likely untuk Aldi, peluangnya memang 1/5.",
   },
 ];
+
+// ============================================================================
+// Sub-part config — soal yang punya jawaban per huruf (a, b, c, d)
+// ============================================================================
+
+export const SUB_PART_CONFIG: Record<number, string[]> = {
+  1: ["a", "b", "c", "d"],
+  2: ["a", "b", "c"],
+  3: ["a", "b", "c"],
+  4: ["a", "b", "c", "d"],
+  5: ["a", "b", "c"],
+  6: ["a", "b"],
+  7: ["a", "b", "c"],
+};
 
 // ============================================================================
 // SoalKepahaman — interactive question card (re-export for SubmittedScreen)

@@ -44,30 +44,30 @@ export const SOAL_DATA: Array<{
     question_number: 2,
     level: "mudah",
     question:
-      'Berapa banyak kemungkinan susunan huruf-huruf yang terdiri dari 4 huruf dari kata "PERMUTASI"?',
-    answer: "1680",
+      "Berapa banyak kemungkinan susunan huruf-huruf yang terdiri dari 4 huruf dari kata \"PERMUTASI\"?",
+    answer: "3024",
     cara:
-      'Kata "PERMUTASI" memiliki 8 huruf berbeda (P,E,R,M,U,T,A,S,I).\n' +
-      "Menyusun 4 huruf dari 8 huruf berbeda (urutan penting):\n" +
-      "P(8,4) = 8! / (8-4)! = 8! / 4!\n" +
-      "= 8 × 7 × 6 × 5 × 4! / 4!\n" +
-      "= 8 × 7 × 6 × 5\n" +
-      "= 1680 susunan.",
+      "Kata \"PERMUTASI\" memiliki 9 huruf berbeda (P,E,R,M,U,T,A,S,I).\n" +
+      "Menyusun 4 huruf dari 9 huruf berbeda (urutan penting):\n" +
+      "P(9,4) = 9! / (9-4)! = 9! / 5!\n" +
+      "= 9 × 8 × 7 × 6 × 5! / 5!\n" +
+      "= 9 × 8 × 7 × 6\n" +
+      "= 3.024 susunan.",
   },
   {
     question_number: 3,
     level: "mudah",
     question:
-      'Tentukan banyak susunan huruf berbeda yang dapat dibentuk dari kata "PENCACAHAN"?',
-    answer: "45360",
+      "Tentukan banyak susunan huruf berbeda yang dapat dibentuk dari kata \"PENCACAHAN\"?",
+    answer: "151200",
     cara:
-      'Kata "PENCACAHAN": 9 huruf dengan pengulangan:\n' +
-      "P = 1, E = 1, N = 2, C = 2, A = 2, H = 1\n" +
+      "Kata \"PENCACAHAN\": 10 huruf dengan pengulangan:\n" +
+      "P = 1, E = 1, N = 2, C = 2, A = 3, H = 1\n" +
       "Permutasi dengan unsur sama:\n" +
-      "= 9! / (2! × 2! × 2!)\n" +
-      "= 362.880 / (2 × 2 × 2)\n" +
-      "= 362.880 / 8\n" +
-      "= 45.360 susunan.",
+      "= 10! / (2! × 2! × 3!)\n" +
+      "= 3.628.800 / (2 × 2 × 6)\n" +
+      "= 3.628.800 / 24\n" +
+      "= 151.200 susunan.",
   },
 
   // ── Level Menengah: Permutasi siklis, posisi khusus, unsur sama + syarat ──
@@ -102,32 +102,15 @@ export const SOAL_DATA: Array<{
     question_number: 6,
     level: "menengah",
     question:
-      'Diketahui kata "MIAMMI". Jika huruf-huruf pada kata tersebut dipertukarkan dan huruf yang terletak di pinggir adalah huruf "M", tentukan banyaknya kata yang dapat dibuat!',
-    answer: "18",
+      "Diketahui kata \"MIAMMI\". Jika huruf-huruf pada kata tersebut dipertukarkan dan huruf yang terletak di pinggir adalah huruf \"M\", tentukan banyaknya kata yang dapat dibuat!",
+    answer: "12",
     cara:
-      'Kata "MIAMMI": 5 huruf, M = 3, I = 1, A = 1.\n' +
-      "Syarat: huruf pinggir (posisi 1 dan 5) harus M.\n" +
-      "- Pilih 2 huruf M dari 3 untuk posisi pinggir: C(3,2) = 3 cara\n" +
-      "- Susunan M di pinggir: 2! = 2 cara (M kiri & M kanan identik? Tidak, karena posisi beda)\n" +
-      "  → Sebenarnya langsung: 2 posisi pinggir diisi 2 dari 3 M = P(3,2) = 3×2 = 6\n" +
-      '- Sisa 3 posisi tengah diisi oleh 3 huruf (1 M, 1 I, 1 A): 3! = 6\n' +
-      "Total = 6 × 6 / 2!  → perlu koreksi...\n\n" +
-      "Cara tepat:\n" +
-      "- Pilih 2 posisi pinggir diisi M: karena M identik, pilih 2 dari 3 M = C(3,2) × 2! = 3 × 2 = 6? Tidak.\n" +
-      "Karena M identik, kita hitung: posisi 1 & 5 pasti M. Sisa 1 M, 1 I, 1 A di 3 posisi tengah.\n" +
-      "Susunan 3 posisi tengah dengan 1 M, 1 I, 1 A (semua berbeda): 3! = 6.\n" +
-      "Karena posisi pinggir sudah fix M (semua M identik, jadi hanya 1 cara menempatkan M di pinggir),\n" +
-      "Total = 1 × 6 = 6? Tunggu...\n\n" +
-      "Kita hitung ulang dengan teliti:\n" +
-      "M di posisi 1 dan 5: 2 M dipilih dari 3 M. Tapi M identik, jadi cara memilih M untuk pinggir = 1.\n" +
-      "Sisa: 1 M, 1 I, 1 A di posisi 2,3,4 → 3! = 6 susunan.\n" +
-      "Tapi posisi 1 dan 5 tidak harus M yang sama? M identik jadi tidak masalah.\n" +
-      "Total = 6 kata.\n\n" +
-      "KOREKSI: M di pinggir artinya posisi 1 dan 5 harus M. Karena ada 3 M identik, kita pastikan:\n" +
-      "- Dari 3 M, 2 dipakai di pinggir, 1 di tengah.\n" +
+      "Kata \"MIAMMI\": 6 huruf, M = 3, I = 2, A = 1.\n" +
+      "Syarat: huruf pinggir (posisi 1 dan 6) harus M.\n" +
       "- Karena M identik, cara menempatkan 2 M di 2 posisi pinggir = 1 cara.\n" +
-      "- Sisa 3 huruf {M, I, A} di 3 posisi tengah = 3! = 6.\n" +
-      "Total = 6 kata.",
+      "- Sisa 4 posisi tengah diisi oleh 4 huruf {1 M, 2 I, 1 A}:\n" +
+      "  Permutasi dengan unsur sama = 4! / 2! = 24 / 2 = 12.\n" +
+      "Total = 1 × 12 = 12 kata.",
   },
   {
     question_number: 7,

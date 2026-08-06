@@ -22,7 +22,6 @@ import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const DURASI_DETIK = 120 * 60;
-const COOLDOWN_DETIK = 5 * 60;
 
 const PETUNJUK = [
   "Baca setiap soal dengan teliti sebelum menjawab.",
@@ -66,6 +65,10 @@ interface AccessCheckResponse {
   allowed: boolean;
   missingSections: Array<{ conceptId: string; section: string }>;
   summary: { totalRequired: number; completed: number; missing: number };
+  masteredQuestions?: number[];
+  remainingQuestions?: number[];
+  isFullyMastered?: boolean;
+  initialScore?: number | null;
 }
 
 // ── Module-specific labels ───────────────────────────────────────────────────
@@ -138,6 +141,13 @@ export default function AsesmenKombinasiPage() {
         setAccessAllowed(data.allowed);
         setMissingSections(data.missingSections);
         setAccessSummary(data.summary);
+        if (data.remainingQuestions) setRemainingQuestions(data.remainingQuestions);
+        if (data.masteredQuestions) setMasteredQuestions(data.masteredQuestions);
+        setIsFullyMastered(data.isFullyMastered ?? false);
+        setInitialScore(data.initialScore ?? null);
+        if (data.remainingQuestions && data.remainingQuestions.length > 0) {
+          setAnswers(data.remainingQuestions.map(() => ({ cara_hitung: "", jawaban_akhir: "" })));
+        }
       } catch { if (!cancelled) setAccessAllowed(true); }
     }
     checkAccess();
@@ -174,10 +184,9 @@ export default function AsesmenKombinasiPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Unknown error" }));
-        if (res.status === 429 && err.cooldown_remaining_seconds) { setCooldownSeconds(err.cooldown_remaining_seconds); setAttemptError(err.message ?? "Silakan tunggu sebelum memulai latihan kembali."); return; }
         setAttemptError(err.error ?? "Gagal memulai latihan. Silakan coba lagi."); return;
       }
-      const data = await res.json(); setAttemptId(data.attempt_id); setCooldownSeconds(null);
+      const data = await res.json(); setAttemptId(data.attempt_id);
       try { await document.documentElement.requestFullscreen(); } catch {}
       setPhase("active");
     } catch (e) { console.error("[handleStart]", e); setAttemptError("Gagal memulai latihan. Periksa koneksi internet dan coba lagi."); }
@@ -189,7 +198,7 @@ export default function AsesmenKombinasiPage() {
     if (timerRef.current) clearInterval(timerRef.current);
     try {
       await saveAllDrafts();
-      const answersPayload = answers.map((a, i) => ({ question_number: i + 1, cara_mengerjakan: a.cara_hitung, jawaban_akhir: a.jawaban_akhir }));
+      const answersPayload = answers.map((a, i) => ({ question_number: remainingQuestions[i] ?? (i + 1), cara_mengerjakan: a.cara_hitung, jawaban_akhir: a.jawaban_akhir }));
       const res = await fetch("/api/asesmen-formatif/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ module_slug: "kombinasi", concept_id: "kombinasi", answers: answersPayload }) });
       if (!res.ok) { const err = await res.json().catch(() => ({ error: "Unknown error" })); throw new Error(err.error ?? "Gagal menyimpan jawaban"); }
       const submissionData = await res.json();
@@ -205,12 +214,6 @@ export default function AsesmenKombinasiPage() {
 
   useEffect(() => { handleSubmitRef.current = handleSubmit; });
 
-  useEffect(() => {
-    if (cooldownSeconds === null || cooldownSeconds <= 0) return;
-    const interval = setInterval(() => { setCooldownSeconds((prev) => { if (prev === null || prev <= 1) { clearInterval(interval); setAttemptError(null); return null; } return prev - 1; }); }, 1000);
-    return () => clearInterval(interval);
-  }, [cooldownSeconds]);
-
   function updateAnswer(idx: number, field: keyof AnswerPair, value: string) { setAnswers((prev) => prev.map((a, i) => (i === idx ? { ...a, [field]: value } : a))); }
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -220,14 +223,14 @@ export default function AsesmenKombinasiPage() {
   if (phase === "intro") {
     if (isRestoring) return <div style={{ maxWidth: 700, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}><p style={{ fontSize: 15, color: "#6b8f6d" }}>Memulihkan jawaban yang tersimpan...</p></div>;
     return (<>
-      {attemptError && <div style={{ maxWidth: 700, margin: "0 auto", padding: "12px 24px 0" }}><div style={{ backgroundColor: "#fff5f5", borderRadius: 10, border: "1.5px solid #fecaca", padding: "12px 16px", textAlign: "center" }}><p style={{ fontSize: 13, color: "#b91c1c", margin: 0 }}>{attemptError}</p>{cooldownSeconds !== null && cooldownSeconds > 0 && <p style={{ fontSize: 12, color: "#9a7b5c", margin: "6px 0 0" }}>⏳ {formatTime(cooldownSeconds)} hingga dapat memulai kembali</p>}</div></div>}
-      <IntroScreen onStart={handleStart} isOnCooldown={cooldownSeconds !== null && cooldownSeconds > 0} cooldownSeconds={cooldownSeconds} />
+      {attemptError && <div style={{ maxWidth: 700, margin: "0 auto", padding: "12px 24px 0" }}><div style={{ backgroundColor: "#fff5f5", borderRadius: 10, border: "1.5px solid #fecaca", padding: "12px 16px", textAlign: "center" }}><p style={{ fontSize: 13, color: "#b91c1c", margin: 0 }}>{attemptError}</p></div></div>}
+      <IntroScreen onStart={handleStart} isFullyMastered={isFullyMastered} initialScore={initialScore} remainingCount={remainingQuestions.length} totalCount={SOAL_DATA.length} />
     </>);
   }
-  if (phase === "submitted") return <SubmittedScreen answers={answers} />;
+  if (phase === "submitted") return <SubmittedScreen answers={answers} remainingQuestions={remainingQuestions} />;
   if (phase === "evaluating") return <EvaluatingScreen />;
-  if (phase === "results") return <ResultsScreen evaluationResult={evaluationResult} answers={answers} evalError={evalError} onRetry={() => setPhase("submitted")} />;
-  return <ActiveScreen answers={answers} timeLeft={timeLeft} onUpdateAnswer={updateAnswer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitError={submitError} onDismissSubmitError={() => { setSubmitError(null); hasSubmittedRef.current = false; }} attemptId={attemptId!} deviceType={deviceType!} />;
+  if (phase === "results") return <ResultsScreen evaluationResult={evaluationResult} answers={answers} evalError={evalError} onRetry={() => setPhase("submitted")} remainingQuestions={remainingQuestions} />;
+  return <ActiveScreen answers={answers} timeLeft={timeLeft} onUpdateAnswer={updateAnswer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitError={submitError} onDismissSubmitError={() => { setSubmitError(null); hasSubmittedRef.current = false; }} attemptId={attemptId!} deviceType={deviceType!} remainingQuestions={remainingQuestions} />;
 }
 
 // ── Locked Screen ────────────────────────────────────────────────────────────
@@ -282,14 +285,30 @@ function LockedScreen({ missingSections, summary }: { missingSections: Array<{ c
 }
 
 // ── Intro Screen ─────────────────────────────────────────────────────────────
-function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () => void; isOnCooldown?: boolean; cooldownSeconds?: number | null }) {
+function IntroScreen({ onStart, isFullyMastered, initialScore, remainingCount, totalCount }: { onStart: () => void; isFullyMastered?: boolean; initialScore?: number | null; remainingCount?: number; totalCount?: number }) {
+  const hasAttemptedBefore = initialScore !== null && initialScore !== undefined;
+  const displayRemaining = remainingCount ?? totalCount ?? SOAL_DATA.length;
+  const displayTotal = totalCount ?? SOAL_DATA.length;
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "36px 24px" }}>
       <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#346739", opacity: 0.7, margin: "0 0 6px" }}>Latihan Pemahaman (Asesmen)</p>
       <h1 style={{ fontSize: 26, fontWeight: 700, color: "#1a3d1c", margin: "0 0 28px" }}>Kombinasi</h1>
+      {hasAttemptedBefore && (
+        <div style={{ backgroundColor: "#f0faf0", borderRadius: 12, border: "1.5px solid #c3e6c3", padding: "14px 18px", marginBottom: 20, textAlign: "center" }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7d5c", margin: "0 0 4px" }}>📊 Skor Awal Kamu</p>
+          <p style={{ fontSize: 28, fontWeight: 800, color: "#1a3d1c", margin: 0 }}>{initialScore}/100</p>
+          {!isFullyMastered && displayRemaining < displayTotal && (<p style={{ fontSize: 12, color: "#6b8f6d", margin: "6px 0 0" }}>✨ {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang</p>)}
+        </div>
+      )}
+      {isFullyMastered && (
+        <div style={{ backgroundColor: "#f0faf0", borderRadius: 12, border: "2px solid #346739", padding: "18px 20px", marginBottom: 20, textAlign: "center" }}>
+          <p style={{ fontSize: 16, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>🎉 Semua Soal Sudah Terjawab Benar!</p>
+          <p style={{ fontSize: 13, color: "#5a7d5c", margin: 0 }}>Kamu sudah menguasai seluruh materi Kombinasi. Tidak ada soal yang perlu diulang.</p>
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
         <IntroInfoCard icon="⏱" label="Durasi" value="120 Menit" color="#346739" bg="#DBFFD5" />
-        <IntroInfoCard icon="📄" label="Jumlah Soal" value={`${SOAL_DATA.length} Soal`} color="#346739" bg="#DBFFD5" />
+        <IntroInfoCard icon="📄" label="Jumlah Soal" value={`${displayRemaining} Soal`} color="#346739" bg="#DBFFD5" />
         <IntroInfoCard icon="✍️" label="Jenis" value="Uraian" color="#663362" bg="#f3e8f2" />
         <IntroInfoCard icon="🔒" label="Pengerjaan" value="Dapat diulang" color="#663362" bg="#f3e8f2" />
       </div>
@@ -301,26 +320,36 @@ function IntroScreen({ onStart, isOnCooldown, cooldownSeconds }: { onStart: () =
         <RuleBox title="Yang Diperbolehkan" items={BOLEH} type="allowed" />
         <RuleBox title="Yang Tidak Diperbolehkan" items={TIDAK_BOLEH} type="forbidden" />
       </div>
-      {isOnCooldown && cooldownSeconds != null && cooldownSeconds > 0 && (
-        <div style={{ textAlign: "center", marginBottom: 16, backgroundColor: "#fff5f0", borderRadius: 10, border: "1.5px solid #fde68a", padding: "12px 16px" }}><p style={{ fontSize: 13, color: "#92400e", margin: 0 }}>⏳ Silakan tunggu <strong>{formatTime(cooldownSeconds)}</strong> sebelum dapat memulai latihan kembali.</p></div>
-      )}
       <div style={{ textAlign: "center" }}>
-        <button onClick={onStart} disabled={isOnCooldown} style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 40px", backgroundColor: isOnCooldown ? "#9aada0" : "#346739", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, border: "none", cursor: isOnCooldown ? "not-allowed" : "pointer", opacity: isOnCooldown ? 0.7 : 1 }}>
-          Siap, Mulai latihan
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-        </button>
-        <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>{isOnCooldown ? "Timer cooldown sedang berjalan..." : "Timer akan mulai berjalan setelah kamu klik tombol di atas."}</p>
+        {isFullyMastered ? (
+          <>
+            <Link href="/siswa/materi/kombinasi" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 40px", backgroundColor: "#346739", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, textDecoration: "none" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+              Kembali ke Materi
+            </Link>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>Semua soal sudah dikuasai. Tidak perlu mengulang latihan.</p>
+          </>
+        ) : (
+          <>
+            <button onClick={onStart} style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 40px", backgroundColor: "#346739", color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer" }}>
+              Siap, Mulai latihan
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>Timer akan mulai berjalan setelah kamu klik tombol di atas.</p>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 // ── Active Screen ────────────────────────────────────────────────────────────
-function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmitting, submitError, onDismissSubmitError, attemptId, deviceType }: {
-  answers: AnswerPair[]; timeLeft: number; onUpdateAnswer: (idx: number, field: keyof AnswerPair, value: string) => void; onSubmit: () => void; isSubmitting: boolean; submitError: string | null; onDismissSubmitError: () => void; attemptId: number; deviceType: DeviceType;
+function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmitting, submitError, onDismissSubmitError, attemptId, deviceType, remainingQuestions }: {
+  answers: AnswerPair[]; timeLeft: number; onUpdateAnswer: (idx: number, field: keyof AnswerPair, value: string) => void; onSubmit: () => void; isSubmitting: boolean; submitError: string | null; onDismissSubmitError: () => void; attemptId: number; deviceType: DeviceType; remainingQuestions: number[];
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const color = timerColor(timeLeft); const pct = (timeLeft / DURASI_DETIK) * 100; const answeredCount = answers.filter(isAnswered).length;
+  const filteredSoal = remainingQuestions.map((qn) => SOAL_DATA.find((s) => s.question_number === qn)).filter((s): s is typeof SOAL_DATA[number] => s !== undefined);
   const integrity = useIntegrityMonitor({ attemptId, moduleSlug: "kombinasi", deviceType });
   const pasteTargetRefs = useRef<Map<number, { cara: HTMLTextAreaElement | null; jawaban: HTMLInputElement | null }>>(new Map());
   const registerPasteForQuestion = useCallback((idx: number, caraEl: HTMLTextAreaElement | null, jawabanEl: HTMLInputElement | null) => {
@@ -334,7 +363,7 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
       {integrity.activeBlockingModal && <IntegrityBlockingModal modal={integrity.activeBlockingModal} onDismiss={integrity.dismissBlockingModal} />}
       <div style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#fff", borderBottom: "1.5px solid #e2ede2", paddingTop: 10, marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 8 }}>
-          <div><p style={{ fontSize: 11, fontWeight: 600, color: "#346739", opacity: 0.7, margin: 0, textTransform: "uppercase", letterSpacing: "0.1em" }}>Latihan Pemahaman — Kombinasi</p><p style={{ fontSize: 12, color: "#6b8f6d", margin: "2px 0 0" }}>{answeredCount}/{SOAL_DATA.length} soal terjawab</p></div>
+          <div><p style={{ fontSize: 11, fontWeight: 600, color: "#346739", opacity: 0.7, margin: 0, textTransform: "uppercase", letterSpacing: "0.1em" }}>Latihan Pemahaman — Kombinasi</p><p style={{ fontSize: 12, color: "#6b8f6d", margin: "2px 0 0" }}>{answeredCount}/{answers.length} soal terjawab</p></div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, backgroundColor: color + "18", borderRadius: 10, padding: "8px 14px", border: `1.5px solid ${color}30` }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
             <span style={{ fontWeight: 700, fontSize: 20, color, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{formatTime(timeLeft)}</span>
@@ -344,12 +373,12 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
       </div>
       <div style={{ marginBottom: 24, backgroundColor: "#f8fdf8", borderRadius: 12, border: "1px solid #e2ede2", padding: "14px 16px" }}>
         <p style={{ fontSize: 11, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 10px" }}>Navigasi Soal</p>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{SOAL_DATA.map((soal, i) => { const answered = isAnswered(answers[i]); return <a key={soal.question_number} href={`#soal-${i + 1}`} title={LEVEL_META[soal.level].label} style={{ width: 36, height: 36, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, textDecoration: "none", backgroundColor: answered ? "#346739" : "#fff", color: answered ? "#fff" : "#346739", border: `2px solid ${answered ? "#346739" : "#d4e8d4"}`, transition: "all 0.15s ease" }}>{i + 1}</a>; })}</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{filteredSoal.map((soal, i) => { const answered = isAnswered(answers[i]); return <a key={soal.question_number} href={`#soal-${soal.question_number}`} title={LEVEL_META[soal.level].label} style={{ width: 36, height: 36, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, textDecoration: "none", backgroundColor: answered ? "#346739" : "#fff", color: answered ? "#fff" : "#346739", border: `2px solid ${answered ? "#346739" : "#d4e8d4"}`, transition: "all 0.15s ease" }}>{i + 1}</a>; })}</div>
         <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>{Object.entries(LEVEL_META).map(([key, meta]) => <span key={key} style={{ fontSize: 11, fontWeight: 600, backgroundColor: meta.bg, color: meta.text, padding: "2px 8px", borderRadius: 99 }}>{meta.label}</span>)}</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 20, pointerEvents: integrity.isBlocking ? "none" : "auto", opacity: integrity.isBlocking ? 0.5 : 1, transition: "opacity 0.2s ease" }}>
-        {SOAL_DATA.map((soal, i) => { const answered = isAnswered(answers[i]); const lm = LEVEL_META[soal.level]; return (
-          <div key={soal.question_number} id={`soal-${i + 1}`} style={{ backgroundColor: "#fff", borderRadius: 14, border: `2px solid ${answered ? "#346739" : "#e2ede2"}`, overflow: "hidden", transition: "border-color 0.2s ease" }}>
+        {filteredSoal.map((soal, i) => { const answered = isAnswered(answers[i]); const lm = LEVEL_META[soal.level]; return (
+          <div key={soal.question_number} id={`soal-${soal.question_number}`} style={{ backgroundColor: "#fff", borderRadius: 14, border: `2px solid ${answered ? "#346739" : "#e2ede2"}`, overflow: "hidden", transition: "border-color 0.2s ease" }}>
             <div style={{ height: 4, backgroundColor: answered ? "#346739" : "#e2ede2", transition: "background-color 0.2s ease" }} />
             <div style={{ padding: "18px 20px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -381,7 +410,7 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
         ) : (
           <div style={{ textAlign: "center", backgroundColor: "#fff5f5", borderRadius: 12, border: "1.5px solid #fecaca", padding: "20px 24px" }}>
             <p style={{ fontSize: 15, fontWeight: 700, color: "#b91c1c", margin: "0 0 6px" }}>Konfirmasi Submit</p>
-            <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 16px" }}>Kamu telah menjawab <strong style={{ color: "#1a3d1c" }}>{answeredCount}</strong> dari <strong>{SOAL_DATA.length}</strong> soal. Setelah di-submit, jawaban tidak dapat diubah.</p>
+            <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 16px" }}>Kamu telah menjawab <strong style={{ color: "#1a3d1c" }}>{answeredCount}</strong> dari <strong>{answers.length}</strong> soal. Setelah di-submit, jawaban tidak dapat diubah.</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
               <button onClick={() => setShowConfirm(false)} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #d1d5db", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#6b7280", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.6 : 1 }}>Batal</button>
               <button onClick={onSubmit} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "none", backgroundColor: "#b91c1c", fontSize: 14, fontWeight: 700, color: "#fff", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>{isSubmitting ? "Mengirim..." : "Ya, Submit Sekarang"}</button>
@@ -394,8 +423,9 @@ function ActiveScreen({ answers, timeLeft, onUpdateAnswer, onSubmit, isSubmittin
 }
 
 // ── Submitted Screen ─────────────────────────────────────────────────────────
-function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
-  const answeredCount = answers.filter(isAnswered).length; const allAnswered = answeredCount === SOAL_DATA.length;
+function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[]; remainingQuestions: number[] }) {
+  const filteredSoal = remainingQuestions.map((qn) => SOAL_DATA.find((s) => s.question_number === qn)).filter((s): s is typeof SOAL_DATA[number] => s !== undefined);
+  const answeredCount = answers.filter(isAnswered).length; const allAnswered = answeredCount === answers.length;
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 24px 48px" }}>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
@@ -403,7 +433,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#346739" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1a3d1c", margin: "0 0 8px" }}>Jawaban Terkirim!</h1>
-        <p style={{ fontSize: 15, color: "#5a7d5c", margin: 0, lineHeight: 1.7 }}>{allAnswered ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan latihan ini!" : `Kamu menjawab ${answeredCount} dari ${SOAL_DATA.length} soal. Jawaban telah dikirimkan.`}</p>
+        <p style={{ fontSize: 15, color: "#5a7d5c", margin: 0, lineHeight: 1.7 }}>{allAnswered ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan latihan ini!" : `Kamu menjawab ${answeredCount} dari ${answers.length} soal. Jawaban telah dikirimkan.`}</p>
         <div style={{ marginTop: 20, backgroundColor: "#f0faf0", borderRadius: 10, border: "1px solid #c3e6c3", padding: "14px 18px", textAlign: "left" }}>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#346739" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
@@ -413,7 +443,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
       </div>
       <p style={{ fontSize: 11, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 16px" }}>Ringkasan Jawaban</p>
       <div style={{ display: "flex", flexDirection: "column", gap: 20, pointerEvents: "none" }}>
-        {SOAL_DATA.map((soal, i) => { const answered = isAnswered(answers[i]); return (
+        {filteredSoal.map((soal, i) => { const answered = isAnswered(answers[i]); return (
           <div key={soal.question_number}>
             {answers[i].cara_hitung.trim() && <div style={{ backgroundColor: "#f8fdf8", borderRadius: "8px 8px 0 0", border: "1px solid #d4e8d4", borderBottom: "none", padding: "10px 16px" }}><p style={{ fontSize: 10, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 4px" }}>Cara Hitung</p><p style={{ fontSize: 13, color: "#3b5e3d", margin: 0, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{answers[i].cara_hitung}</p></div>}
             <div style={answers[i].cara_hitung.trim() ? { borderRadius: "0 0 12px 12px", overflow: "hidden" } : {}}><SoalKepahaman question_number={soal.question_number} level={soal.level} question={soal.question} answer={soal.answer} hideCheckButton={true} value={answered ? answers[i].jawaban_akhir || "—" : "—"} onChange={() => {}} checked={false} /></div>
@@ -426,7 +456,7 @@ function SubmittedScreen({ answers }: { answers: AnswerPair[] }) {
 }
 
 // ── Results Screen ───────────────────────────────────────────────────────────
-function ResultsScreen({ evaluationResult, answers, evalError, onRetry }: { evaluationResult: EvaluationResult | null; answers: AnswerPair[]; evalError: string | null; onRetry: () => void }) {
+function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainingQuestions: _remainingQuestions }: { evaluationResult: EvaluationResult | null; answers: AnswerPair[]; evalError: string | null; onRetry: () => void; remainingQuestions: number[] }) {
   if (evalError) return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "60px 24px 48px", textAlign: "center" }}>
       <div style={{ width: 80, height: 80, borderRadius: "50%", backgroundColor: "#fff5f5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg></div>
