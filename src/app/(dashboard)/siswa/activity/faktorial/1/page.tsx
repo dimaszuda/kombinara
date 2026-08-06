@@ -214,11 +214,38 @@ export default function AktivitasFaktorial1() {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch("/api/aktivitas-siswa?concept_id=faktorial&activity_key=aktivitas_1&mode=exists");
+        const res = await fetch("/api/aktivitas-siswa?concept_id=faktorial&activity_key=aktivitas_1");
         if (!res.ok || cancelled) return;
         const data = await res.json();
-        if (data.hasSubmissions) {
-          setHasExistingSubmissions(true);
+        if (data.hasSubmissions && data.submissions) {
+          // Only full review mode if ALL questions have correct answers
+          const allCorrect = STEPS.every((s) => data.submissions[s.questionKey]?.isCorrect === true);
+          if (allCorrect) {
+            setHasExistingSubmissions(true);
+          } else {
+            // Partial: resume from first unanswered question, pre-fill previous feedback
+            let firstUnanswered = STEPS.length;
+            const preFilled: Record<number, { text: string; isCorrect: boolean }> = {};
+            for (let i = 0; i < STEPS.length; i++) {
+              const key = STEPS[i].questionKey;
+              const sub = data.submissions[key];
+              if (sub) {
+                preFilled[i] = {
+                  text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  isCorrect: sub.isCorrect,
+                };
+                if (!sub.isCorrect && firstUnanswered > i) {
+                  firstUnanswered = i; // retry from first wrong answer
+                }
+              } else if (firstUnanswered > i) {
+                firstUnanswered = i;
+              }
+            }
+            if (Object.keys(preFilled).length > 0) {
+              setFeedbackMap(preFilled);
+            }
+            setCurrentStep(firstUnanswered);
+          }
         }
       } catch { /* silent */ }
       finally { if (!cancelled) setIsLoadingExisting(false); }
