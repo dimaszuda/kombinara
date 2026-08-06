@@ -1,19 +1,34 @@
 "use client";
 
 /**
- * AktivitasKamuPanel — Student progress panel
+ * AktivitasKamuPanel — Student progress panel (refactored)
  *
- * Fetches progress from /api/student-section-status/progress and displays:
- * - Large percentage figure as the visual anchor, ring drawn behind it
- * - Section stats and CTA to continue learning
+ * Fetches progress from /api/student-section-status/progress and displays
+ * ALL concept-level progress as filled donut charts in a responsive grid.
  *
  * Falls back to an empty-state invitation when no progress yet.
+ *
+ * Layout fix notes (see ProgressDonut.tsx for the actual root-cause fix):
+ * - Card height is now a floor (`min-h-[300px]`), not a cage — with 7
+ *   concepts the grid can grow past 300px instead of being squeezed.
+ * - Grid starts at 1 col and steps up, so it never gets tighter than
+ *   the card actually has room for.
+ * - Each cell gets `min-w-0` so long labels can't silently push the
+ *   grid track wider than its column (classic flex/grid overflow bug).
  */
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { CONCEPT_ORDER } from "@/lib/data/student-section-status";
+import { CONCEPT_ORDER, CONCEPT_LABELS } from "@/lib/data/student-section-status";
+import ProgressDonut from "@/components/dashboard/ProgressDonut";
+
+interface ConceptProgress {
+  total: number;
+  completed: number;
+  unlocked: number;
+  locked: number;
+  percentage: number;
+}
 
 interface ProgressData {
   total: number;
@@ -21,22 +36,7 @@ interface ProgressData {
   unlocked: number;
   locked: number;
   percentage: number;
-  concepts: Record<
-    string,
-    {
-      total: number;
-      completed: number;
-      unlocked: number;
-      locked: number;
-      percentage: number;
-    }
-  >;
-  currentConcept: {
-    conceptId: string;
-    label: string;
-    sectionIndex: number;   // 1-based; 0 = belum mulai
-    totalSections: number;
-  } | null;
+  concepts: Record<string, ConceptProgress>;
 }
 
 type LoadState =
@@ -45,67 +45,45 @@ type LoadState =
   | { status: "error" }
   | { status: "empty" }; // no rows seeded yet
 
-/** Ring drawn as a backdrop behind the big percentage number. Flat, no gradient. */
-function BackdropRing({ percentage, size = 172 }: { percentage: number; size?: number }) {
-  const stroke = 10;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const clamped = Math.max(0, Math.min(100, percentage));
-  const offset = c - (clamped / 100) * c;
+/** Build a compact label from the full concept name. */
+function shortLabel(full: string): string {
+  const map: Record<string, string> = {
+    "Kaidah Penjumlahan": "Penjumlahan",
+    "Kaidah Perkalian": "Perkalian",
+    "Faktorial": "Faktorial",
+    "Permutasi r Unsur dari n Unsur": "Permutasi r-n",
+    "Permutasi dengan Unsur Sama": "Permutasi Sama",
+    "Permutasi Siklis": "Permutasi Siklis",
+    "Kombinasi": "Kombinasi",
+  };
+  return map[full] ?? full;
+}
 
+/** Shared card shell so every state (loading/empty/error/loaded) matches exactly. */
+function CardShell({ children }: { children: React.ReactNode }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      className="absolute inset-0"
-      aria-hidden="true"
-    >
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill="none"
-        stroke="#EAF3DE"
-        strokeWidth={stroke}
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill="none"
-        stroke="#16a34a"
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeDasharray={c}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        style={{ transition: "stroke-dashoffset 0.6s ease" }}
-      />
-    </svg>
+    <article className="relative flex min-h-[300px] flex-col overflow-hidden rounded-[28px] border-2 border-brand-600 bg-white p-6">
+      {children}
+    </article>
   );
 }
 
-function CtaButton({ label }: { label: string }) {
+function PanelHeading() {
   return (
-    <Link
-      href="/siswa/materi/kaidah-pencacahan"
-      className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-600 py-3 no-underline transition-colors duration-200 hover:bg-brand-700"
+    <p className="m-0 text-xs font-semibold uppercase tracking-wide text-brand-500">
+      Aktivitas kamu
+    </p>
+  );
+}
+
+function EmptyMessage() {
+  return (
+    <p
+      className="m-0 max-w-[240px] text-center leading-relaxed text-zinc-600"
+      style={{ fontSize: "var(--right-card-text-size)" }}
     >
-      <span
-        className="font-semibold leading-none text-white"
-        style={{ fontSize: "var(--right-card-link-size)" }}
-      >
-        {label}
-      </span>
-      <Image
-        src="/icons/green arrow.png"
-        alt=""
-        width={16}
-        height={16}
-        className="shrink-0 brightness-0 invert transition-transform duration-200 group-hover:translate-x-1"
-      />
-    </Link>
+      Belum ada aktivitas. Yuk, mulai belajar hari ini!
+    </p>
   );
 }
 
@@ -128,11 +106,7 @@ export default function AktivitasKamuPanel() {
         const data: ProgressData = await res.json();
 
         if (!cancelled) {
-          if (data.total === 0) {
-            setState({ status: "empty" });
-          } else {
-            setState({ status: "loaded", data });
-          }
+          setState(data.total === 0 ? { status: "empty" } : { status: "loaded", data });
         }
       } catch {
         if (!cancelled) setState({ status: "error" });
@@ -148,22 +122,20 @@ export default function AktivitasKamuPanel() {
   // ── Loading state ──
   if (state.status === "loading") {
     return (
-      <article className="relative flex min-h-[300px] flex-col overflow-hidden rounded-[28px] border-2 border-brand-600 bg-white p-6 md:h-[300px]">
-        <div className="flex h-full items-center justify-center">
+      <CardShell>
+        <PanelHeading />
+        <div className="flex flex-1 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand-200 border-t-brand-600" />
         </div>
-      </article>
+      </CardShell>
     );
   }
 
-  // ── Empty / Error states ──
-  if (state.status === "error" || state.status === "empty") {
+  // ── Empty state ──
+  if (state.status === "empty") {
     return (
-      <article className="relative flex min-h-[300px] flex-col overflow-hidden rounded-[28px] border-2 border-brand-600 bg-white p-6 md:h-[300px]">
-        <p className="m-0 text-xs font-semibold uppercase tracking-wide text-brand-500">
-          Aktivitas kamu
-        </p>
-
+      <CardShell>
+        <PanelHeading />
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <Image
             src="/images/my aktivitas.png"
@@ -172,125 +144,82 @@ export default function AktivitasKamuPanel() {
             height={118}
             className="h-auto w-[92px]"
           />
+          <EmptyMessage />
+        </div>
+      </CardShell>
+    );
+  }
+
+  // ── Error state ──
+  if (state.status === "error") {
+    return (
+      <CardShell>
+        <PanelHeading />
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <p
             className="m-0 max-w-[240px] leading-relaxed text-zinc-600"
             style={{ fontSize: "var(--right-card-text-size)" }}
           >
-            Belum ada aktivitas. Yuk, mulai belajar hari ini!
+            Gagal memuat data. Coba lagi nanti.
           </p>
         </div>
-
-        <CtaButton label="Ayo mulai belajar" />
-      </article>
+      </CardShell>
     );
   }
 
-  // ── Has progress ──
+  // ── Has progress — build concept list in curriculum order ──
   const { data } = state;
   const hasProgress = data.completed > 0;
-  const cc = data.currentConcept;
 
-  // Concept-level values for the ring & section display
-  const conceptPct = cc ? (data.concepts[cc.conceptId]?.percentage ?? 0) : data.percentage;
-  const sectionNow = cc ? cc.sectionIndex : 0;
-  const sectionTotal = cc ? cc.totalSections : data.total;
-
-  // Is the current concept fully completed?
-  const conceptStats = cc ? data.concepts[cc.conceptId] : null;
-  const isConceptDone = conceptStats ? (conceptStats.unlocked === 0 && conceptStats.locked === 0) : false;
-  // Is this the very last concept in the curriculum?
-  const lastConceptId = CONCEPT_ORDER[CONCEPT_ORDER.length - 1];
-  const isLastConcept = cc?.conceptId === lastConceptId;
-  const isAllDone = isConceptDone && isLastConcept;
+  const conceptEntries = CONCEPT_ORDER
+    .filter((id) => data.concepts[id] != null && data.concepts[id].total > 0)
+    .map((id) => ({ id, ...data.concepts[id]! }));
 
   return (
-    <article className="relative flex min-h-[300px] flex-col overflow-hidden rounded-[28px] border-2 border-brand-600 bg-white p-6 md:h-[300px]">
-      {/* Header — pinned to top-left */}
-      <div className="absolute left-6 right-6 top-6 flex items-start justify-between">
-        <p className="m-0 text-xs font-semibold uppercase tracking-wide text-brand-500">
-          Aktivitas kamu
-        </p>
+    <CardShell>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2">
+        <PanelHeading />
         {hasProgress && (
-          <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-600">
+          <span className="shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-600">
             Kamu hebat! 🔥
           </span>
         )}
       </div>
 
-      {/* Hero + Description — vertically centered */}
-      <div className="flex flex-1 flex-col items-center justify-center">
-        {/* Hero: big percentage inside the ring */}
-        <div className="flex items-center justify-center">
-          <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
-            <BackdropRing percentage={conceptPct} size={140} />
-            <div className="relative z-[1] flex flex-col items-center">
-              <span className="text-3xl font-bold leading-none text-brand-600">
-                {Math.round(conceptPct)}%
-              </span>
-              <span className="mt-0.5 text-[11px] font-medium text-zinc-500">
-                Bagian {sectionNow} dari {sectionTotal}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Description */}
-        <p
-          className="mx-auto mt-2 text-center leading-relaxed text-zinc-600"
-          style={{ fontSize: "var(--right-card-text-size)" }}
-        >
-          {(() => {
-            // All concepts fully completed
-            if (isAllDone) {
-              return <>Kamu sudah menyelesaikan semua materi! 🎉</>;
-            }
-            // Current concept fully done, but there's more ahead
-            if (cc && isConceptDone) {
-              return (
-                <>
-                  Kamu sudah menyelesaikan{" "}
-                  <span className="font-semibold text-brand-600">{cc.label}</span>
-                  {"! 🎉"}
-                </>
-              );
-            }
-            // Actively working on a concept
-            if (cc && sectionNow > 0) {
-              return (
-                <>
-                  Kamu sedang mengerjakan{" "}
-                  <span className="font-semibold text-brand-600">{cc.label}</span>
-                  {", "}bagian ke-{sectionNow} dari {sectionTotal}
-                </>
-              );
-            }
-            // Rows exist but everything locked (diagnostic not passed)
-            if (cc && sectionNow === 0) {
-              return (
-                <>
-                  Selesaikan asesmen diagnostik untuk mulai{" "}
-                  <span className="font-semibold text-brand-600">{cc.label}</span>
-                </>
-              );
-            }
-            // Fallback (shouldn't normally happen)
+      {/* Donut grid — all concepts */}
+      {conceptEntries.length > 0 ? (
+        <div className="mt-4 grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3 md:grid-cols-4">
+          {conceptEntries.map((c) => {
+            const fullLabel = CONCEPT_LABELS[c.id] ?? c.id;
             return (
-              <>
-                Kamu telah mempelajari{" "}
-                <span className="font-semibold text-brand-600">{data.completed}</span>{" "}
-                dari{" "}
-                <span className="font-semibold text-brand-600">{data.total}</span>{" "}
-                bagian
-              </>
+              <div
+                key={c.id}
+                className="flex min-w-0 flex-col items-center gap-2 rounded-xl bg-brand-50/50 px-3 py-3"
+              >
+                <ProgressDonut
+                  percentage={c.percentage}
+                  size={64}
+                  strokeWidth={6}
+                  color="#16a34a"
+                  trackColor="#dcfce7"
+                  animated
+                />
+                <span
+                  className="line-clamp-2 w-full break-words text-center text-[11px] font-medium leading-tight text-zinc-600"
+                  title={fullLabel}
+                >
+                  {shortLabel(fullLabel)}
+                </span>
+              </div>
             );
-          })()}
-        </p>
-      </div>
-
-      {/* CTA — pushed to bottom naturally */}
-      <div className="mt-auto w-full">
-        <CtaButton label={hasProgress ? "Lanjutkan belajar" : "Ayo mulai belajar"} />
-      </div>
-    </article>
+          })}
+        </div>
+      ) : (
+        <div className="flex flex-1 items-center justify-center">
+          <EmptyMessage />
+        </div>
+      )}
+    </CardShell>
   );
 }

@@ -16,9 +16,21 @@
  * - trackColor: background ring color (default #e5e7eb)
  * - label: optional label below the percentage
  * - animated: whether to animate on mount (default true)
+ *
+ * LAYOUT FIX (see chat): the previous version centered the percentage
+ * text using a negative-margin hack (`marginTop: -0.52 * size`) on a
+ * normal-flow div. That pulls the *next* sibling upward too and makes
+ * this component's rendered height shorter than the SVG itself — which
+ * is exactly what breaks a tight multi-column grid: cells end up
+ * overlapping vertically once several of these sit next to each other.
+ *
+ * Fixed by making the wrapper `relative` with a fixed size, and the
+ * text overlay `absolute inset-0` + flex-centered. The component's
+ * layout footprint is now always exactly size x size — no flow-based
+ * margin math that can drift.
  */
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ProgressDonutProps {
   percentage: number;
@@ -88,12 +100,17 @@ export default function ProgressDonut({
   const subFontSize = size * 0.11;
 
   return (
-    <div className="inline-flex flex-col items-center gap-2">
+    // `relative` + fixed size box: this element's footprint in the
+    // grid is always exactly size x size, no matter what's inside it.
+    <div
+      className="relative inline-flex shrink-0 items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
-        className="transform -rotate-90"
+        className="-rotate-90 transform"
         aria-label={`Progress: ${Math.round(clampedPct)}%`}
         role="progressbar"
         aria-valuenow={Math.round(clampedPct)}
@@ -125,11 +142,12 @@ export default function ProgressDonut({
           }}
         />
       </svg>
-      {/* Center text overlay */}
-      <div
-        className="flex flex-col items-center"
-        style={{ marginTop: `-${size * 0.52}px`, marginBottom: `${size * 0.08}px` }}
-      >
+
+      {/* Center text overlay — absolutely positioned within the
+          relative wrapper above, so it never affects layout height
+          and always sits dead-center on the ring regardless of
+          neighboring grid cells. */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
         <span
           className="font-bold leading-none text-brand-600"
           style={{ fontSize: `${fontSize}px` }}
@@ -138,7 +156,7 @@ export default function ProgressDonut({
         </span>
         {label && (
           <span
-            className="text-zinc-500 leading-tight"
+            className="leading-tight text-zinc-500"
             style={{ fontSize: `${subFontSize}px` }}
           >
             {label}

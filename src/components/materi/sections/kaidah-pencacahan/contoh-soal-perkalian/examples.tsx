@@ -578,7 +578,7 @@ export function ExampleBilangan({
                 </tr>
                 <tr className="text-xs text-[#34673999]">
                   <td className="px-3 py-1.5">{"{2}"}</td>
-                  <td className="px-3 py-1.5">ganjil</td>
+                  <td className="px-3 py-1.5"></td>
                   <td className="px-3 py-1.5">{"{3,5,7,9}"}</td>
                 </tr>
               </tbody>
@@ -615,7 +615,7 @@ export function ExampleBilangan({
                 </tr>
                 <tr className="text-xs text-[#34673999]">
                   <td className="px-3 py-1.5">{"{3,5}"}</td>
-                  <td className="px-3 py-1.5">ganjil</td>
+                  <td className="px-3 py-1.5"></td>
                   <td className="px-3 py-1.5">—</td>
                 </tr>
               </tbody>

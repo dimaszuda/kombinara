@@ -236,12 +236,13 @@ Rubrik score:
         FEEDBACK UNTUK SISWA:
         Tulis feedback yang KONKRET, membangun, dan gunakan kata ganti 'kamu'. Fokus ke proses berpikir, bukan ke hasil akhir. Jangan sebutkan jawaban benar secara eksplisit. Maksimal 2-3 kalimat per soal. Jika jawaban sempurna, beri afirmasi yang tulus dan singkat.
       `,
-      user: (soal: string, level_soal: string, cara_hitung: string, jawaban_akhir: string, is_jawaban_akhir_true: boolean) =>
+      user: (soal: string, level_soal: string, cara_hitung: string, jawaban_akhir: string, is_jawaban_akhir_true: boolean, cara_ground_truth: string) =>
         `Soal/pertanyaan: ${soal}
 Level kognitif: ${level_soal}
 Cara hitung yang ditulis siswa: ${cara_hitung}
 Jawaban akhir siswa: ${jawaban_akhir}
 Apakah jawaban akhir benar berdasarkan kunci jawaban: ${is_jawaban_akhir_true}
+Kunci cara pengerjaan (ground truth): ${cara_ground_truth}
 
 Berikan evaluasi dalam format JSON berikut:
 {

@@ -237,7 +237,8 @@ export const AsesmenFormatifEvaluatePrompt = async (
   levelSoal: string,
   caraHitung: string,
   jawabanAkhir: string,
-  isJawabanAkhirTrue: boolean
+  isJawabanAkhirTrue: boolean,
+  caraGroundTruth: string
 ): Promise<AsesmenFormatifItemResult> => {
   const response = await client.responses.parse({
     model: "gpt-4o",
@@ -250,7 +251,8 @@ export const AsesmenFormatifEvaluatePrompt = async (
           levelSoal,
           caraHitung,
           jawabanAkhir,
-          isJawabanAkhirTrue
+          isJawabanAkhirTrue,
+          caraGroundTruth
         ),
       },
     ],
