@@ -4,11 +4,15 @@
  * Dashboard data untuk halaman guru dashboard.
  * Query params:
  *   - classIds (optional, comma-separated): filter kelas
- *   - materi (optional): filter materi (concept_id) untuk progress siswa
+ *   - materi (optional): filter materi (concept_id) untuk overview & journey
+ *   - formatifMateri (optional): filter materi (concept_id) untuk asesmen formatif & integrity
  *   - searchName (optional): filter nama siswa untuk progress
  *   - diagAttempt (optional): percobaan ke-n untuk asesmen diagnostik ("latest" | number)
+ *   - formAttempt (optional): percobaan ke-n untuk asesmen formatif ("latest" | number)
  *   - includeDiagnostic (optional): "true" untuk menyertakan data chart diagnostik
  *   - includeJourney (optional): "true" untuk menyertakan data journey siswa
+ *   - includeFormatif (optional): "true" untuk menyertakan data chart formatif
+ *   - includeIntegrity (optional): "true" untuk menyertakan data integrity events
  */
 
 import { NextResponse } from "next/server";
@@ -39,6 +43,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const classIdsRaw = searchParams.get("classIds");
   const materi = searchParams.get("materi") || undefined;
+  const formatifMateri = searchParams.get("formatifMateri") || undefined;
   const searchName = searchParams.get("searchName") || undefined;
   const diagAttemptRaw = searchParams.get("diagAttempt") || undefined;
   const formAttemptRaw = searchParams.get("formAttempt") || undefined;
@@ -53,6 +58,18 @@ export async function GET(req: Request) {
         .map((id) => parseInt(id.trim(), 10))
         .filter((id) => !isNaN(id))
     : undefined;
+
+  // Parse materi: comma-separated concept_id slugs (untuk overview & journey)
+  const materis = materi
+    ? materi.split(",").map((s) => s.trim()).filter(Boolean)
+    : undefined;
+
+  // Parse formatifMateri: comma-separated concept_id slugs (untuk asesmen formatif & integrity)
+  const formatifMateris = formatifMateri
+    ? formatifMateri.split(",").map((s) => s.trim()).filter(Boolean)
+    : undefined;
+
+  console.log("[GET /api/guru/dashboard] 📋 materis:", materis, "| formatifMateris:", formatifMateris, "| classIds:", classIds);
 
   // Parse diagAttempt: "latest" | number
   const diagAttempt: number | "latest" | undefined =
@@ -74,7 +91,7 @@ export async function GET(req: Request) {
   try {
     // Parallel: overview + diagnostic + journey + formatif + integrity
     const [overview, diagnostic, journey, formatif, integrity] = await Promise.all([
-      getGuruDashboardData(classIds, materi, searchName),
+      getGuruDashboardData(classIds, materis, searchName),
       includeDiagnostic
         ? getDiagnosticAnalyticsData({
             classIds,
@@ -82,19 +99,19 @@ export async function GET(req: Request) {
           })
         : Promise.resolve(null),
       includeJourney
-        ? getJourneyAnalyticsData(classIds, materi, searchName)
+        ? getJourneyAnalyticsData(classIds, materis, searchName)
         : Promise.resolve(null),
       includeFormatif
         ? getFormatifAnalyticsData({
             classIds,
-            conceptId: materi,
+            conceptIds: formatifMateris,
             attempt: formAttempt ?? "latest",
           })
         : Promise.resolve(null),
       includeIntegrity
         ? getIntegrityEvents({
             classIds,
-            conceptId: materi,
+            conceptIds: formatifMateris,
           })
         : Promise.resolve(null),
     ]);

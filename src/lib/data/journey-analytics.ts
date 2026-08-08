@@ -107,9 +107,11 @@ export async function getPendahuluanJourney(
 
 export async function getMateriJourney(
   classIds?: number[],
-  materi?: string,
+  materis?: string[],
   searchName?: string
 ): Promise<MateriJourneyItem[]> {
+  console.log("[getMateriJourney] 📋 materis:", materis, "| classIds:", classIds, "| searchName:", searchName);
+
   const classWhere = classIds && classIds.length > 0
     ? Prisma.sql`AND a.class_id IN (${Prisma.join(classIds)})`
     : Prisma.empty;
@@ -119,12 +121,12 @@ export async function getMateriJourney(
     : Prisma.empty;
 
   // Filter concept_id di CTE all_combinations dan all_status
-  const conceptWhere = materi && materi !== "all"
-    ? Prisma.sql`AND d.concept_id = ${materi}`
+  const conceptWhere = materis && materis.length > 0
+    ? Prisma.sql`AND d.concept_id IN (${Prisma.join(materis.map((m) => Prisma.sql`${m}`))})`
     : Prisma.empty;
 
-  const conceptWhere2 = materi && materi !== "all"
-    ? Prisma.sql`AND b.concept_id = ${materi}`
+  const conceptWhere2 = materis && materis.length > 0
+    ? Prisma.sql`AND b.concept_id IN (${Prisma.join(materis.map((m) => Prisma.sql`${m}`))})`
     : Prisma.empty;
 
   const rows = await prisma.$queryRaw<Array<{
@@ -202,6 +204,7 @@ export async function getMateriJourney(
     )
 
     SELECT
+      student_id,
       name,
       concept_id,
       COALESCE(
@@ -252,12 +255,12 @@ export async function getMateriJourney(
 
 export async function getJourneyAnalyticsData(
   classIds?: number[],
-  materi?: string,
+  materis?: string[],
   searchName?: string
 ): Promise<JourneyAnalyticsData> {
   const [pendahuluan, materiJourney] = await Promise.all([
     getPendahuluanJourney(classIds),
-    getMateriJourney(classIds, materi, searchName),
+    getMateriJourney(classIds, materis, searchName),
   ]);
 
   return { pendahuluan, materi: materiJourney };

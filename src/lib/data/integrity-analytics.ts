@@ -47,8 +47,8 @@ export const EVENT_TYPE_LABEL: Record<string, string> = {
 interface IntegrityFilter {
   /** Filter by class IDs (via student.class_id) */
   classIds?: number[];
-  /** Filter by materi (module.slug, maps ke concept_id) */
-  conceptId?: string;
+  /** Filter by materi (module.slug). Array = multi-concept pakai SQL IN. */
+  conceptIds?: string[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -82,9 +82,10 @@ export async function getIntegrityEvents(
       ? Prisma.sql`AND c.class_id IN (${Prisma.join(filter.classIds)})`
       : Prisma.empty;
 
-  const moduleWhere = filter.conceptId
-    ? Prisma.sql`AND d.slug = ${filter.conceptId}`
-    : Prisma.empty;
+  const moduleWhere =
+    filter.conceptIds && filter.conceptIds.length > 0
+      ? Prisma.sql`AND d.slug IN (${Prisma.join(filter.conceptIds.map((m) => Prisma.sql`${m}`))})`
+      : Prisma.empty;
 
   const rows = await prisma.$queryRaw<
     Array<{

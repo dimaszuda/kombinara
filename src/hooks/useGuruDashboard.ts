@@ -197,7 +197,10 @@ export interface GuruDashboardData {
 
 interface UseGuruDashboardOptions {
   classIds?: number[];
-  materi?: string;
+  /** concept_id slugs untuk filter materi (overview & journey) */
+  materis?: string[];
+  /** concept_id slugs untuk filter asesmen formatif & integrity */
+  asesmenMateris?: string[];
   searchName?: string;
   /** Percobaan asesmen diagnostik: "latest" (default) atau nomor attempt */
   diagAttempt?: number | "latest";
@@ -227,7 +230,7 @@ interface UseGuruDashboardReturn {
 export function useGuruDashboard(
   options?: UseGuruDashboardOptions
 ): UseGuruDashboardReturn {
-  const { classIds, materi, searchName, diagAttempt, formAttempt, includeDiagnostic, includeJourney, includeFormatif, includeIntegrity } = options ?? {};
+  const { classIds, materis, asesmenMateris, searchName, diagAttempt, formAttempt, includeDiagnostic, includeJourney, includeFormatif, includeIntegrity } = options ?? {};
   const [data, setData] = useState<GuruDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -241,8 +244,11 @@ export function useGuruDashboard(
       if (classIds && classIds.length > 0) {
         params.set("classIds", classIds.join(","));
       }
-      if (materi && materi !== "all") {
-        params.set("materi", materi);
+      if (materis && materis.length > 0) {
+        params.set("materi", materis.join(","));
+      }
+      if (asesmenMateris && asesmenMateris.length > 0) {
+        params.set("formatifMateri", asesmenMateris.join(","));
       }
       if (searchName) {
         params.set("searchName", searchName);
@@ -267,7 +273,7 @@ export function useGuruDashboard(
       }
 
       const url = `/api/guru/dashboard?${params.toString()}`;
-      console.log("[useGuruDashboard] 🔄 Fetching:", url, { classIds, materi, diagAttempt });
+      console.log("[useGuruDashboard] 🔄 Fetching:", url, { classIds, materis, asesmenMateris, diagAttempt });
 
       const res = await fetch(url);
       if (!res.ok) {
@@ -296,7 +302,7 @@ export function useGuruDashboard(
     } finally {
       setLoading(false);
     }
-  }, [classIds, materi, searchName, diagAttempt, includeDiagnostic, includeJourney, includeFormatif]);
+  }, [classIds, materis, asesmenMateris, searchName, diagAttempt, formAttempt, includeDiagnostic, includeJourney, includeFormatif, includeIntegrity]);
 
   useEffect(() => {
     fetchData();

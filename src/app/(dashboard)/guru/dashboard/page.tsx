@@ -32,6 +32,7 @@ interface Student {
 interface Filters {
   kelas: string;   // "all" atau classId sebagai string (dari kelasOptions)
   materi: string;
+  materiAsesmen: string;
 }
 
 type ModalType = "diag" | "form";
@@ -67,15 +68,27 @@ const COLORS = {
 const KELAS_LIST: string[] = ["X-1", "X-2", "X-3", "XI-1", "XI-2", "XI-3", "XI-4"];
 const MATERI_LIST: string[] = ["Pendahuluan", "Kaidah Penjumlahan", "Kaidah Perkalian", "Faktorial", "Permutasi", "Kombinasi"];
 
-/** Mapping display name → concept_id slug untuk filter API */
-const MATERI_SLUG_MAP: Record<string, string> = {
+/** Mapping display name → concept_id slug(s) untuk filter API. Array = multi-concept (pakai IN di SQL). */
+const MATERI_SLUG_MAP: Record<string, string | string[]> = {
   Pendahuluan: "pendahuluan",
-  "Kaidah Penjumlahan": "kaidah-penjumlahan",
-  "Kaidah Perkalian": "kaidah-perkalian",
+  "Kaidah Penjumlahan": "kaidah_penjumlahan",
+  "Kaidah Perkalian": "kaidah_perkalian",
   Faktorial: "faktorial",
-  Permutasi: "permutasi",
+  Permutasi: [
+    "permutasi_r_unsur_dari_n_unsur",
+    "permutasi_dengan_unsur_sama",
+    "permutasi_siklis",
+  ],
   Kombinasi: "kombinasi",
 };
+
+/** Opsi filter "Materi Asesmen" — concept_id langsung, bukan slug journey */
+const MATERI_ASESMEN_OPTIONS: { label: string; value: string }[] = [
+  { label: "Kaidah Pencacahan", value: "kaidah-pencacahan" },
+  { label: "Faktorial", value: "faktorial" },
+  { label: "Permutasi", value: "permutasi" },
+  { label: "Kombinasi", value: "kombinasi" },
+];
 const SECTION_KEYS: { key: SectionKey; label: string }[] = [
   { key: "apersepsi", label: "Apersepsi" },
   { key: "eksplorasi", label: "Eksplorasi" },
@@ -568,6 +581,13 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
         </select>
       </div>
       <div>
+        <label style={labelStyle}>Materi Asesmen</label>
+        <select style={selectStyle} value={filters.materiAsesmen} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, materiAsesmen: e.target.value })}>
+          <option value="all">Semua materi</option>
+          {MATERI_ASESMEN_OPTIONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+        </select>
+      </div>
+      <div>
         <label style={labelStyle}>Percobaan diagnostik</label>
         <select
           style={selectStyle}
@@ -599,9 +619,9 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
           <option value="3">Percobaan 3</option>
         </select>
       </div>
-      {filters.kelas !== "all" || filters.materi !== "all" ? (
+      {filters.kelas !== "all" || filters.materi !== "all" || filters.materiAsesmen !== "all" ? (
         <button
-          onClick={() => setFilters({ kelas: "all", materi: "all" })}
+          onClick={() => setFilters({ kelas: "all", materi: "all", materiAsesmen: "all" })}
           style={{
             fontSize: 12.5,
             color: COLORS.purple,
@@ -875,7 +895,7 @@ function DetailModal({ item, type, conceptId, onClose }: DetailModalProps) {
 }
 
 export default function KombinaraDashboard() {
-  const [filters, setFilters] = useState<Filters>({ kelas: "all", materi: "all" });
+  const [filters, setFilters] = useState<Filters>({ kelas: "all", materi: "all", materiAsesmen: "all" });
   const [diagAttempt, setDiagAttempt] = useState<number | "latest">("latest");
   const [formAttempt, setFormAttempt] = useState<number | "latest">("latest");
   const [modal, setModal] = useState<ModalState | null>(null);
@@ -887,14 +907,22 @@ export default function KombinaraDashboard() {
     return isNaN(id) ? undefined : [id];
   }, [filters.kelas]);
 
-  const materiSlug = useMemo(() => {
+  const materiSlugs = useMemo(() => {
     if (filters.materi === "all") return undefined;
-    return MATERI_SLUG_MAP[filters.materi] ?? filters.materi.toLowerCase();
+    const val = MATERI_SLUG_MAP[filters.materi];
+    if (!val) return [filters.materi.toLowerCase()];
+    return Array.isArray(val) ? val : [val];
   }, [filters.materi]);
+
+  const materiAsesmenSlugs = useMemo(() => {
+    if (filters.materiAsesmen === "all") return undefined;
+    return [filters.materiAsesmen];
+  }, [filters.materiAsesmen]);
 
   const { data: dashData, loading: dashLoading, error: dashError, refetch: dashRefetch } = useGuruDashboard({
     classIds: selectedClassIds,
-    materi: materiSlug,
+    materis: materiSlugs,
+    asesmenMateris: materiAsesmenSlugs,
     includeDiagnostic: true,
     includeJourney: true,
     includeFormatif: true,
@@ -922,6 +950,32 @@ export default function KombinaraDashboard() {
     }
     if (filters.materi !== "all") {
       result = result.filter((s) => s.materi === filters.materi);
+    }
+    return result;
+  }, [filters, dashData]);
+
+  // ── Dummy data untuk section asesmen formatif & integrity ───
+  /** Mapping concept_id asesmen → label dummy STUDENTS */
+  const ASESMEN_TO_LABELS: Record<string, string[]> = {
+    "kaidah-pencacahan": ["Kaidah Penjumlahan", "Kaidah Perkalian"],
+    faktorial: ["Faktorial"],
+    permutasi: ["Permutasi"],
+    kombinasi: ["Kombinasi"],
+  };
+
+  const filteredAsesmen = useMemo(() => {
+    let result = STUDENTS;
+    if (filters.kelas !== "all") {
+      const selectedOpt = dashData?.kelasOptions.find(
+        (k) => String(k.classId) === filters.kelas
+      );
+      if (selectedOpt) {
+        result = result.filter((s) => s.kelas === selectedOpt.namaKelas);
+      }
+    }
+    if (filters.materiAsesmen !== "all") {
+      const labels = ASESMEN_TO_LABELS[filters.materiAsesmen] ?? [];
+      result = result.filter((s) => labels.includes(s.materi));
     }
     return result;
   }, [filters, dashData]);
@@ -994,8 +1048,8 @@ export default function KombinaraDashboard() {
         }
       });
     } else {
-      // Fallback ke dummy data
-      filtered.forEach((s) => {
+      // Fallback ke dummy data (filtered by materiAsesmen)
+      filteredAsesmen.forEach((s) => {
         // Map nilai individu ke range
         const score = s.formNilai;
         const rangeIdx = Math.min(Math.floor(score / 10), 9);
@@ -1004,7 +1058,7 @@ export default function KombinaraDashboard() {
       });
     }
     return SCORE_RANGES.map((score) => ({ score, total: scoreMap[score] }));
-  }, [filtered, dashData]);
+  }, [filteredAsesmen, dashData]);
 
   const formStats = useMemo(() => {
     // Gunakan stats dari database jika tersedia
@@ -1062,13 +1116,13 @@ export default function KombinaraDashboard() {
     if (realData && realData.length > 0) {
       return realData;
     }
-    // Fallback ke dummy data
+    // Fallback ke dummy data (filtered by materiAsesmen)
     const map: Record<number, number> = {};
-    filtered.forEach((s) => { map[s.formAttempt] = (map[s.formAttempt] || 0) + 1; });
+    filteredAsesmen.forEach((s) => { map[s.formAttempt] = (map[s.formAttempt] || 0) + 1; });
     return Object.entries(map)
       .map(([attempt, total]) => ({ attempt: `${attempt}x`, total }))
       .sort((a, b) => a.attempt.localeCompare(b.attempt, undefined, { numeric: true }));
-  }, [filtered, dashData]);
+  }, [filteredAsesmen, dashData]);
 
   const scatterDiag = useMemo(() => {
     const realData = dashData?.diagnostic?.durationScatter;
@@ -1090,9 +1144,9 @@ export default function KombinaraDashboard() {
         y: item.nilai,
       }));
     }
-    // Fallback ke dummy data
-    return filtered.slice(0, 80).map((s) => ({ x: s.formDurasi, y: s.formNilai }));
-  }, [filtered, dashData]);
+    // Fallback ke dummy data (filtered by materiAsesmen)
+    return filteredAsesmen.slice(0, 80).map((s) => ({ x: s.formDurasi, y: s.formNilai }));
+  }, [filteredAsesmen, dashData]);
 
   // Total siswa: prioritas data real, fallback ke dummy
   const totalSiswa = dashData?.totalSiswa ?? filtered.length;
@@ -1100,8 +1154,8 @@ export default function KombinaraDashboard() {
   const integrityLog = useMemo(() => {
     const real = dashData?.integrity;
     if (real && real.length > 0) return real;
-    // Fallback ke dummy data
-    return filtered
+    // Fallback ke dummy data (filtered by materiAsesmen)
+    return filteredAsesmen
       .filter((s) => s.integrityEvents > 0 && s.materi !== "Pendahuluan")
       .slice(0, 12)
       .map((s) => ({
@@ -1111,7 +1165,7 @@ export default function KombinaraDashboard() {
         jenisKejadian: "Tab switch / keluar fullscreen",
         jumlah: s.integrityEvents,
       }));
-  }, [filtered, dashData]);
+  }, [filteredAsesmen, dashData]);
 
   const diagTableRows = useMemo(() => {
     const real = dashData?.diagnostic?.detailPerSiswa;
@@ -1130,9 +1184,9 @@ export default function KombinaraDashboard() {
   }, [filtered, dashData]);
   const formTableRows = useMemo(() => {
     const real = dashData?.formatif?.detailPerSiswa;
-    if (real && real.length > 0) return real;
-    // Fallback ke dummy data
-    return filtered.slice(0, 10).map((s) => ({
+    if (real && real.length > 0) return real.filter((r) => r.conceptId != null);
+    // Fallback ke dummy data (filtered by materiAsesmen)
+    return filteredAsesmen.slice(0, 10).map((s) => ({
       studentId: s.id,
       nama: s.nama,
       kelas: s.kelas,
@@ -1142,7 +1196,7 @@ export default function KombinaraDashboard() {
       durasiMenit: s.formDurasi,
       status: s.formPassed ? "Selesai" : "Belum Selesai",
     }));
-  }, [filtered, dashData]);
+  }, [filteredAsesmen, dashData]);
 
   // Column defs that need component state (setModal)
   const diagDetailCols = useMemo((): Column<Record<string, unknown>>[] => [

@@ -195,23 +195,23 @@ const MATERI_TOTAL_STEPS: Record<string, number> = {
   default: 6,
 };
 
-function getTotalSteps(materi: string | undefined): number {
-  if (!materi || materi === "all") return MATERI_TOTAL_STEPS.all;
-  if (materi === "pendahuluan") return MATERI_TOTAL_STEPS.pendahuluan;
+function getTotalSteps(materis: string[] | undefined): number {
+  if (!materis || materis.length === 0) return MATERI_TOTAL_STEPS.all;
+  if (materis.includes("pendahuluan")) return MATERI_TOTAL_STEPS.pendahuluan;
   return MATERI_TOTAL_STEPS.default;
 }
 
 /**
  * Progress siswa: gabungan diagnostic_attempts (passed) + student_section_status (completed).
- * Filterable by classIds, materi (concept_id), dan searchName.
+ * Filterable by classIds, materis (concept_id array), dan searchName.
  */
 export async function getStudentProgress(
   classIds?: number[],
-  materi?: string,
+  materis?: string[],
   searchName?: string
 ): Promise<StudentProgressItem[]> {
-  const totalSteps = getTotalSteps(materi);
-  const isMateriAll = !materi || materi === "all";
+  const totalSteps = getTotalSteps(materis);
+  const isMateriAll = !materis || materis.length === 0;
 
   // Build filter fragments
   const classFilter = classIds && classIds.length > 0
@@ -220,11 +220,11 @@ export async function getStudentProgress(
   const nameFilter = searchName
     ? Prisma.sql`AND LOWER(a.name) LIKE ${"%" + searchName.toLowerCase() + "%"}`
     : Prisma.empty;
-  const materiDiagFilter = !isMateriAll && materi !== "pendahuluan"
-    ? Prisma.sql`AND FALSE` // diagnostic hanya untuk pendahuluan
+  const materiDiagFilter = !isMateriAll && !materis.includes("pendahuluan")
+    ? Prisma.sql`AND FALSE` // diagnostic hanya dihitung untuk pendahuluan atau all
     : Prisma.empty;
   const materiSectionFilter = !isMateriAll
-    ? Prisma.sql`AND b.concept_id = ${materi}`
+    ? Prisma.sql`AND b.concept_id IN (${Prisma.join(materis.map((m) => Prisma.sql`${m}`))})`
     : Prisma.empty;
 
   const rows = await prisma.$queryRaw<Array<{
@@ -289,7 +289,7 @@ export async function getStudentProgress(
 /** Gabung semua data dashboard dalam satu parallel fetch */
 export async function getGuruDashboardData(
   classIds?: number[],
-  materi?: string,
+  materis?: string[],
   searchName?: string
 ): Promise<GuruDashboardData> {
   const [totalKelas, totalSiswa, genderBreakdown, kelasOptions, distribusiKelas, daftarSiswa, studentProgress] =
@@ -300,7 +300,7 @@ export async function getGuruDashboardData(
       getKelasOptions(),
       getDistribusiKelas(classIds),
       getDaftarSiswa(classIds),
-      getStudentProgress(classIds, materi, searchName),
+      getStudentProgress(classIds, materis, searchName),
     ]);
 
   return { totalKelas, totalSiswa, genderBreakdown, kelasOptions, distribusiKelas, daftarSiswa, studentProgress };

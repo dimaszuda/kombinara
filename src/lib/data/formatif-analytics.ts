@@ -120,8 +120,8 @@ const RANGE_MIDPOINTS: Record<string, number> = {
 interface FormatifFilter {
   /** Filter by class IDs (via student.class_id) */
   classIds?: number[];
-  /** Filter by concept_id (materi) */
-  conceptId?: string;
+  /** Filter by concept_ids (materi). Array = multi-concept pakai SQL IN. */
+  conceptIds?: string[];
   /** Filter by attempt number. "latest" = ambil submission terbaru per (student, concept). Number = ambil percobaan ke-n. */
   attempt?: number | "latest";
   /** Exclude specific student IDs (e.g. test accounts) */
@@ -138,9 +138,10 @@ function buildFormatifFilterClauses(filter: FormatifFilter): {
       ? Prisma.sql`AND s.class_id IN (${Prisma.join(filter.classIds)})`
       : Prisma.empty;
 
-  const conceptWhere = filter.conceptId
-    ? Prisma.sql`AND afs.concept_id = ${filter.conceptId}`
-    : Prisma.empty;
+  const conceptWhere =
+    filter.conceptIds && filter.conceptIds.length > 0
+      ? Prisma.sql`AND afs.concept_id IN (${Prisma.join(filter.conceptIds.map((m) => Prisma.sql`${m}`))})`
+      : Prisma.empty;
 
   const studentExclude =
     filter.excludeStudentIds && filter.excludeStudentIds.length > 0
