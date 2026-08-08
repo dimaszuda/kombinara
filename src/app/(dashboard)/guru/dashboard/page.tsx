@@ -39,6 +39,8 @@ type ModalType = "diag" | "form";
 interface ModalState {
   item: DiagnosticDetailItem;
   type: ModalType;
+  /** concept_id untuk fetch jawaban formatif */
+  conceptId?: string;
 }
 
 interface DiagSoal {
@@ -190,9 +192,10 @@ const INTEGRITY_COLS: Column<Record<string, unknown>>[] = [
   { key: "nama", label: "Nama" },
   { key: "kelas", label: "Kelas" },
   { key: "materi", label: "Materi" },
+  { key: "jenisKejadian", label: "Jenis kejadian" },
   {
-    key: "integrityEvents",
-    label: "Jumlah kejadian",
+    key: "jumlah",
+    label: "Jumlah",
     render: (row) => (
       <span
         style={{
@@ -204,11 +207,10 @@ const INTEGRITY_COLS: Column<Record<string, unknown>>[] = [
           borderRadius: 4,
         }}
       >
-        {String(row.integrityEvents)}x
+        {String(row.jumlah)}x
       </span>
     ),
   },
-  { key: "_action", label: "", sortable: false, render: () => <span style={{ color: "#8A8A8A", fontSize: 11.5 }}>Tab switch / keluar fullscreen</span> },
 ];
 
 function seededRandom(seed: number): () => number {
@@ -506,9 +508,11 @@ interface FilterBarProps {
   loading?: boolean;
   diagAttempt: number | "latest";
   setDiagAttempt: (val: number | "latest") => void;
+  formAttempt: number | "latest";
+  setFormAttempt: (val: number | "latest") => void;
 }
 
-function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, setDiagAttempt }: FilterBarProps) {
+function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, setDiagAttempt, formAttempt, setFormAttempt }: FilterBarProps) {
   const selectStyle: React.CSSProperties = {
     padding: "7px 10px",
     borderRadius: 6,
@@ -581,10 +585,18 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
       </div>
       <div>
         <label style={labelStyle}>Percobaan formatif</label>
-        <select style={selectStyle} defaultValue="terakhir">
-          <option value="terakhir">Terakhir</option>
+        <select
+          style={selectStyle}
+          value={formAttempt === "latest" ? "latest" : String(formAttempt)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+            const val = e.target.value;
+            setFormAttempt(val === "latest" ? "latest" : parseInt(val, 10));
+          }}
+        >
+          <option value="latest">Terakhir</option>
           <option value="1">Percobaan 1</option>
           <option value="2">Percobaan 2</option>
+          <option value="3">Percobaan 3</option>
         </select>
       </div>
       {filters.kelas !== "all" || filters.materi !== "all" ? (
@@ -627,6 +639,8 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
 interface DetailModalProps {
   item: DiagnosticDetailItem | null;
   type: ModalType | undefined;
+  /** concept_id untuk fetch jawaban formatif */
+  conceptId?: string;
   onClose: () => void;
 }
 
@@ -635,38 +649,102 @@ interface DraftAnswerItem {
   jawaban: string;
 }
 
-function DetailModal({ item, type, onClose }: DetailModalProps) {
+/** Jawaban satu soal formatif dari per_question_results */
+interface FormatifAnswerItem {
+  questionNumber: number;
+  caraMengerjakan: string;
+  jawabanAkhir: string;
+  feedback: string;
+  totalScore: number;
+}
+
+function DetailModal({ item, type, conceptId, onClose }: DetailModalProps) {
   const [answers, setAnswers] = useState<DraftAnswerItem[]>([]);
+  const [formatifAnswers, setFormatifAnswers] = useState<FormatifAnswerItem[]>([]);
   const [loadingAnswers, setLoadingAnswers] = useState(false);
 
   useEffect(() => {
-    if (!item || type !== "diag") {
+    if (!item) {
       setAnswers([]);
+      setFormatifAnswers([]);
       return;
     }
 
-    let cancelled = false;
-    setLoadingAnswers(true);
+    // ── Diagnostic: fetch draft_answers ──────────────────────
+    if (type === "diag") {
+      let cancelled = false;
+      setLoadingAnswers(true);
+      setAnswers([]);
+
+      fetch(
+        `/api/guru/diagnostic/draft-answers?studentId=${item.studentId}&attemptNumber=${item.attemptNumber}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (!cancelled) setAnswers(data.answers ?? []);
+        })
+        .catch(() => {
+          if (!cancelled) setAnswers([]);
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingAnswers(false);
+        });
+
+      return () => { cancelled = true; };
+    }
+
+    // ── Formatif: fetch submission answers ───────────────────
+    if (type === "form" && conceptId) {
+      let cancelled = false;
+      setLoadingAnswers(true);
+      setFormatifAnswers([]);
+
+      fetch(
+        `/api/guru/formatif/submission-answers?studentId=${item.studentId}&conceptId=${conceptId}&attemptNumber=${item.attemptNumber}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (cancelled) return;
+          // Parse per_question_results + answers untuk ditampilkan
+          const perQuestion = Array.isArray(data.perQuestionResults) ? data.perQuestionResults : [];
+          const rawAnswers = Array.isArray(data.answers) ? data.answers : [];
+
+          // Build map of raw answers by question_number
+          const rawMap = new Map<number, { cara_mengerjakan?: string; jawaban_akhir?: string }>();
+          for (const ra of rawAnswers) {
+            if (ra && typeof ra.question_number === "number") {
+              rawMap.set(ra.question_number, ra);
+            }
+          }
+
+          const items: FormatifAnswerItem[] = perQuestion.map((pq: Record<string, unknown>) => {
+            const qn = typeof pq.question_number === "number" ? pq.question_number : 0;
+            const raw = rawMap.get(qn);
+            return {
+              questionNumber: qn,
+              caraMengerjakan: raw?.cara_mengerjakan ?? "",
+              jawabanAkhir: raw?.jawaban_akhir ?? "",
+              feedback: typeof pq.feedback === "string" ? pq.feedback : "",
+              totalScore: typeof pq.total_score === "number" ? pq.total_score : 0,
+            };
+          });
+
+          setFormatifAnswers(items);
+        })
+        .catch(() => {
+          if (!cancelled) setFormatifAnswers([]);
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingAnswers(false);
+        });
+
+      return () => { cancelled = true; };
+    }
+
+    // Fallback: reset
     setAnswers([]);
-
-    fetch(
-      `/api/guru/diagnostic/draft-answers?studentId=${item.studentId}&attemptNumber=${item.attemptNumber}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) {
-          setAnswers(data.answers ?? []);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setAnswers([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingAnswers(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [item, type]);
+    setFormatifAnswers([]);
+  }, [item, type, conceptId]);
 
   if (!item) return null;
   const isDiag = type === "diag";
@@ -755,21 +833,40 @@ function DetailModal({ item, type, onClose }: DetailModalProps) {
               ))
             )
           ) : (
-            FORM_SOAL.map((item, idx) => (
-              <div key={idx} style={{ marginBottom: 18, paddingBottom: 18, borderBottom: idx < FORM_SOAL.length - 1 ? "1px solid #EFEFEF" : "none" }}>
-                <div style={{ fontSize: 12, fontWeight: 500, color: COLORS.purple, marginBottom: 6 }}>Soal {idx + 1}</div>
-                <div style={{ fontSize: 13.5, color: "#333", marginBottom: 10, lineHeight: 1.6 }}>{item.soal}</div>
-                <div style={{ fontSize: 13, color: "#555", background: "#FAFAFA", padding: "10px 12px", borderRadius: 6, marginBottom: 8 }}>
-                  <span style={{ fontWeight: 500 }}>Jawaban akhir: </span>{item.jawabanAkhir}
-                </div>
-                <div style={{ fontSize: 13, color: "#555", background: "#FAFAFA", padding: "10px 12px", borderRadius: 6, marginBottom: 8 }}>
-                  <span style={{ fontWeight: 500 }}>Cara mengerjakan: </span>{item.cara}
-                </div>
-                <div style={{ fontSize: 13, color: COLORS.green, background: COLORS.greenLight, padding: "10px 12px", borderRadius: 6 }}>
-                  <span style={{ fontWeight: 500 }}>Feedback AI: </span>{item.feedback}
-                </div>
+            loadingAnswers ? (
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#8A8A8A", fontSize: 13 }}>
+                Memuat jawaban...
               </div>
-            ))
+            ) : formatifAnswers.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#8A8A8A", fontSize: 13 }}>
+                Tidak ada data jawaban
+              </div>
+            ) : (
+              formatifAnswers.map((fa, idx) => (
+                <div key={idx} style={{ marginBottom: 18, paddingBottom: 18, borderBottom: idx < formatifAnswers.length - 1 ? "1px solid #EFEFEF" : "none" }}>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: COLORS.purple, marginBottom: 10 }}>Soal {fa.questionNumber}</div>
+                  {fa.caraMengerjakan && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#333", marginBottom: 4 }}>Cara mengerjakan</div>
+                      <div style={{ fontSize: 13, color: "#555", background: "#FAFAFA", padding: "10px 12px", borderRadius: 6 }}>{fa.caraMengerjakan}</div>
+                    </div>
+                  )}
+                  {fa.jawabanAkhir && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#333", marginBottom: 4 }}>Jawaban akhir</div>
+                      <div style={{ fontSize: 13, color: "#555", background: "#FAFAFA", padding: "10px 12px", borderRadius: 6 }}>{fa.jawabanAkhir}</div>
+                    </div>
+                  )}
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#333", marginBottom: 4 }}>Feedback AI</div>
+                    <div style={{ fontSize: 13, color: COLORS.green, background: COLORS.greenLight, padding: "10px 12px", borderRadius: 6 }}>{fa.feedback || "Belum ada feedback"}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8A8A8A" }}>
+                    Skor: {fa.totalScore}/10
+                  </div>
+                </div>
+              ))
+            )
           )}
         </div>
       </div>
@@ -780,6 +877,7 @@ function DetailModal({ item, type, onClose }: DetailModalProps) {
 export default function KombinaraDashboard() {
   const [filters, setFilters] = useState<Filters>({ kelas: "all", materi: "all" });
   const [diagAttempt, setDiagAttempt] = useState<number | "latest">("latest");
+  const [formAttempt, setFormAttempt] = useState<number | "latest">("latest");
   const [modal, setModal] = useState<ModalState | null>(null);
 
   // ── API: hitung classIds & materi slug untuk filter ──────
@@ -799,7 +897,10 @@ export default function KombinaraDashboard() {
     materi: materiSlug,
     includeDiagnostic: true,
     includeJourney: true,
+    includeFormatif: true,
+    includeIntegrity: true,
     diagAttempt,
+    formAttempt,
   });
 
   // ── Progress data dari API ─────────────────────────────────
@@ -880,20 +981,52 @@ export default function KombinaraDashboard() {
   }, [diagBar]);
 
   const formBar = useMemo(() => {
-    // Skor 0, 10, 20, ..., 100 (11 bar)
-    const ALL_SCORES = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-    const scoreMap: Record<number, number> = {};
-    ALL_SCORES.forEach((s) => { scoreMap[s] = 0; });
-    filtered.forEach((s) => { scoreMap[s.formNilai] = (scoreMap[s.formNilai] || 0) + 1; });
-    return ALL_SCORES.map((score) => ({ score: String(score), total: scoreMap[score] }));
-  }, [filtered]);
+    // Range nilai: 0-10, 10-20, ..., 90-100 (10 bar)
+    const SCORE_RANGES = ["0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90", "90-100"];
+    const scoreMap: Record<string, number> = {};
+    SCORE_RANGES.forEach((r) => { scoreMap[r] = 0; });
+
+    const realData = dashData?.formatif?.scoreDistribution;
+    if (realData && realData.length > 0) {
+      realData.forEach((item) => {
+        if (item.scoreRange in scoreMap) {
+          scoreMap[item.scoreRange] += item.jumlah;
+        }
+      });
+    } else {
+      // Fallback ke dummy data
+      filtered.forEach((s) => {
+        // Map nilai individu ke range
+        const score = s.formNilai;
+        const rangeIdx = Math.min(Math.floor(score / 10), 9);
+        const rangeKey = SCORE_RANGES[rangeIdx];
+        scoreMap[rangeKey] = (scoreMap[rangeKey] || 0) + 1;
+      });
+    }
+    return SCORE_RANGES.map((score) => ({ score, total: scoreMap[score] }));
+  }, [filtered, dashData]);
 
   const formStats = useMemo(() => {
-    // Expand bar data into individual scores
+    // Gunakan stats dari database jika tersedia
+    const realStats = dashData?.formatif?.stats;
+    if (realStats && realStats.n > 0) {
+      return {
+        mean: realStats.mean,
+        median: realStats.median,
+        std: realStats.std,
+        n: realStats.n,
+      };
+    }
+
+    // Fallback: hitung dari formBar (data dummy)
+    const RANGE_MIDPOINTS: Record<string, number> = {
+      "0-10": 5, "10-20": 15, "20-30": 25, "30-40": 35, "40-50": 45,
+      "50-60": 55, "60-70": 65, "70-80": 75, "80-90": 85, "90-100": 95,
+    };
     const scores: number[] = [];
     formBar.forEach((bar) => {
-      const s = Number(bar.score);
-      for (let i = 0; i < bar.total; i++) scores.push(s);
+      const midpoint = RANGE_MIDPOINTS[bar.score] ?? 0;
+      for (let i = 0; i < bar.total; i++) scores.push(midpoint);
     });
     if (scores.length === 0) return { mean: 0, median: 0, std: 0, n: 0 };
 
@@ -901,17 +1034,15 @@ export default function KombinaraDashboard() {
     const sum = scores.reduce((a, b) => a + b, 0);
     const mean = sum / n;
 
-    // Median
     const sorted = [...scores].sort((a, b) => a - b);
     const mid = Math.floor(n / 2);
     const median = n % 2 === 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 
-    // Standard deviation (population)
     const variance = scores.reduce((acc, val) => acc + (val - mean) ** 2, 0) / n;
     const std = Math.sqrt(variance);
 
     return { mean, median, std, n };
-  }, [formBar]);
+  }, [formBar, dashData]);
 
   const diagAttemptDist = useMemo(() => {
     const realData = dashData?.diagnostic?.attemptDistribution;
@@ -927,10 +1058,17 @@ export default function KombinaraDashboard() {
   }, [filtered, dashData]);
 
   const formAttemptDist = useMemo(() => {
+    const realData = dashData?.formatif?.attemptDistribution;
+    if (realData && realData.length > 0) {
+      return realData;
+    }
+    // Fallback ke dummy data
     const map: Record<number, number> = {};
     filtered.forEach((s) => { map[s.formAttempt] = (map[s.formAttempt] || 0) + 1; });
-    return Object.entries(map).map(([attempt, total]) => ({ attempt: `Percobaan ${attempt}`, total })).sort((a, b) => a.attempt.localeCompare(b.attempt));
-  }, [filtered]);
+    return Object.entries(map)
+      .map(([attempt, total]) => ({ attempt: `${attempt}x`, total }))
+      .sort((a, b) => a.attempt.localeCompare(b.attempt, undefined, { numeric: true }));
+  }, [filtered, dashData]);
 
   const scatterDiag = useMemo(() => {
     const realData = dashData?.diagnostic?.durationScatter;
@@ -944,12 +1082,36 @@ export default function KombinaraDashboard() {
     // Fallback ke dummy data
     return filtered.slice(0, 80).map((s) => ({ x: s.diagDurasi, y: s.diagNilai, passed: s.diagPassed }));
   }, [filtered, dashData]);
-  const scatterForm = useMemo(() => filtered.slice(0, 80).map((s) => ({ x: s.formDurasi, y: s.formNilai, passed: s.formPassed })), [filtered]);
+  const scatterForm = useMemo(() => {
+    const realData = dashData?.formatif?.durationScatter;
+    if (realData && realData.length > 0) {
+      return realData.slice(0, 80).map((item) => ({
+        x: item.durasiMenit,
+        y: item.nilai,
+      }));
+    }
+    // Fallback ke dummy data
+    return filtered.slice(0, 80).map((s) => ({ x: s.formDurasi, y: s.formNilai }));
+  }, [filtered, dashData]);
 
   // Total siswa: prioritas data real, fallback ke dummy
   const totalSiswa = dashData?.totalSiswa ?? filtered.length;
 
-  const integrityLog = useMemo(() => filtered.filter((s) => s.integrityEvents > 0 && s.materi !== "Pendahuluan").slice(0, 12), [filtered]);
+  const integrityLog = useMemo(() => {
+    const real = dashData?.integrity;
+    if (real && real.length > 0) return real;
+    // Fallback ke dummy data
+    return filtered
+      .filter((s) => s.integrityEvents > 0 && s.materi !== "Pendahuluan")
+      .slice(0, 12)
+      .map((s) => ({
+        nama: s.nama,
+        kelas: s.kelas,
+        materi: s.materi,
+        jenisKejadian: "Tab switch / keluar fullscreen",
+        jumlah: s.integrityEvents,
+      }));
+  }, [filtered, dashData]);
 
   const diagTableRows = useMemo(() => {
     const real = dashData?.diagnostic?.detailPerSiswa;
@@ -966,7 +1128,21 @@ export default function KombinaraDashboard() {
       submittedAt: s.tanggalJoin,
     })) as DiagnosticDetailItem[];
   }, [filtered, dashData]);
-  const formTableRows = filtered.slice(0, 10);
+  const formTableRows = useMemo(() => {
+    const real = dashData?.formatif?.detailPerSiswa;
+    if (real && real.length > 0) return real;
+    // Fallback ke dummy data
+    return filtered.slice(0, 10).map((s) => ({
+      studentId: s.id,
+      nama: s.nama,
+      kelas: s.kelas,
+      conceptId: MATERI_SLUG_MAP[s.materi] ?? s.materi.toLowerCase(),
+      nilai: s.formNilai,
+      totalAttempts: s.formAttempt,
+      durasiMenit: s.formDurasi,
+      status: s.formPassed ? "Selesai" : "Belum Selesai",
+    }));
+  }, [filtered, dashData]);
 
   // Column defs that need component state (setModal)
   const diagDetailCols = useMemo((): Column<Record<string, unknown>>[] => [
@@ -999,15 +1175,22 @@ export default function KombinaraDashboard() {
   const formDetailCols = useMemo((): Column<Record<string, unknown>>[] => [
     { key: "nama", label: "Nama" },
     { key: "kelas", label: "Kelas" },
-    { key: "materi", label: "Materi" },
-    { key: "formNilai", label: "Nilai" },
-    { key: "formAttempt", label: "Percobaan", render: (row) => <>{String(row.formAttempt)}x</> },
-    { key: "formDurasi", label: "Durasi", render: (row) => <>{String(row.formDurasi)} menit</> },
     {
-      key: "_status",
+      key: "conceptId",
+      label: "Materi",
+      render: (row) => {
+        const conceptLabel = Object.entries(MATERI_SLUG_MAP).find(([, slug]) => slug === row.conceptId)?.[0] ?? String(row.conceptId);
+        return <>{conceptLabel}</>;
+      },
+    },
+    { key: "nilai", label: "Nilai" },
+    { key: "totalAttempts", label: "Percobaan", render: (row) => <>{String(row.totalAttempts)}x</> },
+    { key: "durasiMenit", label: "Durasi (menit)", render: (row) => <>{Math.round(Number(row.durasiMenit))}</> },
+    {
+      key: "status",
       label: "Status",
       sortable: false,
-      render: (row) => <StatusBadge ok={Boolean(row.formPassed)} label={row.formPassed ? "Lulus" : "Belum lulus"} />,
+      render: (row) => <StatusBadge ok={row.status === "Selesai"} label={String(row.status)} />,
     },
     {
       key: "_action",
@@ -1018,16 +1201,17 @@ export default function KombinaraDashboard() {
           onClick={() =>
             setModal({
               item: {
-                studentId: row.id as number,
+                studentId: Number(row.studentId),
                 nama: String(row.nama),
                 kelas: String(row.kelas),
-                nilai: Number(row.formNilai),
-                attemptNumber: Number(row.formAttempt),
-                durasiMenit: Number(row.formDurasi),
-                status: row.formPassed ? "Lulus" : "Belum Lulus",
-                submittedAt: String(row.tanggalJoin),
+                nilai: Number(row.nilai),
+                attemptNumber: Number(row.totalAttempts),
+                durasiMenit: Number(row.durasiMenit),
+                status: String(row.status),
+                submittedAt: "-",
               },
               type: "form",
+              conceptId: String(row.conceptId),
             })
           }
           style={{ fontSize: 12, color: COLORS.purple, background: "transparent", border: `1px solid ${COLORS.purple}`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}
@@ -1087,6 +1271,8 @@ export default function KombinaraDashboard() {
         loading={dashLoading}
         diagAttempt={diagAttempt}
         setDiagAttempt={setDiagAttempt}
+        formAttempt={formAttempt}
+        setFormAttempt={setFormAttempt}
       />
 
       <div>
@@ -1282,7 +1468,7 @@ export default function KombinaraDashboard() {
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={formBar}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEE" vertical={false} />
-                  <XAxis dataKey="score" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Nilai", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
+                  <XAxis dataKey="score" tick={{ fontSize: 10, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Range Nilai", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
                   <YAxis tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Jumlah Siswa", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#8A8A8A" } }} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
                   <Bar dataKey="total" fill={COLORS.purple} radius={[4, 4, 0, 0]} />
@@ -1303,27 +1489,28 @@ export default function KombinaraDashboard() {
                   <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={[0, "dataMax"]} tickCount={5} tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
                   <YAxis dataKey="y" name="Nilai" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Nilai", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#8A8A8A" } }} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} cursor={{ strokeDasharray: "3 3" }} />
-                  <Scatter data={scatterForm.filter((d) => d.passed)} fill={COLORS.green} />
-                  <Scatter data={scatterForm.filter((d) => !d.passed)} fill={COLORS.brick} />
+                  <Scatter data={scatterForm} fill={COLORS.green} />
                 </ScatterChart>
               </ResponsiveContainer>
-              <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#8A8A8A", marginTop: 4 }}>
-                <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: COLORS.green, marginRight: 4 }} />Lulus</span>
-                <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: COLORS.brick, marginRight: 4 }} />Belum lulus</span>
-              </div>
             </Card>
 
             <Card>
               <CardTitle>Distribusi percobaan</CardTitle>
-              <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={formAttemptDist} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EEE" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Jumlah Siswa", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <YAxis type="category" dataKey="attempt" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} width={80} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
-                  <Bar dataKey="total" fill={COLORS.purple} radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {formAttemptDist.length === 0 ? (
+                <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "#8A8A8A", fontSize: 13 }}>
+                  Belum ada data
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={160}>
+                  <BarChart data={formAttemptDist} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#EEE" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Jumlah", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
+                    <YAxis type="category" dataKey="attempt" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} width={50} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
+                    <Bar dataKey="total" fill={COLORS.green} radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </Card>
           </div>
 
@@ -1332,7 +1519,7 @@ export default function KombinaraDashboard() {
             <SortableTable
               columns={formDetailCols}
               data={formTableRows as unknown as Record<string, unknown>[]}
-              rowKey={(s) => s.id as number}
+              rowKey={(s, idx) => `${String(s.nama)}-${String(s.conceptId)}-${idx}`}
               maxHeight={400}
             />
           </Card>
@@ -1356,7 +1543,7 @@ export default function KombinaraDashboard() {
         </section>
       </div>
 
-      {modal && <DetailModal item={modal.item} type={modal.type} onClose={() => setModal(null)} />}
+      {modal && <DetailModal item={modal.item} type={modal.type} conceptId={modal.conceptId} onClose={() => setModal(null)} />}
     </div>
   );
 }

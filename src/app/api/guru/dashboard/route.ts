@@ -16,6 +16,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getGuruDashboardData } from "@/lib/data/guru-dashboard";
 import { getDiagnosticAnalyticsData } from "@/lib/data/diagnostic-analytics";
 import { getJourneyAnalyticsData } from "@/lib/data/journey-analytics";
+import { getFormatifAnalyticsData } from "@/lib/data/formatif-analytics";
+import { getIntegrityEvents } from "@/lib/data/integrity-analytics";
 
 export async function GET(req: Request) {
   // ── 1. Autentikasi ───────────────────────────────────────────
@@ -39,8 +41,11 @@ export async function GET(req: Request) {
   const materi = searchParams.get("materi") || undefined;
   const searchName = searchParams.get("searchName") || undefined;
   const diagAttemptRaw = searchParams.get("diagAttempt") || undefined;
+  const formAttemptRaw = searchParams.get("formAttempt") || undefined;
   const includeDiagnostic = searchParams.get("includeDiagnostic") === "true";
   const includeJourney = searchParams.get("includeJourney") === "true";
+  const includeFormatif = searchParams.get("includeFormatif") === "true";
+  const includeIntegrity = searchParams.get("includeIntegrity") === "true";
 
   const classIds = classIdsRaw
     ? classIdsRaw
@@ -57,10 +62,18 @@ export async function GET(req: Request) {
         ? parseInt(diagAttemptRaw, 10)
         : undefined;
 
+  // Parse formAttempt: "latest" | number
+  const formAttempt: number | "latest" | undefined =
+    formAttemptRaw === "latest"
+      ? "latest"
+      : formAttemptRaw
+        ? parseInt(formAttemptRaw, 10)
+        : undefined;
+
   // ── 4. Fetch data ────────────────────────────────────────────
   try {
-    // Parallel: overview + diagnostic + journey
-    const [overview, diagnostic, journey] = await Promise.all([
+    // Parallel: overview + diagnostic + journey + formatif + integrity
+    const [overview, diagnostic, journey, formatif, integrity] = await Promise.all([
       getGuruDashboardData(classIds, materi, searchName),
       includeDiagnostic
         ? getDiagnosticAnalyticsData({
@@ -71,12 +84,27 @@ export async function GET(req: Request) {
       includeJourney
         ? getJourneyAnalyticsData(classIds, materi, searchName)
         : Promise.resolve(null),
+      includeFormatif
+        ? getFormatifAnalyticsData({
+            classIds,
+            conceptId: materi,
+            attempt: formAttempt ?? "latest",
+          })
+        : Promise.resolve(null),
+      includeIntegrity
+        ? getIntegrityEvents({
+            classIds,
+            conceptId: materi,
+          })
+        : Promise.resolve(null),
     ]);
 
     return NextResponse.json({
       ...overview,
       diagnostic,
       journey,
+      formatif,
+      integrity,
     });
   } catch (err) {
     console.error("[GET /api/guru/dashboard] Error:", err);

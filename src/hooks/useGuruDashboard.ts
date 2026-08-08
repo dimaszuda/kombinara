@@ -114,6 +114,69 @@ export interface JourneyAnalyticsData {
   materi: MateriJourneyItem[];
 }
 
+// ═══════════════════════════════════════════════════════════════
+// Formatif Analytics Types
+// ═══════════════════════════════════════════════════════════════
+
+export interface FormatifScoreDistributionItem {
+  scoreRange: string;
+  jumlah: number;
+}
+
+export interface FormatifStats {
+  mean: number;
+  median: number;
+  std: number;
+  n: number;
+}
+
+export interface FormatifDurationScatterItem {
+  nama: string;
+  kelas: string;
+  nilai: number;
+  durasiMenit: number;
+}
+
+export interface FormatifAttemptDistributionItem {
+  attempt: string;
+  total: number;
+}
+
+export interface FormatifDetailItem {
+  studentId: number;
+  nama: string;
+  kelas: string;
+  conceptId: string;
+  nilai: number;
+  totalAttempts: number;
+  durasiMenit: number;
+  status: string;
+}
+
+export interface FormatifAnalyticsData {
+  scoreDistribution: FormatifScoreDistributionItem[];
+  stats: FormatifStats;
+  durationScatter: FormatifDurationScatterItem[];
+  attemptDistribution: FormatifAttemptDistributionItem[];
+  detailPerSiswa: FormatifDetailItem[];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Integrity Analytics Types
+// ═══════════════════════════════════════════════════════════════
+
+export interface IntegrityEventItem {
+  nama: string;
+  kelas: string;
+  materi: string;
+  jenisKejadian: string;
+  jumlah: number;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Main Dashboard Data
+// ═══════════════════════════════════════════════════════════════
+
 export interface GuruDashboardData {
   totalKelas: number;
   totalSiswa: number;
@@ -126,6 +189,10 @@ export interface GuruDashboardData {
   diagnostic: DiagnosticAnalyticsData | null;
   /** Data journey siswa (null jika belum dimuat atau tidak diminta) */
   journey: JourneyAnalyticsData | null;
+  /** Data chart asesmen formatif (null jika belum dimuat atau tidak diminta) */
+  formatif: FormatifAnalyticsData | null;
+  /** Data integritas pengerjaan (null jika belum dimuat atau tidak diminta) */
+  integrity: IntegrityEventItem[] | null;
 }
 
 interface UseGuruDashboardOptions {
@@ -134,10 +201,16 @@ interface UseGuruDashboardOptions {
   searchName?: string;
   /** Percobaan asesmen diagnostik: "latest" (default) atau nomor attempt */
   diagAttempt?: number | "latest";
+  /** Percobaan asesmen formatif: "latest" (default) atau nomor attempt */
+  formAttempt?: number | "latest";
   /** Apakah perlu fetch data chart diagnostik */
   includeDiagnostic?: boolean;
   /** Apakah perlu fetch data journey siswa */
   includeJourney?: boolean;
+  /** Apakah perlu fetch data chart formatif */
+  includeFormatif?: boolean;
+  /** Apakah perlu fetch data integritas */
+  includeIntegrity?: boolean;
 }
 
 interface UseGuruDashboardReturn {
@@ -154,7 +227,7 @@ interface UseGuruDashboardReturn {
 export function useGuruDashboard(
   options?: UseGuruDashboardOptions
 ): UseGuruDashboardReturn {
-  const { classIds, materi, searchName, diagAttempt, includeDiagnostic, includeJourney } = options ?? {};
+  const { classIds, materi, searchName, diagAttempt, formAttempt, includeDiagnostic, includeJourney, includeFormatif, includeIntegrity } = options ?? {};
   const [data, setData] = useState<GuruDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,8 +253,17 @@ export function useGuruDashboard(
       if (includeJourney) {
         params.set("includeJourney", "true");
       }
+      if (includeFormatif) {
+        params.set("includeFormatif", "true");
+      }
+      if (includeIntegrity) {
+        params.set("includeIntegrity", "true");
+      }
       if (diagAttempt) {
         params.set("diagAttempt", String(diagAttempt));
+      }
+      if (formAttempt) {
+        params.set("formAttempt", String(formAttempt));
       }
 
       const url = `/api/guru/dashboard?${params.toString()}`;
@@ -204,6 +286,7 @@ export function useGuruDashboard(
         studentProgress: json.studentProgress?.length,
         hasDiagnostic: json.diagnostic !== null,
         hasJourney: json.journey !== null,
+        hasFormatif: json.formatif !== null,
       });
       setData(json);
     } catch (err) {
@@ -213,7 +296,7 @@ export function useGuruDashboard(
     } finally {
       setLoading(false);
     }
-  }, [classIds, materi, searchName, diagAttempt, includeDiagnostic, includeJourney]);
+  }, [classIds, materi, searchName, diagAttempt, includeDiagnostic, includeJourney, includeFormatif]);
 
   useEffect(() => {
     fetchData();
