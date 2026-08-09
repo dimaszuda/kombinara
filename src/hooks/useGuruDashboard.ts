@@ -148,6 +148,7 @@ export interface FormatifDetailItem {
   kelas: string;
   conceptId: string;
   nilai: number;
+  attemptNumber: number;
   totalAttempts: number;
   durasiMenit: number;
   status: string;

@@ -484,6 +484,7 @@ export async function getFormatifDetailPerSiswa(
       kelas: string;
       concept_id: string;
       total_score: number;
+      attempt_number: bigint;
       total_attempts: bigint;
       durasi: number;
       status: string;
@@ -499,6 +500,10 @@ export async function getFormatifDetailPerSiswa(
           PARTITION BY afs.student_id, afs.concept_id
           ORDER BY afs.submission_id ${isLatest ? Prisma.sql`DESC` : Prisma.sql`ASC`}
         ) AS rn,
+        ROW_NUMBER() OVER (
+          PARTITION BY afs.student_id, afs.concept_id
+          ORDER BY afs.submission_id ASC
+        ) AS attempt_number,
         COUNT(*) OVER (
           PARTITION BY afs.student_id, afs.concept_id
         ) AS total_attempts
@@ -512,6 +517,7 @@ export async function getFormatifDetailPerSiswa(
         ls.student_id,
         ls.concept_id,
         ls.total_score,
+        ls.attempt_number,
         ls.total_attempts,
         ROUND(
           EXTRACT(
@@ -531,6 +537,7 @@ export async function getFormatifDetailPerSiswa(
       CONCAT(b.class_name, ' ', b."group") AS kelas,
       c.concept_id,
       c.total_score,
+      c.attempt_number,
       c.total_attempts,
       c.durasi,
       CASE
@@ -556,6 +563,7 @@ export async function getFormatifDetailPerSiswa(
     kelas: r.kelas,
     conceptId: r.concept_id,
     nilai: r.total_score ?? 0,
+    attemptNumber: Number(r.attempt_number),
     totalAttempts: Number(r.total_attempts),
     durasiMenit: Number(r.durasi),
     status: r.status,
