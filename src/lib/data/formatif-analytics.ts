@@ -309,9 +309,10 @@ export async function getFormatifDurationScatter(
       ? Prisma.sql`AND s.class_id IN (${Prisma.join(filter.classIds)})`
       : Prisma.empty;
 
-  const conceptWhere = filter.conceptId
-    ? Prisma.sql`AND afs.concept_id = ${filter.conceptId}`
-    : Prisma.empty;
+  const conceptWhere =
+    filter.conceptIds && filter.conceptIds.length > 0
+      ? Prisma.sql`AND afs.concept_id IN (${Prisma.join(filter.conceptIds.map((m) => Prisma.sql`${m}`))})`
+      : Prisma.empty;
 
   const studentExclude =
     filter.excludeStudentIds && filter.excludeStudentIds.length > 0
@@ -460,9 +461,10 @@ export async function getFormatifDetailPerSiswa(
       ? Prisma.sql`AND a.class_id IN (${Prisma.join(filter.classIds)})`
       : Prisma.empty;
 
-  const conceptWhere = filter.conceptId
-    ? Prisma.sql`AND afs.concept_id = ${filter.conceptId}`
-    : Prisma.empty;
+  const conceptWhere =
+    filter.conceptIds && filter.conceptIds.length > 0
+      ? Prisma.sql`AND afs.concept_id IN (${Prisma.join(filter.conceptIds.map((m) => Prisma.sql`${m}`))})`
+      : Prisma.empty;
 
   // Attempt filter logic:
   // - "latest" atau undefined → ORDER BY submission_id DESC, ambil rn = 1
