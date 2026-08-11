@@ -334,6 +334,8 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
   const [answers, setAnswers] = useState<Record<string, string>>(savedData ?? {});
   const [grades, setGrades] = useState<GradeResult>({});
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Sync savedData into state whenever it becomes available (e.g. from "Lihat jawabanku")
   useEffect(() => {
@@ -363,30 +365,45 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
     [],
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (saving) return;
+
     const { results } = gradeAnswers(EKSPLORASI_EXPECTED, answers);
     setGrades(results);
-    setSaved(true);
 
-    // Fire-and-forget: save to DB
     const allCorrect = Object.keys(EKSPLORASI_EXPECTED).every(
       (k) => results[k] === "correct"
     );
-    fetch("/api/eksplorasi-kontekstual", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "faktorial",
-        question_key: "faktorialNotasi",
-        answer: answers,
-        feedback: allCorrect ? "Semua jawaban benar!" : "Beberapa jawaban masih salah.",
-        is_correct: allCorrect,
-      }),
-    }).catch((err) => console.error("[eksplorasi] DB save error:", err));
 
-    // Notify parent if all correct
-    if (allCorrect && onComplete) {
-      onComplete();
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/eksplorasi-kontekstual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "faktorial",
+          question_key: "faktorialNotasi",
+          answer: answers,
+          feedback: allCorrect ? "Semua jawaban benar!" : "Beberapa jawaban masih salah.",
+          is_correct: allCorrect,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error ?? "Gagal menyimpan ke database");
+      }
+      setSaved(true);
+
+      // Notify parent if all correct
+      if (allCorrect && onComplete) {
+        onComplete();
+      }
+    } catch (err) {
+      console.error("[eksplorasi] DB save error:", err);
+      setSaveError(err instanceof Error ? err.message : "Gagal menyimpan. Coba lagi ya!");
+    } finally {
+      setSaving(false);
     }
   };
 
