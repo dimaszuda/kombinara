@@ -638,7 +638,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
       const aiRes = await fetch("/api/ai/deep-learning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj) }),
+        body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj), concept_id: "kaidah_perkalian" }),
       });
 
       if (!aiRes.ok) {
@@ -648,7 +648,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
       const aiData = await aiRes.json();
 
       // Step 2: Simpan ke DB (selalu INSERT, bukan upsert)
-      await fetch("/api/aktivitas-deep-learning", {
+      const saveRes = await fetch("/api/aktivitas-deep-learning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -658,6 +658,11 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
           is_correct: aiData?.isCorrect ?? null,
         }),
       });
+
+      if (!saveRes.ok) {
+        const errData = await saveRes.json().catch(() => null);
+        throw new Error(errData?.error ?? "Gagal menyimpan jawaban ke database");
+      }
 
       // Step 3: Validasi — hanya lanjut section berikutnya jika AI menilai benar
       if (aiData?.isCorrect === true) {

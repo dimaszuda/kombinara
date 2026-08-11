@@ -18,6 +18,7 @@ import IntegrityToast from "@/components/activity/IntegrityToast";
 import IntegrityBlockingModal from "@/components/activity/IntegrityBlockingModal";
 import { useEvaluationPersistence } from "@/hooks/useEvaluationPersistence";
 import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
+import NumericAnswerInput from "@/components/shared/NumericAnswerInput";
 
 // ── Config ─────────────────────────────────────────────────────────────────────────────────
 const DURASI_DETIK = 120 * 60; // 120 menit (prod)
@@ -1010,16 +1011,15 @@ function ActiveScreen({
                 </div>
                 <div>
                   <label htmlFor={`jawaban-akhir-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#663362", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Jawaban Akhir</label>
-                  <input
+                  <NumericAnswerInput
                     id={`jawaban-akhir-${i}`}
                     ref={(el) => {
                       const prev = pasteTargetRefs.current.get(i);
                       registerPasteForQuestion(i, prev?.cara ?? null, el);
                     }}
-                    type="text"
                     value={answers[i].jawaban_akhir}
-                    onChange={(e) => onUpdateAnswer(i, "jawaban_akhir", e.target.value)}
-                    placeholder="Tulis jawaban akhirmu di sini..."
+                    onChange={(val) => onUpdateAnswer(i, "jawaban_akhir", val)}
+                    placeholder="Tulis angka saja..."
                     className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
                     style={{ fontFamily: "inherit" }}
                   />

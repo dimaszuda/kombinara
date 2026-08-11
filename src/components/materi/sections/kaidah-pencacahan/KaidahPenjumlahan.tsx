@@ -669,6 +669,8 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     readOnly ? (savedAnswer?.operasi_matematika ?? "") : ""
   );
   const [submitted, setSubmitted] = useState(wasAlreadyCorrect);
+  const [dlSaving, setDlSaving] = useState(false);
+  const [dlError, setDlError] = useState<string | null>(null);
 
   // Notify parent when submitted
   const dlCalledComplete = useRef(false);
@@ -705,7 +707,9 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     didRestoreDL.current = true;
   }, [readOnly, savedData]);
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    if (dlSaving) return;
+
     const jawabanObj = {
       tabel: situations.map((s, i) => ({
         situasi: s.situation,
@@ -719,28 +723,44 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
     const soal =
       "Aktivitas menemukan pola kaidah penjumlahan: Siswa menganalisis 3 situasi pilihan saling lepas (transportasi, baju, jurusan) untuk menentukan boleh tidaknya memilih keduanya, total pilihan, apakah ada pola, dan operasi matematika yang digunakan.";
 
-    setSubmitted(true);
+    setDlSaving(true);
+    setDlError(null);
 
-    // Background: call AI then save to DB
-    fetch("/api/ai/deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj) }),
-    })
-      .then((res) => (res.ok ? res.json() : Promise.resolve(null)))
-      .then((data) =>
-        fetch("/api/aktivitas-deep-learning", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            concept_id: "kaidah_penjumlahan",
-            answer: jawabanObj,
-            feedback: data?.feedback ?? null,
-            is_correct: data?.isCorrect ?? null,
-          }),
-        })
-      )
-      .catch((err) => console.error("[deep-learning] background error:", err));
+    try {
+      // Step 1: Call AI for feedback
+      const aiRes = await fetch("/api/ai/deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ soal, jawaban: JSON.stringify(jawabanObj), concept_id: "kaidah_penjumlahan" }),
+      });
+
+      const aiData = aiRes.ok ? await aiRes.json().catch(() => null) : null;
+
+      // Step 2: Save to DB (with AI feedback if available; always save regardless)
+      const saveRes = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "kaidah_penjumlahan",
+          answer: jawabanObj,
+          feedback: aiData?.feedback ?? null,
+          is_correct: aiData?.isCorrect ?? null,
+        }),
+      });
+
+      if (!saveRes.ok) {
+        const errData = await saveRes.json().catch(() => null);
+        throw new Error(errData?.error ?? "Gagal menyimpan jawaban ke database");
+      }
+
+      // Only mark as submitted AFTER DB save succeeds
+      setSubmitted(true);
+    } catch (err) {
+      console.error("[deep-learning] Save error:", err);
+      setDlError(err instanceof Error ? err.message : "Gagal menyimpan jawaban. Coba lagi ya!");
+    } finally {
+      setDlSaving(false);
+    }
   }
 
   return (
@@ -831,10 +851,15 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitted}
+            disabled={submitted || dlSaving}
             className="flex items-center gap-2 rounded-full bg-[#346739] px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-[#2C5830] active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#663362] focus-visible:ring-offset-2"
           >
-            {submitted ? (
+            {dlSaving ? (
+              <>
+                <Spinner />
+                Menyimpan...
+              </>
+            ) : submitted ? (
               <>
                 <CheckIcon />
                 Tersimpan
@@ -846,6 +871,13 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
               </>
             )}
           </button>
+
+          {/* Error message */}
+          {dlError && (
+            <div className="w-full rounded-lg border border-[#EF444433] bg-[#FEF2F2]/50 p-3">
+              <p className="text-sm leading-relaxed text-[#EF4444]">⚠️ {dlError}</p>
+            </div>
+          )}
 
           {/* Saved confirmation */}
           {submitted && (

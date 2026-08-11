@@ -481,7 +481,13 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
           <FeedbackBox allCorrect={allCorrect} correctCount={correctCount} totalCount={totalCount} />
         )}
 
-        <SaveButton onClick={handleSave} saved={saved && allCorrect} hidden={readOnly} />
+        <SaveButton onClick={handleSave} loading={saving} disabled={saving} saved={saved && allCorrect} hidden={readOnly} />
+
+        {saveError && (
+          <div className="mt-2 rounded-lg border border-[#EF444433] bg-[#FEF2F2]/50 p-3">
+            <p className="text-sm leading-relaxed text-[#EF4444]">⚠️ {saveError}</p>
+          </div>
+        )}
       </div>
 
       <div className="border-b-2 border-[#34673966] mt-4" />
@@ -527,6 +533,8 @@ function DeepLearningTable({ readOnly = false, onSave, savedAnswers }: { readOnl
   const [answers, setAnswers] = useState<Record<string, string>>(savedAnswers ?? {});
   const [grades, setGrades] = useState<GradeResult>({});
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Sync savedAnswers into state
   useEffect(() => {
@@ -554,27 +562,41 @@ function DeepLearningTable({ readOnly = false, onSave, savedAnswers }: { readOnl
     [],
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (saving) return;
+
     const { results } = gradeAnswers(DEEP_TABLE_EXPECTED, answers);
     setGrades(results);
-    setSaved(true);
 
-    // Fire-and-forget: save to DB
     const allCorrect = Object.keys(DEEP_TABLE_EXPECTED).every(
       (k) => results[k] === "correct"
     );
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "faktorial",
-        answer: { ...answers, graded: results },
-        feedback: allCorrect ? "Semua jawaban benar!" : "Beberapa jawaban masih salah.",
-        is_correct: allCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-table] DB save error:", err));
 
-    if (onSave) onSave(allCorrect);
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "faktorial",
+          answer: { ...answers, graded: results },
+          feedback: allCorrect ? "Semua jawaban benar!" : "Beberapa jawaban masih salah.",
+          is_correct: allCorrect,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error ?? "Gagal menyimpan ke database");
+      }
+      setSaved(true);
+      if (onSave) onSave(allCorrect);
+    } catch (err) {
+      console.error("[deep-learning-table] DB save error:", err);
+      setSaveError(err instanceof Error ? err.message : "Gagal menyimpan. Coba lagi ya!");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const gradedKeys = Object.keys(grades);
@@ -752,8 +774,8 @@ function DeepLearningQuestions({
       };
       setAiFeedbacks((p) => ({ ...p, [qKey]: fb }));
 
-      // Save to DB (fire-and-forget)
-      fetch("/api/aktivitas-deep-learning", {
+      // Save to DB
+      const saveRes = await fetch("/api/aktivitas-deep-learning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -762,7 +784,10 @@ function DeepLearningQuestions({
           feedback: fb.feedback,
           is_correct: fb.isCorrect,
         }),
-      }).catch((err) => console.error("[deep-learning-q] DB save error:", err));
+      });
+      if (!saveRes.ok) {
+        console.error("[deep-learning-q] DB save failed:", saveRes.status);
+      }
 
       setSaved((p) => ({ ...p, [qKey]: true }));
       if (onQuestionDone) onQuestionDone(qKey, fb.isCorrect);
@@ -979,7 +1004,7 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
   const handleNext = async () => {
     setLoading(true);
     try {
-      await fetch("/api/student-section-status/complete", {
+      const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -987,6 +1012,10 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
           section: "penjelasan_konsep",
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        console.error("[penjelasan-konsep] Complete failed:", res.status, data?.error);
+      }
     } catch (err) {
       console.error("[penjelasan-konsep] Complete error:", err);
     } finally {

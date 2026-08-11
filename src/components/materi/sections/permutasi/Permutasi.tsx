@@ -1037,7 +1037,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
     return errors;
   }
 
-  function handleSaveA1Table() {
+  async function handleSaveA1Table() {
     const errors = checkA1Table();
     const isCorrect = errors.length === 0;
     if (!isCorrect) {
@@ -1048,19 +1048,24 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
       setA1TableAllCorrect(true);
     }
     // Save EVERY attempt to DB
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_r_unsur_dari_n_unsur",
-        answer: {
-          activity: "a1_table",
-          adiR4H2, adiR4Sus, adiR5H1, adiR5H2, adiR5Sus, adiR6H1, adiR6H2, adiR6Sus,
-        },
-        feedback: isCorrect ? "Tabel ADI benar." : errors.join(". "),
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-1-a1] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_r_unsur_dari_n_unsur",
+          answer: {
+            activity: "a1_table",
+            adiR4H2, adiR4Sus, adiR5H1, adiR5H2, adiR5Sus, adiR6H1, adiR6H2, adiR6Sus,
+          },
+          feedback: isCorrect ? "Tabel ADI benar." : errors.join(". "),
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-1-a1] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-1-a1] DB save error:", err);
+    }
   }
 
   // ── Rule Based: Check A2 Pola Table ─────────────────────────────
@@ -1097,7 +1102,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
     return errors;
   }
 
-  function handleSaveA2Table() {
+  async function handleSaveA2Table() {
     const errors = checkA2Table();
     const isCorrect = errors.length === 0;
     if (!isCorrect) {
@@ -1108,23 +1113,28 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
       setA2TableAllCorrect(true);
     }
     // Save EVERY attempt to DB
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_r_unsur_dari_n_unsur",
-        answer: {
-          activity: "a2_table",
-          pola5_3, pola5_3_fak, pola5_3_val,
-          pola6_2, pola6_2_denom, pola6_2_val,
-          pola6_3, pola6_3_fak, pola6_3_val,
-          pola_n_r, pola_n_r_fak, pola_n_r_val,
-          rumusUmum,
-        },
-        feedback: isCorrect ? "Tabel Pola benar." : errors.join(". "),
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-1-a2] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_r_unsur_dari_n_unsur",
+          answer: {
+            activity: "a2_table",
+            pola5_3, pola5_3_fak, pola5_3_val,
+            pola6_2, pola6_2_denom, pola6_2_val,
+            pola6_3, pola6_3_fak, pola6_3_val,
+            pola_n_r, pola_n_r_fak, pola_n_r_val,
+            rumusUmum,
+          },
+          feedback: isCorrect ? "Tabel Pola benar." : errors.join(". "),
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-1-a2] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-1-a2] DB save error:", err);
+    }
   }
 
   // ── AI Feedback handlers ────────────────────────────────────────
@@ -1150,16 +1160,21 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
         setAlasanFB(fb);
         if (fb.isCorrect) { setSavedAlasan(true); }
         // Save to DB
-        fetch("/api/aktivitas-deep-learning", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            concept_id: "permutasi_r_unsur_dari_n_unsur",
-            answer: { question_key: "adl1_alasan", jawaban: kemungkinan2, alasan: alasanHuruf2 },
-            feedback: fb.text,
-            is_correct: fb.isCorrect,
-          }),
-        }).catch((err) => console.error("[deep-learning-1-alasan] DB save error:", err));
+        try {
+          const saveRes = await fetch("/api/aktivitas-deep-learning", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              concept_id: "permutasi_r_unsur_dari_n_unsur",
+              answer: { question_key: "adl1_alasan", jawaban: kemungkinan2, alasan: alasanHuruf2 },
+              feedback: fb.text,
+              is_correct: fb.isCorrect,
+            }),
+          });
+          if (!saveRes.ok) console.error("[deep-learning-1-alasan] DB save failed:", saveRes.status);
+        } catch (err) {
+          console.error("[deep-learning-1-alasan] DB save error:", err);
+        }
       } else {
         setAlasanFB({ text: "Maaf, ada kendala. Coba lagi ya!", isCorrect: false });
       }
@@ -1188,16 +1203,21 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
         const fb = { text: data.feedback ?? "Jawaban tersimpan.", isCorrect: data.isCorrect ?? false };
         setHubunganFaktorialFB(fb);
         // Save to DB
-        fetch("/api/aktivitas-deep-learning", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            concept_id: "permutasi_r_unsur_dari_n_unsur",
-            answer: { question_key: "adl1_hubungan_faktorial", jawaban: hubunganFaktorial },
-            feedback: fb.text,
-            is_correct: fb.isCorrect,
-          }),
-        }).catch((err) => console.error("[deep-learning-1-hubungan] DB save error:", err));
+        try {
+          const saveRes = await fetch("/api/aktivitas-deep-learning", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              concept_id: "permutasi_r_unsur_dari_n_unsur",
+              answer: { question_key: "adl1_hubungan_faktorial", jawaban: hubunganFaktorial },
+              feedback: fb.text,
+              is_correct: fb.isCorrect,
+            }),
+          });
+          if (!saveRes.ok) console.error("[deep-learning-1-hubungan] DB save failed:", saveRes.status);
+        } catch (err) {
+          console.error("[deep-learning-1-hubungan] DB save error:", err);
+        }
       } else {
         setHubunganFaktorialFB({ text: "Maaf, ada kendala. Coba lagi ya!", isCorrect: false });
       }
@@ -1230,16 +1250,21 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
         setKesimpulanFB(fb);
         if (fb.isCorrect) { setSavedKesimpulan(true); }
         // Save to DB
-        fetch("/api/aktivitas-deep-learning", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            concept_id: "permutasi_r_unsur_dari_n_unsur",
-            answer: { question_key: "adl1_kesimpulan", jawaban: kesimpulan1 },
-            feedback: fb.text,
-            is_correct: fb.isCorrect,
-          }),
-        }).catch((err) => console.error("[deep-learning-1-kesimpulan] DB save error:", err));
+        try {
+          const saveRes = await fetch("/api/aktivitas-deep-learning", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              concept_id: "permutasi_r_unsur_dari_n_unsur",
+              answer: { question_key: "adl1_kesimpulan", jawaban: kesimpulan1 },
+              feedback: fb.text,
+              is_correct: fb.isCorrect,
+            }),
+          });
+          if (!saveRes.ok) console.error("[deep-learning-1-kesimpulan] DB save failed:", saveRes.status);
+        } catch (err) {
+          console.error("[deep-learning-1-kesimpulan] DB save error:", err);
+        }
       } else {
         setKesimpulanFB({ text: "Maaf, ada kendala. Coba lagi ya!", isCorrect: false });
       }
@@ -1275,16 +1300,21 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
         setFB(fb);
         if (fb.isCorrect) { setSaved(true); }
         // Save to DB
-        fetch("/api/aktivitas-deep-learning", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            concept_id: "permutasi_r_unsur_dari_n_unsur",
-            answer: { question_key: questionKey, jawaban, alasan },
-            feedback: fb.text,
-            is_correct: fb.isCorrect,
-          }),
-        }).catch((err) => console.error(`[deep-learning-1-${questionKey}] DB save error:`, err));
+        try {
+          const saveRes = await fetch("/api/aktivitas-deep-learning", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              concept_id: "permutasi_r_unsur_dari_n_unsur",
+              answer: { question_key: questionKey, jawaban, alasan },
+              feedback: fb.text,
+              is_correct: fb.isCorrect,
+            }),
+          });
+          if (!saveRes.ok) console.error(`[deep-learning-1-${questionKey}] DB save failed:`, saveRes.status);
+        } catch (err) {
+          console.error(`[deep-learning-1-${questionKey}] DB save error:`, err);
+        }
       } else {
         setFB({ text: "Maaf, ada kendala. Coba lagi ya!", isCorrect: false });
       }
@@ -1883,7 +1913,7 @@ function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
   const handleNext = async () => {
     setLoading(true);
     try {
-      await fetch("/api/student-section-status/complete", {
+      const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1891,6 +1921,10 @@ function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
           section: "penjelasan_konsep",
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        console.error("[penjelasan-konsep-1] Complete failed:", res.status, data?.error);
+      }
     } catch (err) {
       console.error("[penjelasan-konsep-1] Complete error:", err);
     } finally {
@@ -2251,22 +2285,27 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
     return errors;
   }
 
-  function handleSaveA1Table() {
+  async function handleSaveA1Table() {
     const errors = checkA1Table();
     const isCorrect = errors.length === 0;
     if (!isCorrect) { setA1TableFB(errors.join(". ") + ". Perbaiki ya!"); setA1TableAllCorrect(false); }
     else { setA1TableFB(""); setA1TableAllCorrect(true); }
     // Save EVERY attempt
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_dengan_unsur_sama",
-        answer: { activity: "a1_table", adaR4Tanpa, adaR6Tanpa },
-        feedback: isCorrect ? "Tabel ADA benar." : errors.join(". "),
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-2-a1] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_dengan_unsur_sama",
+          answer: { activity: "a1_table", adaR4Tanpa, adaR6Tanpa },
+          feedback: isCorrect ? "Tabel ADA benar." : errors.join(". "),
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-2-a1] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-2-a1] DB save error:", err);
+    }
   }
 
   // ── Rule Based: Check A1 Langkah 2 ─────────────────────────────
@@ -2278,21 +2317,26 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
     return errors;
   }
 
-  function handleSaveA1Langkah2() {
+  async function handleSaveA1Langkah2() {
     const errors = checkA1Langkah2();
     const isCorrect = errors.length === 0;
     if (!isCorrect) { setA1L2FB(errors.join(". ") + ". Perbaiki ya!"); setA1L2AllCorrect(false); }
     else { setA1L2FB(""); setA1L2AllCorrect(true); }
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_dengan_unsur_sama",
-        answer: { activity: "a1_langkah2", totalBerbeda, munculKali, faktorialSama },
-        feedback: isCorrect ? "Langkah 2 benar." : errors.join(". "),
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-2-a1l2] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_dengan_unsur_sama",
+          answer: { activity: "a1_langkah2", totalBerbeda, munculKali, faktorialSama },
+          feedback: isCorrect ? "Langkah 2 benar." : errors.join(". "),
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-2-a1l2] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-2-a1l2] DB save error:", err);
+    }
   }
 
   // ── Rule Based: Check A1 Langkah 3 ─────────────────────────────
@@ -2303,21 +2347,26 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
     return errors;
   }
 
-  function handleSaveA1Langkah3() {
+  async function handleSaveA1Langkah3() {
     const errors = checkA1Langkah3();
     const isCorrect = errors.length === 0;
     if (!isCorrect) { setA1L3FB(errors.join(". ") + ". Perbaiki ya!"); setA1L3AllCorrect(false); }
     else { setA1L3FB(""); setA1L3AllCorrect(true); }
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_dengan_unsur_sama",
-        answer: { activity: "a1_langkah3", susunanBerbedaHitung, cocokManual },
-        feedback: isCorrect ? "Langkah 3 benar." : errors.join(". "),
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-2-a1l3] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_dengan_unsur_sama",
+          answer: { activity: "a1_langkah3", susunanBerbedaHitung, cocokManual },
+          feedback: isCorrect ? "Langkah 3 benar." : errors.join(". "),
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-2-a1l3] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-2-a1l3] DB save error:", err);
+    }
   }
 
   // ── Rule Based: Check A2 Nalar Table ───────────────────────────
@@ -2338,26 +2387,31 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
     return errors;
   }
 
-  function handleSaveA2() {
+  async function handleSaveA2() {
     const errors = checkA2Table();
     const isCorrect = errors.length === 0;
     if (!isCorrect) { setA2FB(errors.join(". ") + ". Perbaiki ya!"); setA2AllCorrect(false); }
     else { setA2FB(""); setA2AllCorrect(true); }
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_dengan_unsur_sama",
-        answer: {
-          activity: "a2_nalar",
-          nalar1, nalar2_rumus, nalar2_val, nalar3_rumus, nalar3_val,
-          pilihanHuruf, pilihanN, pilihanUlang, pilihanRumus, pilihanVal,
-          rumusSama,
-        },
-        feedback: isCorrect ? "Tabel Nalar benar." : errors.join(". "),
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-2-a2] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_dengan_unsur_sama",
+          answer: {
+            activity: "a2_nalar",
+            nalar1, nalar2_rumus, nalar2_val, nalar3_rumus, nalar3_val,
+            pilihanHuruf, pilihanN, pilihanUlang, pilihanRumus, pilihanVal,
+            rumusSama,
+          },
+          feedback: isCorrect ? "Tabel Nalar benar." : errors.join(". "),
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-2-a2] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-2-a2] DB save error:", err);
+    }
   }
 
   return (
@@ -2640,7 +2694,7 @@ function PenjelasanKonsep2({ onNext }: { onNext?: () => void }) {
   const handleNext = async () => {
     setLoading(true);
     try {
-      await fetch("/api/student-section-status/complete", {
+      const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2648,6 +2702,10 @@ function PenjelasanKonsep2({ onNext }: { onNext?: () => void }) {
           section: "penjelasan_konsep",
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        console.error("[penjelasan-konsep-2] Complete failed:", res.status, data?.error);
+      }
     } catch (err) {
       console.error("[penjelasan-konsep-2] Complete error:", err);
     } finally {
@@ -2919,69 +2977,89 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
   }, [a1aCorrect, a1bCorrect, a1cCorrect, a1dCorrect, a2Correct, onComplete]);
 
   // ── Rule Based: Check A1a ──────────────────────────────────────
-  function handleSaveA1a() {
+  async function handleSaveA1a() {
     const isCorrect = normalizeAnswer(susunanUnik3) === "2";
     if (!isCorrect) { setA1aFB("Susunan melingkar unik = 2"); setA1aCorrect(false); }
     else { setA1aFB(""); setA1aCorrect(true); }
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_siklis",
-        answer: { activity: "a1a", susunanUnik3 },
-        feedback: isCorrect ? "Benar." : "Susunan melingkar unik = 2",
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-3-a1a] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_siklis",
+          answer: { activity: "a1a", susunanUnik3 },
+          feedback: isCorrect ? "Benar." : "Susunan melingkar unik = 2",
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-3-a1a] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-3-a1a] DB save error:", err);
+    }
   }
-  function handleSaveA1b() {
+  async function handleSaveA1b() {
     const isCorrect = normalizeAnswer(munculKali) === "3";
     if (!isCorrect) { setA1bFB("Setiap susunan melingkar muncul 3 kali"); setA1bCorrect(false); }
     else { setA1bFB(""); setA1bCorrect(true); }
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_siklis",
-        answer: { activity: "a1b", munculKali },
-        feedback: isCorrect ? "Benar." : "Setiap susunan melingkar muncul 3 kali",
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-3-a1b] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_siklis",
+          answer: { activity: "a1b", munculKali },
+          feedback: isCorrect ? "Benar." : "Setiap susunan melingkar muncul 3 kali",
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-3-a1b] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-3-a1b] DB save error:", err);
+    }
   }
-  function handleSaveA1c() {
+  async function handleSaveA1c() {
     const isCorrect = normalizeAnswer(angkaSama) === "3";
     if (!isCorrect) { setA1cFB("Angka itu = 3 (banyaknya orang)"); setA1cCorrect(false); }
     else { setA1cFB(""); setA1cCorrect(true); }
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_siklis",
-        answer: { activity: "a1c", angkaSama },
-        feedback: isCorrect ? "Benar." : "Angka itu = 3 (banyaknya orang)",
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-3-a1c] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_siklis",
+          answer: { activity: "a1c", angkaSama },
+          feedback: isCorrect ? "Benar." : "Angka itu = 3 (banyaknya orang)",
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-3-a1c] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-3-a1c] DB save error:", err);
+    }
   }
-  function handleSaveA1d() {
+  async function handleSaveA1d() {
     const isCorrect = normalizeAnswer(psiklis3) === "2";
     if (!isCorrect) { setA1dFB("P(siklis 3) = 2"); setA1dCorrect(false); }
     else { setA1dFB(""); setA1dCorrect(true); }
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_siklis",
-        answer: { activity: "a1d", psiklis3 },
-        feedback: isCorrect ? "Benar." : "P(siklis 3) = 2",
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-3-a1d] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_siklis",
+          answer: { activity: "a1d", psiklis3 },
+          feedback: isCorrect ? "Benar." : "P(siklis 3) = 2",
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-3-a1d] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-3-a1d] DB save error:", err);
+    }
   }
 
   // ── Rule Based: Check A2 Siklis Table ──────────────────────────
-  function handleSaveA2() {
+  async function handleSaveA2() {
     const errors: string[] = [];
     const checks: { got: string; accepted: string[]; label: string }[] = [
       { got: normalizeFinal(n4Muncul), accepted: ["4kali", "4", "4x"], label: "n=4 muncul" },
@@ -3007,20 +3085,25 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
     if (!isCorrect) { setA2FB(errors.join(". ") + ". Perbaiki ya!"); setA2Correct(false); }
     else { setA2FB(""); setA2Correct(true); }
     
-    fetch("/api/aktivitas-deep-learning", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        concept_id: "permutasi_siklis",
-        answer: {
-          activity: "a2_siklis",
-          n4Muncul, n4Unik, n5Linear, n5Muncul, n5Unik,
-          n6Linear, n6Muncul, n6Unik, nMuncul, nUnik, rumusSiklis,
-        },
-        feedback: isCorrect ? "Tabel Siklis benar." : errors.join(". "),
-        is_correct: isCorrect,
-      }),
-    }).catch((err) => console.error("[deep-learning-3-a2] DB save error:", err));
+    try {
+      const res = await fetch("/api/aktivitas-deep-learning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_siklis",
+          answer: {
+            activity: "a2_siklis",
+            n4Muncul, n4Unik, n5Linear, n5Muncul, n5Unik,
+            n6Linear, n6Muncul, n6Unik, nMuncul, nUnik, rumusSiklis,
+          },
+          feedback: isCorrect ? "Tabel Siklis benar." : errors.join(". "),
+          is_correct: isCorrect,
+        }),
+      });
+      if (!res.ok) console.error("[deep-learning-3-a2] DB save failed:", res.status);
+    } catch (err) {
+      console.error("[deep-learning-3-a2] DB save error:", err);
+    }
   }
 
   return (
@@ -3244,7 +3327,7 @@ function PenjelasanKonsep3({ onNext }: { onNext?: () => void }) {
   const handleNext = async () => {
     setLoading(true);
     try {
-      await fetch("/api/student-section-status/complete", {
+      const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -3252,6 +3335,10 @@ function PenjelasanKonsep3({ onNext }: { onNext?: () => void }) {
           section: "penjelasan_konsep",
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        console.error("[penjelasan-konsep-3] Complete failed:", res.status, data?.error);
+      }
     } catch (err) {
       console.error("[penjelasan-konsep-3] Complete error:", err);
     } finally {

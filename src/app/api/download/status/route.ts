@@ -76,16 +76,16 @@ const KAIDAH_PENCACAHAN_REQUIREMENTS = [
 
 /** Concept-level moduls: cukup cek semua section di concept_id tsb completed. */
 const CONCEPT_MODULS = [
-  { key: "faktorial" as const, conceptId: "faktorial", name: "Faktorial", description: "Modul lengkap materi Faktorial." },
-  { key: "permutasi" as const, conceptId: "permutasi", name: "Permutasi", description: "Modul lengkap materi Permutasi." },
-  { key: "kombinasi" as const, conceptId: "kombinasi", name: "Kombinasi", description: "Modul lengkap materi Kombinasi." },
+  { key: "faktorial" as const, conceptIds: ["faktorial"], name: "Faktorial", description: "Modul lengkap materi Faktorial." },
+  { key: "permutasi" as const, conceptIds: ["permutasi_r_unsur_dari_n_unsur", "permutasi_dengan_unsur_sama", "permutasi_siklis"], name: "Permutasi", description: "Modul lengkap materi Permutasi." },
+  { key: "kombinasi" as const, conceptIds: ["kombinasi"], name: "Kombinasi", description: "Modul lengkap materi Kombinasi." },
 ] as const;
 
 /** Semua concept_id yang relevan untuk query student_section_status. */
 const ALL_CONCEPT_IDS = [
   "kaidah_penjumlahan",
   "kaidah_perkalian",
-  ...CONCEPT_MODULS.map((m) => m.conceptId),
+  ...CONCEPT_MODULS.flatMap((m) => m.conceptIds),
 ];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -180,6 +180,20 @@ export async function GET() {
       return { completed, total, allDone: completed === total };
     }
 
+    // ── Helper: cek completion untuk semua section di multiple concepts ─
+    function checkMultiConcept(conceptIds: readonly string[]): {
+      completed: number;
+      total: number;
+      allDone: boolean;
+    } {
+      const conceptSections = rows.filter((r) => conceptIds.includes(r.conceptId));
+      const total = conceptSections.length;
+      // Jika belum ada section sama sekali (materi belum dimulai), anggap 0/0 = not eligible
+      if (total === 0) return { completed: 0, total: 0, allDone: false };
+      const completed = conceptSections.filter((r) => r.status === "completed").length;
+      return { completed, total, allDone: completed === total };
+    }
+
     // ── Cek asesmen_formatif submission ─────────────────────────────
     const submission = await prisma.asesmenFormatifSubmission.findFirst({
       where: { studentId: student.id },
@@ -214,7 +228,9 @@ export async function GET() {
 
     // ── Concept-level moduls (faktorial, permutasi, kombinasi) ──────
     for (const m of CONCEPT_MODULS) {
-      const result = checkConcept(m.conceptId);
+      const result = m.conceptIds.length === 1
+        ? checkConcept(m.conceptIds[0])
+        : checkMultiConcept(m.conceptIds);
       moduls.push({
         key: m.key,
         name: m.name,
@@ -232,7 +248,11 @@ export async function GET() {
     // ── Bagian Akhir Modul: semua concept + asesmen formatif ───────
     const allConceptResults = [
       checkExplicit(KAIDAH_PENCACAHAN_REQUIREMENTS),
-      ...CONCEPT_MODULS.map((m) => checkConcept(m.conceptId)),
+      ...CONCEPT_MODULS.map((m) =>
+        m.conceptIds.length === 1
+          ? checkConcept(m.conceptIds[0])
+          : checkMultiConcept(m.conceptIds)
+      ),
     ];
     const totalAllSections = allConceptResults.reduce((sum, r) => sum + r.total, 0);
     const completedAllSections = allConceptResults.reduce((sum, r) => sum + r.completed, 0);

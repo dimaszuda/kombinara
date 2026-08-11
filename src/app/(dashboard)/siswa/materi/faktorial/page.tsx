@@ -61,7 +61,7 @@ export default function FaktorialPage() {
         const cs: Record<number, boolean> = {};
         if (data.sections["eksplorasi_kontekstual"] === "completed") cs[0] = true;
         if (data.sections["aktivitas_deep_learning"] === "completed") cs[1] = true;
-        // penjelasan_konsep (index 2) — read-only, di-infer di FaktorialContent
+        if (data.sections["penjelasan_konsep"] === "completed") cs[2] = true;
         if (data.sections["contoh_soal"] === "completed") cs[3] = true;
         if (data.sections["mengapa_corner"] === "completed") cs[4] = true;
         if (data.sections["refleksi_mini"] === "completed") {

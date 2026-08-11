@@ -20,6 +20,7 @@ import { useEvaluationPersistence } from "@/hooks/useEvaluationPersistence";
 import RuleBox from "@/components/Quiz Ulangan/RuleBox";
 import IntroInfoCard from "@/components/Quiz Ulangan/IntroInfoCard";
 import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
+import NumericAnswerInput from "@/components/shared/NumericAnswerInput";
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const DURASI_DETIK = 120 * 60; // 120 menit
@@ -1437,18 +1438,17 @@ function ActiveScreen({
                   >
                     Jawaban Akhir
                   </label>
-                  <input
+                  <NumericAnswerInput
                     id={`jawaban-akhir-${i}`}
                     ref={(el) => {
                       const prev = pasteTargetRefs.current.get(i);
                       registerPasteForQuestion(i, prev?.cara ?? null, el);
                     }}
-                    type="text"
                     value={answers[i].jawaban_akhir}
-                    onChange={(e) =>
-                      onUpdateAnswer(i, "jawaban_akhir", e.target.value)
+                    onChange={(val) =>
+                      onUpdateAnswer(i, "jawaban_akhir", val)
                     }
-                    placeholder="Tulis jawaban akhirmu di sini..."
+                    placeholder="Tulis angka saja..."
                     className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
                     style={{ fontFamily: "inherit" }}
                   />

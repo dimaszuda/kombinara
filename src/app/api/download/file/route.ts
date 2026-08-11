@@ -43,16 +43,16 @@ const KAIDAH_PENCACAHAN_REQUIREMENTS = [
 ];
 
 /** Concept-level moduls: eligibility = semua section di concept_id tsb completed. */
-const CONCEPT_MODULS: Array<{ key: string; conceptId: string }> = [
-  { key: "faktorial", conceptId: "faktorial" },
-  { key: "permutasi", conceptId: "permutasi" },
-  { key: "kombinasi", conceptId: "kombinasi" },
+const CONCEPT_MODULS: Array<{ key: string; conceptIds: string[] }> = [
+  { key: "faktorial", conceptIds: ["faktorial"] },
+  { key: "permutasi", conceptIds: ["permutasi_r_unsur_dari_n_unsur", "permutasi_dengan_unsur_sama", "permutasi_siklis"] },
+  { key: "kombinasi", conceptIds: ["kombinasi"] },
 ];
 
 const ALL_CONCEPT_IDS = [
   "kaidah_penjumlahan",
   "kaidah_perkalian",
-  ...CONCEPT_MODULS.map((m) => m.conceptId),
+  ...CONCEPT_MODULS.flatMap((m) => m.conceptIds),
 ];
 
 const FILE_PATHS: Record<string, string> = {
@@ -143,10 +143,11 @@ export async function GET(req: Request) {
       isBlocked = missing.length > 0 || !submission;
     } else if (fileKey === "bagian-akhir") {
       // Semua concept + asesmen formatif harus selesai
+      const allConceptIds = CONCEPT_MODULS.flatMap((m) => m.conceptIds);
       const allRequirements = [
         ...KAIDAH_PENCACAHAN_REQUIREMENTS,
         ...CONCEPT_MODULS.flatMap((m) =>
-          rows.filter((r) => r.conceptId === m.conceptId).map((r) => ({
+          rows.filter((r) => m.conceptIds.includes(r.conceptId)).map((r) => ({
             conceptId: r.conceptId,
             section: r.section,
           }))
@@ -154,7 +155,7 @@ export async function GET(req: Request) {
       ];
       // Cek setiap concept punya section (tidak kosong)
       const conceptsWithData = new Set(rows.map((r) => r.conceptId));
-      const allConceptsPresent = CONCEPT_MODULS.every((m) => conceptsWithData.has(m.conceptId));
+      const allConceptsPresent = allConceptIds.every((cid) => conceptsWithData.has(cid));
       if (!allConceptsPresent) {
         isBlocked = true;
       } else {
@@ -173,7 +174,7 @@ export async function GET(req: Request) {
       if (!conceptModul) {
         isBlocked = true;
       } else {
-        const conceptSections = rows.filter((r) => r.conceptId === conceptModul.conceptId);
+        const conceptSections = rows.filter((r) => conceptModul.conceptIds.includes(r.conceptId));
         if (conceptSections.length === 0) {
           isBlocked = true; // belum ada section sama sekali
         } else {

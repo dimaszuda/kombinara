@@ -21,6 +21,7 @@ import { useEvaluationPersistence } from "@/hooks/useEvaluationPersistence";
 import RuleBox from "@/components/Quiz Ulangan/RuleBox";
 import IntroInfoCard from "@/components/Quiz Ulangan/IntroInfoCard";
 import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
+import NumericAnswerInput from "@/components/shared/NumericAnswerInput";
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const DURASI_DETIK = 120 * 60; // 120 menit
@@ -109,6 +110,9 @@ function isAnswered(a: AnswerPair) {
 
 // ── Sub-answer helpers ───────────────────────────────────────────────────────
 const SUB_DELIMITER = "\n";
+
+/** Soal dengan sub-part yang jawabannya murni integer — input dibatasi hanya angka. */
+const INTEGER_ONLY_SUB_PARTS = new Set([1, 2, 3, 6]);
 
 /** Parse sub-answers from jawaban_akhir string. Returns array of values per part. */
 function parseSubAnswers(jawabanAkhir: string, parts: string[]): string[] {
@@ -1436,28 +1440,43 @@ function ActiveScreen({
                       <textarea id={`cara-hitung-${i}`} ref={(el) => { const prev = pasteTargetRefs.current.get(i); registerPasteForQuestion(i, el, prev?.jawaban ?? null); }} value={answers[i].cara_hitung} onChange={(e) => onUpdateAnswer(i, "cara_hitung", e.target.value)} placeholder="Tuliskan langkah-langkah perhitunganmu di sini..." rows={4} className="w-full px-3 py-2.5 rounded-lg text-sm leading-relaxed text-[#2C2C2A] resize-y border border-[#d4e8d4] bg-[#fafffe] placeholder:text-[#b0c4b1] focus:outline-none focus:ring-2 focus:ring-[#346739]/30 focus:border-[#346739] transition-all" style={{ fontFamily: "inherit" }} />
                     </div>
 
-                    {/* ── Sub-inputs for soal 1,2,3,5 ── */}
+                    {/* ── Sub-inputs for soal 1,2,3,5,6 ── */}
                     {subParts ? (
                       <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: "#663362", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Jawaban Akhir</label>
                         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                           {(() => {
                             const subValues = parseSubAnswers(answers[i].jawaban_akhir, subParts);
+                            const restrictInteger = INTEGER_ONLY_SUB_PARTS.has(qNum);
                             return subParts.map((letter, si) => (
                               <div key={letter} style={{ display: "flex", alignItems: "center", gap: 6, flex: "1 1 auto", minWidth: 100 }}>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: "#2C2C2A", whiteSpace: "nowrap" }}>{letter})</span>
-                                <input
-                                  type="text"
-                                  value={subValues[si]}
-                                  onChange={(e) => {
-                                    const newSubValues = [...subValues];
-                                    newSubValues[si] = e.target.value;
-                                    onUpdateAnswer(i, "jawaban_akhir", serializeSubAnswers(subParts, newSubValues));
-                                  }}
-                                  placeholder="..."
-                                  className="flex-1 min-w-0 px-2.5 py-2 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
-                                  style={{ fontFamily: "inherit" }}
-                                />
+                                {restrictInteger ? (
+                                  <NumericAnswerInput
+                                    value={subValues[si]}
+                                    onChange={(val) => {
+                                      const newSubValues = [...subValues];
+                                      newSubValues[si] = val;
+                                      onUpdateAnswer(i, "jawaban_akhir", serializeSubAnswers(subParts, newSubValues));
+                                    }}
+                                    placeholder="Angka"
+                                    className="flex-1 min-w-0 px-2.5 py-2 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
+                                    style={{ fontFamily: "inherit" }}
+                                  />
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={subValues[si]}
+                                    onChange={(e) => {
+                                      const newSubValues = [...subValues];
+                                      newSubValues[si] = e.target.value;
+                                      onUpdateAnswer(i, "jawaban_akhir", serializeSubAnswers(subParts, newSubValues));
+                                    }}
+                                    placeholder="..."
+                                    className="flex-1 min-w-0 px-2.5 py-2 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
+                                    style={{ fontFamily: "inherit" }}
+                                  />
+                                )}
                               </div>
                             ));
                           })()}

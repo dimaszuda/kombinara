@@ -401,9 +401,23 @@ export async function POST(req: Request) {
       const jawabanAkhirClean = jawabanAkhirRaw || "(tidak diisi)";
       const normalizedJawaban = jawabanAkhirClean.replace(/[.,\s]/g, "");
       const normalizedGT = String(soalRef.answer).replace(/[.,\s]/g, "");
-      const isJawabanAkhirTrue =
+
+      // Exact match after normalization (handles dots, commas, spaces)
+      let isJawabanAkhirTrue =
         normalizedJawaban === normalizedGT ||
         jawabanAkhirClean === String(soalRef.answer);
+
+      // Fallback: pure numeric comparison (strips ALL non-digit chars)
+      // Catches cases like "325 cara" vs "325" — siswa menambahkan teks
+      // setelah angka yang sebenarnya sudah benar.
+      if (!isJawabanAkhirTrue) {
+        const extractDigits = (s: string) => s.replace(/\D/g, "");
+        const jawabanDigits = extractDigits(jawabanAkhirClean);
+        const gtDigits = extractDigits(String(soalRef.answer));
+        if (jawabanDigits.length > 0 && jawabanDigits === gtDigits) {
+          isJawabanAkhirTrue = true;
+        }
+      }
 
       // ── Cara hitung terlalu singkat (< 7 karakter) ────────────────
       // Hanya cek cara_hitung (proses), BUKAN jawaban_akhir.

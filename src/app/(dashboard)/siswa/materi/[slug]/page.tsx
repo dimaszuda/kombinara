@@ -178,11 +178,14 @@ export default function MateriDetailPage({
           // Section index mapping (KaidahPenjumlahan component uses 0-5):
           //   0 = eksplorasi_kontekstual
           //   1 = aktivitas_deep_learning
+          //   2 = penjelasan_konsep (read-only, tracked in DB)
           //   3 = contoh_soal
+          //   4 = mengapa_corner (read-only, NOT tracked in DB — inferred)
           //   5 = refleksi_mini
           const cs: Record<number, boolean> = {};
           if (data.sections["eksplorasi_kontekstual"] === "completed") cs[0] = true;
           if (data.sections["aktivitas_deep_learning"] === "completed") cs[1] = true;
+          if (data.sections["penjelasan_konsep"] === "completed") cs[2] = true;
           if (data.sections["contoh_soal"] === "completed") cs[3] = true;
           if (data.sections["refleksi_mini"] === "completed") cs[5] = true;
 
@@ -204,11 +207,16 @@ export default function MateriDetailPage({
           // Section index mapping (KaidahPerkalian component uses 0-7):
           //   0 = eksplorasi_kontekstual
           //   1 = aktivitas_deep_learning
+          //   2 = penjelasan_konsep (read-only, tracked in DB)
           //   3 = contoh_soal
+          //   4 = mengapa_corner (read-only, NOT tracked in DB — inferred)
+          //   5 = aktivitas_siswa (NOT tracked in student_section_status — inferred)
+          //   6 = panduan_cepat (NOT tracked in student_section_status — inferred)
           //   7 = refleksi_mini
           const cs: Record<number, boolean> = {};
           if (data.sections["eksplorasi_kontekstual"] === "completed") cs[0] = true;
           if (data.sections["aktivitas_deep_learning"] === "completed") cs[1] = true;
+          if (data.sections["penjelasan_konsep"] === "completed") cs[2] = true;
           if (data.sections["contoh_soal"] === "completed") cs[3] = true;
           if (data.sections["refleksi_mini"] === "completed") cs[7] = true;
 
