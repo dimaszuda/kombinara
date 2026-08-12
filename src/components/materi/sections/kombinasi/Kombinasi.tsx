@@ -773,20 +773,20 @@ function AktivitasDeepLearning({
     if (!savedData || didSyncSavedData.current) return;
     if (savedData.step1) {
       setPermTable({ ...savedData.step1.answer });
-      setSavedStep1(true);
+      setSavedStep1(savedData.step1.isCorrect === true);
       setFeedbackStep1(savedData.step1.feedback);
       setStep1Correct(savedData.step1.isCorrect);
     }
     if (savedData.step2) {
       setGroups({ ...savedData.step2.answer });
-      setSavedStep2(true);
+      setSavedStep2(savedData.step2.isCorrect === true);
       setFeedbackStep2(savedData.step2.feedback);
       setStep2Correct(savedData.step2.isCorrect);
     }
     if (savedData.step3) {
       setTotalGroups(savedData.step3.answer?.totalGroups ?? "");
       setVerification(savedData.step3.answer?.verification ?? "");
-      setSavedStep3(true);
+      setSavedStep3(savedData.step3.isCorrect === true);
       setFeedbackStep3(savedData.step3.feedback);
       setStep3Correct(savedData.step3.isCorrect);
     }
@@ -1211,18 +1211,18 @@ function ContohSoalBertahap({
   readOnly?: boolean;
   savedData?: KombinasiSavedData["contohSoal"];
 }) {
-  const [soal1Saved, setSoal1Saved] = useState(() => !!savedData?.["c1"]);
-  const [soal2Saved, setSoal2Saved] = useState(() => !!savedData?.["c2"]);
-  const [soal3Saved, setSoal3Saved] = useState(() => !!savedData?.["c3"]);
+  const [soal1Saved, setSoal1Saved] = useState(() => savedData?.["c1"]?.isCorrect === true);
+  const [soal2Saved, setSoal2Saved] = useState(() => savedData?.["c2"]?.isCorrect === true);
+  const [soal3Saved, setSoal3Saved] = useState(() => savedData?.["c3"]?.isCorrect === true);
   const [reasonDone, setReasonDone] = useState(false);
 
   // Sync savedData when it arrives (e.g. from "Lihat jawabanku")
   const didSyncSavedData = useRef(false);
   useEffect(() => {
     if (!savedData || didSyncSavedData.current) return;
-    if (savedData["c1"]) setSoal1Saved(true);
-    if (savedData["c2"]) setSoal2Saved(true);
-    if (savedData["c3"]) setSoal3Saved(true);
+    if (savedData["c1"]?.isCorrect === true) setSoal1Saved(true);
+    if (savedData["c2"]?.isCorrect === true) setSoal2Saved(true);
+    if (savedData["c3"]?.isCorrect === true) setSoal3Saved(true);
     didSyncSavedData.current = true;
   }, [savedData]);
 
@@ -1274,7 +1274,7 @@ function Contoh1({ saved, onSave, readOnly = false, savedData }: { saved: boolea
   useEffect(() => {
     if (!savedData || didSyncSavedData.current) return;
     setAnswers({ ...savedData.answer });
-    setIsCorrect(true);
+    setIsCorrect(savedData.isCorrect === true);
     didSyncSavedData.current = true;
   }, [savedData]);
 
@@ -1359,7 +1359,7 @@ function Contoh2({ saved, onSave, readOnly = false, savedData }: { saved: boolea
   useEffect(() => {
     if (!savedData || didSyncSavedData.current) return;
     setAnswers({ ...savedData.answer });
-    setIsCorrect(true);
+    setIsCorrect(savedData.isCorrect === true);
     didSyncSavedData.current = true;
   }, [savedData]);
 
@@ -1572,7 +1572,7 @@ function Contoh3({ saved, onSave, readOnly = false, onReasonDone, savedData, rea
   useEffect(() => {
     if (!savedData || didSyncSavedData.current) return;
     setAnswers({ ...savedData.answer });
-    setIsCorrect(true);
+    setIsCorrect(savedData.isCorrect === true);
     didSyncSavedData.current = true;
   }, [savedData]);
 

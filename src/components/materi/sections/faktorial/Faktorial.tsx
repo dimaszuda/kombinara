@@ -833,9 +833,9 @@ function DeepLearningQuestions({
           onChange={(e) => set("eks1")(e.target.value)}
           placeholder="Tulis jawabanmu..."
           rows={3}
-          disabled={readOnly || saved["eks1"]}
+          disabled={readOnly || (saved["eks1"] && aiFeedbacks["eks1"]?.isCorrect === true)}
           className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
-            readOnly || saved["eks1"]
+            readOnly || (saved["eks1"] && aiFeedbacks["eks1"]?.isCorrect === true)
               ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
               : "border-[#34673933]"
           }`}
@@ -846,7 +846,7 @@ function DeepLearningQuestions({
         <SaveButton
           onClick={() => handleSaveQuestion("eks1", "Apakah kamu melihat pola dalam tabel faktorial? Bagaimana hubungan n! dan (n-1)!?")}
           loading={loading["eks1"]}
-          saved={saved["eks1"]}
+          saved={saved["eks1"] && aiFeedbacks["eks1"]?.isCorrect === true}
           hidden={readOnly}
         />
       </div>
@@ -863,9 +863,9 @@ function DeepLearningQuestions({
           value={answers["eks2"] ?? ""}
           onChange={(e) => set("eks2")(e.target.value)}
           placeholder="Tulis jawabanmu..."
-          disabled={readOnly || saved["eks2"]}
+          disabled={readOnly || (saved["eks2"] && aiFeedbacks["eks2"]?.isCorrect === true)}
           className={`w-full rounded-lg border px-4 py-2.5 text-sm placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
-            readOnly || saved["eks2"]
+            readOnly || (saved["eks2"] && aiFeedbacks["eks2"]?.isCorrect === true)
               ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default border-[#34673933]"
               : "border-[#34673933] bg-white"
           }`}
@@ -876,7 +876,7 @@ function DeepLearningQuestions({
         <SaveButton
           onClick={() => handleSaveQuestion("eks2", "Berapakah nilai 0! menurutmu? Jelaskan alasanmu.")}
           loading={loading["eks2"]}
-          saved={saved["eks2"]}
+          saved={saved["eks2"] && aiFeedbacks["eks2"]?.isCorrect === true}
           hidden={readOnly}
         />
       </div>
@@ -889,34 +889,36 @@ function DeepLearningQuestions({
           3. Apakah n! = n × (n-1)! selalu berlaku?
         </p>
         <div className="flex gap-2 mb-2">
-          {["Ya", "Tidak"].map((opt) => (
+          {["Ya", "Tidak"].map((opt) => {
+            const isLocked = readOnly || (saved["eks3"] && aiFeedbacks["eks3"]?.isCorrect === true);
+            return (
             <button
               key={opt}
               type="button"
-              onClick={() => !(readOnly || saved["eks3"]) && set("eks3")(opt)}
-              disabled={readOnly || saved["eks3"]}
+              onClick={() => !isLocked && set("eks3")(opt)}
+              disabled={isLocked}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                 answers["eks3"] === opt
-                  ? readOnly || saved["eks3"]
+                  ? isLocked
                     ? "bg-[#346739]/50 text-white/70"
                     : "bg-[#346739] text-white"
-                  : readOnly || saved["eks3"]
+                  : isLocked
                     ? "bg-[#34673915]/50 text-[#346739]/50"
                     : "bg-[#34673915] text-[#346739] hover:bg-[#34673926]"
               }`}
             >
               {opt}
             </button>
-          ))}
+          )})}
         </div>
         <textarea
           value={answers["eks3_alasan"] ?? ""}
           onChange={(e) => set("eks3_alasan")(e.target.value)}
           placeholder="Ceritakan alasanmu..."
           rows={2}
-          disabled={readOnly || saved["eks3"]}
+          disabled={readOnly || (saved["eks3"] && aiFeedbacks["eks3"]?.isCorrect === true)}
           className={`w-full rounded-xl border px-4 py-2.5 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
-            readOnly || saved["eks3"]
+            readOnly || (saved["eks3"] && aiFeedbacks["eks3"]?.isCorrect === true)
               ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
               : "border-[#34673933]"
           }`}
@@ -932,7 +934,7 @@ function DeepLearningQuestions({
             )
           }
           loading={loading["eks3"]}
-          saved={saved["eks3"]}
+          saved={saved["eks3"] && aiFeedbacks["eks3"]?.isCorrect === true}
           hidden={readOnly}
         />
       </div>
@@ -2060,7 +2062,9 @@ function entriesToSavedData(section: string, entries: JawabanEntry[]): Partial<F
           feedback: qe.feedback ?? "",
           isCorrect: qe.isCorrect,
         };
-        questionsStatus[qKey] = true;
+        // Only mark as "saved/complete" if the answer was actually correct.
+        // Incorrect answers should be retryable on reload.
+        questionsStatus[qKey] = qe.isCorrect === true;
       }
 
       return {
