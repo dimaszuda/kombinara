@@ -288,6 +288,13 @@ const LEVEL_MAP: Record<string, string> = {
   hots: "HOTS",
 };
 
+// Bobot deterministik sesuai rubrik (proses vs jawaban akhir), skala total 10.
+const SCORE_WEIGHTS: Record<string, { process: number; final: number }> = {
+  dasar: { process: 6, final: 4 },
+  menengah: { process: 7, final: 3 },
+  HOTS: { process: 8, final: 2 },
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Extract the LAST number found in a string. Returns null if none. */
@@ -318,6 +325,91 @@ function perPartLastNumberMatch(jawaban: string, gt: string): boolean {
     const jawabanNum = extractLastNumber(jawabanLines[i]);
     if (gtNum === null || jawabanNum === null) return false;
     if (gtNum !== jawabanNum) return false;
+  }
+  return true;
+}
+
+/**
+ * Per-part mark comparison untuk soal benar/salah (contoh: faktorial soal 4).
+ * Setiap baris kunci harus memuat kata "Benar" atau "Salah" dan setiap baris
+ * jawaban siswa harus memuat tanda ✅ atau ❌. Bandingkan per baris:
+ * ✅ ↔ Benar, ❌ ↔ Salah. Semua cocok → jawaban benar.
+ */
+function perPartMarkMatch(jawaban: string, gt: string): boolean {
+  const jawabanLines = jawaban.split("\n").map((l) => l.trim()).filter(Boolean);
+  const gtLines = gt.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (jawabanLines.length === 0 || jawabanLines.length !== gtLines.length) {
+    return false;
+  }
+  for (let i = 0; i < gtLines.length; i++) {
+    const gtBenar = /\bbenar\b/i.test(gtLines[i]);
+    const gtSalah = /\bsalah\b/i.test(gtLines[i]);
+    // Kunci harus tegas: tepat salah satu dari Benar/Salah.
+    if (gtBenar === gtSalah) return false;
+    const mark = jawabanLines[i].match(/[✅❌]/);
+    if (!mark) return false;
+    if ((mark[0] === "✅") !== gtBenar) return false;
+  }
+  return true;
+}
+
+/** Normalisasi ekspresi aljabar sederhana untuk perbandingan simbolik. */
+function normalizeAlgebraic(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/^[a-z][).:]\s*/, "") // buang prefix "a)" / "a." / "a:"
+    .replace(/[×·*]/g, "*")
+    .replace(/x/g, "*") // huruf x sebagai perkalian
+    .replace(/\s+/g, "")
+    .replace(/([a-z0-9])\(/g, "$1*(") // perkalian implisit: n( → n*(
+    .replace(/\)([a-z0-9(])/g, ")*$1") // )n atau )( → )*n / )*(
+    .replace(/3!/g, "6")
+    .replace(/2!/g, "2")
+    .replace(/1!/g, "1");
+}
+
+/** Perkalian komutatif: urutkan faktor top-level "*". */
+function commutativeEq(a: string, b: string): boolean {
+  if (a.includes("/") || b.includes("/")) return false;
+  const sortFactors = (s: string) => s.split("*").sort().join("*");
+  return sortFactors(a) === sortFactors(b);
+}
+
+/** Ekuivalen C(n,3) — menerima bentuk umum kombinasi dan penjabarannya. */
+function isC3Equivalent(studentNorm: string): boolean {
+  // normalisasi mengubah "C(n,3)" menjadi "c*(n,3)"
+  if (studentNorm === "c*(n,3)" || studentNorm.startsWith("c*(n,3),")) return true;
+  const m = studentNorm.match(/^([^/]+)\/6$/);
+  if (!m) return false;
+  const parts = m[1].split("*").sort();
+  return (
+    parts.length === 3 &&
+    parts[0] === "(n-1)" &&
+    parts[1] === "(n-2)" &&
+    parts[2] === "n"
+  );
+}
+
+/**
+ * Per-part symbolic comparison untuk jawaban aljabar (contoh: faktorial soal 5).
+ * Bandingkan per baris setelah normalisasi notasi (x/×/· → *, perkalian
+ * implisit, faktorial kecil), menerima urutan faktor komutatif dan bentuk
+ * ekuivalen C(n,3).
+ */
+function perPartSymbolicMatch(jawaban: string, gt: string): boolean {
+  const jawabanLines = jawaban.split("\n").map((l) => l.trim()).filter(Boolean);
+  const gtLines = gt.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (jawabanLines.length === 0 || jawabanLines.length !== gtLines.length) {
+    return false;
+  }
+  for (let i = 0; i < gtLines.length; i++) {
+    const jn = normalizeAlgebraic(jawabanLines[i]);
+    const gn = normalizeAlgebraic(gtLines[i]);
+    if (!jn || !gn) return false;
+    if (jn === gn) continue;
+    if (commutativeEq(jn, gn)) continue;
+    if (/c\*?\(n,3\)/.test(gn) && isC3Equivalent(jn)) continue;
+    return false;
   }
   return true;
 }
@@ -404,6 +496,17 @@ export async function POST(req: Request) {
       const caraHitungRaw = answer.cara_mengerjakan?.trim() ?? "";
       const jawabanAkhirRaw = answer.jawaban_akhir?.trim() ?? "";
 
+      // Soal 4 faktorial (tabel benar/salah) TIDAK punya kolom "Cara Hitung"
+      // di UI — alasan per baris tersimpan di jawaban_akhir dan itulah yang
+      // berperan sebagai proses yang dinilai AI.
+      const isSoal4Faktorial = module_slug === "faktorial" && answer.question_number === 4;
+      const caraEffective =
+        isSoal4Faktorial && caraHitungRaw.length === 0 ? jawabanAkhirRaw : caraHitungRaw;
+
+      // Soal 7 faktorial TIDAK punya kotak "Jawaban Akhir" di UI — teks cara
+      // hitung sekaligus menjadi bahan penilaian jawaban akhir AI.
+      const isSoal7Faktorial = module_slug === "faktorial" && answer.question_number === 7;
+
       // ── Unanswered question: skip AI, langsung skor 0 ────────────────
       const isUnanswered = caraHitungRaw.length === 0 && jawabanAkhirRaw.length === 0;
 
@@ -430,7 +533,12 @@ export async function POST(req: Request) {
       }
 
       // ── Compute isJawabanAkhirTrue early (before cara_hitung check) ─
-      const jawabanAkhirClean = jawabanAkhirRaw || "(tidak diisi)";
+      let jawabanAkhirClean = jawabanAkhirRaw || "(tidak diisi)";
+      if (isSoal7Faktorial && jawabanAkhirRaw.length === 0 && caraHitungRaw.length > 0) {
+        // Soal 7 tidak mengumpulkan jawaban akhir terpisah — teks cara
+        // dikirim ke AI sebagai jawaban akhir untuk dinilai.
+        jawabanAkhirClean = caraHitungRaw;
+      }
       const normalizedJawaban = jawabanAkhirClean.replace(/[.,\s]/g, "");
       const normalizedGT = String(soalRef.answer).replace(/[.,\s]/g, "");
 
@@ -445,6 +553,23 @@ export async function POST(req: Request) {
       // Bandingkan angka TERAKHIR di tiap baris kunci dengan jawaban siswa.
       if (!isJawabanAkhirTrue) {
         if (perPartLastNumberMatch(jawabanAkhirClean, String(soalRef.answer))) {
+          isJawabanAkhirTrue = true;
+        }
+      }
+
+      // Fallback 1b: per-part mark comparison untuk soal benar/salah
+      // (contoh: faktorial soal 4 — bandingkan ✅/❌ per baris dengan kunci).
+      if (!isJawabanAkhirTrue) {
+        if (perPartMarkMatch(jawabanAkhirClean, String(soalRef.answer))) {
+          isJawabanAkhirTrue = true;
+        }
+      }
+
+      // Fallback 1c: per-part symbolic comparison untuk jawaban aljabar
+      // (contoh: faktorial soal 5 — "(n+2)x(n+1)" ≡ "(n+2)(n+1)",
+      // "nx(n-1)x(n-2)/3!" ≡ C(n,3)).
+      if (!isJawabanAkhirTrue) {
+        if (perPartSymbolicMatch(jawabanAkhirClean, String(soalRef.answer))) {
           isJawabanAkhirTrue = true;
         }
       }
@@ -464,7 +589,7 @@ export async function POST(req: Request) {
       // ── Cara hitung terlalu singkat (< 7 karakter) ────────────────
       // Hanya cek cara_hitung (proses), BUKAN jawaban_akhir.
       // Jawaban akhir pendek seperti "120" atau "56" itu normal.
-      const caraLength = caraHitungRaw.length;
+      const caraLength = caraEffective.length;
 
       if (caraLength < 7) {
         if (isJawabanAkhirTrue) {
@@ -510,7 +635,7 @@ export async function POST(req: Request) {
         continue;
       }
 
-      const caraHitung = caraHitungRaw || "(tidak diisi)";
+      const caraHitung = caraEffective || "(tidak diisi)";
       const jawabanAkhir = jawabanAkhirClean;
 
       // ── Jawaban akhir benar + cara cukup → tetap kirim ke AI ─
@@ -530,13 +655,56 @@ export async function POST(req: Request) {
         soalRef.cara
       );
 
+      // ── FAKTORIAL: grading deterministik ─────────────────────────────
+      // AI sering salah aritmatika skor: contoh nyata di DB — process_raw
+      // sempurna 12/12 tapi final_answer=0 sehingga siswa benar hanya dapat
+      // 6/10, atau process_scaled=8.4 padahal maks 7.
+      // Untuk faktorial, skor dihitung ulang di backend secara deterministik:
+      //   - proses = raw/12 × bobot proses
+      //   - jawaban akhir terverifikasi mesin → skor penuh sesuai bobot
+      //     (guardrail anti-menebak tetap berlaku)
+      //   - jawaban akhir tidak terverifikasi mesin (teks/aljabar) → pakai
+      //     penilaian AI, dibatasi maksimum bobot
+      //   - total = proses + jawaban akhir
+      let finalResult = result;
+      if (module_slug === "faktorial") {
+        const weights = SCORE_WEIGHTS[levelLabel] ?? { process: 6, final: 4 };
+        const raw = Math.min(12, Math.max(0, result.process_raw_score));
+        const processScaled = Math.round((raw / 12) * weights.process * 100) / 100;
+
+        let finalAnswer: number;
+        let guardrail = result.guardrail_applied;
+        if (isJawabanAkhirTrue) {
+          // Guardrail anti-menebak: proses ≤ 3/12 tapi jawaban akhir benar
+          // → indikasi kuat menebak, jawaban akhir dibatasi 50% bobot.
+          const antiTebak = raw <= 3;
+          finalAnswer = antiTebak ? weights.final * 0.5 : weights.final;
+          guardrail = antiTebak
+            ? "Anti-menebak: proses ≤ 3/12 tetapi jawaban akhir benar → skor jawaban akhir dibatasi 50%."
+            : null;
+        } else {
+          // Jawaban teks/aljabar yang tidak bisa diverifikasi mesin —
+          // percaya penilaian AI tapi jangan sampai melebihi bobot.
+          finalAnswer = Math.min(Math.max(0, result.final_answer_score), weights.final);
+        }
+        const total = Math.min(10, processScaled + finalAnswer);
+
+        finalResult = {
+          ...result,
+          process_scaled_score: processScaled,
+          final_answer_score: finalAnswer,
+          total_score: total,
+          guardrail_applied: guardrail,
+        };
+      }
+
       perQuestionResults.push({
         question_number: answer.question_number,
-        ...result,
+        ...finalResult,
       });
 
       // Clamp per-question total_score to 0-10 (safety net)
-      totalScoreSum += Math.min(10, Math.max(0, result.total_score));
+      totalScoreSum += Math.min(10, Math.max(0, finalResult.total_score));
     }
 
     // Compute overall score (average, scaled to 100), clamped to 0-100

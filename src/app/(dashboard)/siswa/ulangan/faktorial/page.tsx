@@ -1431,8 +1431,8 @@ function ActiveScreen({
                     jawabanAkhir={answers[i].jawaban_akhir}
                     onUpdate={(newJawabanAkhir) => onUpdateAnswer(i, "jawaban_akhir", newJawabanAkhir)}
                   />
-                ) : qNum === 10 ? (
-                  /* Soal 10: only Cara Hitung, no Jawaban Akhir */
+                ) : qNum === 7 || qNum === 10 ? (
+                  /* Soal 7 & 10: only Cara Hitung, no Jawaban Akhir */
                   <div>
                     <label htmlFor={`cara-hitung-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Cara Hitung</label>
                     <textarea id={`cara-hitung-${i}`} ref={(el) => { const prev = pasteTargetRefs.current.get(i); registerPasteForQuestion(i, el, null); }} value={answers[i].cara_hitung} onChange={(e) => onUpdateAnswer(i, "cara_hitung", e.target.value)} placeholder="Tuliskan analisis dan perhitunganmu di sini..." rows={5} className="w-full px-3 py-2.5 rounded-lg text-sm leading-relaxed text-[#2C2C2A] resize-y border border-[#d4e8d4] bg-[#fafffe] placeholder:text-[#b0c4b1] focus:outline-none focus:ring-2 focus:ring-[#346739]/30 focus:border-[#346739] transition-all" style={{ fontFamily: "inherit" }} />

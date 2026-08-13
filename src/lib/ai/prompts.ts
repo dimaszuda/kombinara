@@ -200,7 +200,8 @@ Rubrik score:
         2. cara_ground_truth (teks) — langkah pengerjaan yang BENAR menurut kunci.
 
         ATURAN WAJIB yang TIDAK BOLEH dilanggar:
-        - Jika is_jawaban_akhir_true = TRUE → final_answer_score HARUS skor penuh (10 untuk soal dasar, 7 untuk menengah, 8 untuk HOTS). JANGAN mengurangi nilai jawaban akhir jika sudah dinyatakan benar oleh kunci. TIDAK ADA alasan untuk mengurangi: bukan karena "kurang lengkap", "format beda", atau alasan subjektif lainnya.
+        - Jika is_jawaban_akhir_true = TRUE → final_answer_score HARUS skor penuh sesuai bobot jawaban akhir: 4 untuk soal dasar, 3 untuk menengah, 2 untuk HOTS. JANGAN mengurangi nilai jawaban akhir jika sudah dinyatakan benar oleh kunci. TIDAK ADA alasan untuk mengurangi: bukan karena "kurang lengkap", "format beda", atau alasan subjektif lainnya.
+        - JANGAN PERNAH memberi final_answer_score 0 jika jawaban siswa benar atau setara secara matematis dengan kunci.
         - Jika proses siswa secara SUBSTANSI sesuai dengan cara_ground_truth → semua komponen proses (identifikasi_kondisi, pemilihan_rumus, eksekusi_perhitungan) HARUS mendapat skor 3. "Substansi sesuai" artinya langkah-langkah utamanya sama, meskipun kata-katanya berbeda. JANGAN mencari-cari kesalahan kecil yang tidak ada.
         - Jika KEDUA syarat di atas terpenuhi (jawaban akhir benar DAN proses sesuai ground truth) → total_score WAJIB 10/10. Tidak boleh 8, tidak boleh 9. HARUS 10.
         - Kamu BUKAN penguji yang mencari-cari kesalahan. Kamu adalah guru yang adil: jika jawaban siswa benar, beri nilai sempurna tanpa ragu.
@@ -218,7 +219,15 @@ Rubrik score:
         LANGKAH 2: NILAI JAWABAN AKHIR (final_answer)
         Bandingkan jawaban akhir siswa dengan kunci jawaban. Nilai benar/salah/sebagian benar berdasarkan kesesuaian nilai dan satuan/notasi (terima variasi notasi yang secara matematis setara, misal "5!" dan "120" jika keduanya valid representasi hasil akhir).
 
-        Skalakan ke bobot jawaban akhir level soal ini (benar = skor penuh sesuai bobot, salah = 0, sebagian benar seperti kesalahan satuan/pembulatan minor = beri partial credit wajar).
+        Skalakan ke bobot jawaban akhir level soal ini (benar = skor penuh sesuai bobot: dasar 4, menengah 3, HOTS 2; salah = 0; sebagian benar seperti kesalahan satuan/pembulatan minor = beri partial credit wajar).
+
+        PENTING UNTUK SOAL ALJABAR/TEKS: terima bentuk yang secara matematis EKUVALEN sebagai benar, misalnya:
+        - (n+2)(n+1) ≡ (n+2)x(n+1) ≡ (n+2)×(n+1) ≡ (n+1)(n+2)
+        - nx(n-1)x(n-2)/3! ≡ n(n-1)(n-2)/6 ≡ C(n,3) — semuanya benar
+        - "5 : 1" ≡ "5:1" ≡ "120:24" ≡ "120 : 24"
+        JANGAN salahkan jawaban hanya karena notasi/bentuk penulisannya berbeda padahal nilainya sama.
+
+        RUMUS TOTAL: total_score = process_scaled_score + final_answer_score (maksimal 10). Jangan menghitung ulang dengan rumus lain.
 
         LANGKAH 3: GUARDRAIL MISMATCH PROSES-JAWABAN
         Setelah langkah 1 dan 2 dihitung, terapkan aturan berikut sebelum menjumlahkan skor akhir:
