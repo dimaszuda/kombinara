@@ -1,4 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
+
 const p = new PrismaClient();
 
 async function main() {
@@ -11,8 +12,8 @@ async function main() {
 
   for (const s of subs) {
     console.log(`\n===== Submission #${s.id} | total=${s.totalScore} | ${s.evaluatedAt} =====`);
-    const answers = Array.isArray(s.answers) ? s.answers : [];
-    const perQuestion = Array.isArray(s.perQuestionResults) ? s.perQuestionResults : [];
+    const answers = (Array.isArray(s.answers) ? s.answers : []) as any[];
+    const perQuestion = (Array.isArray(s.perQuestionResults) ? s.perQuestionResults : []) as any[];
     for (const a of answers) {
       if (![4, 5, 7].includes(a.question_number)) continue;
       console.log(`\n--- Q${a.question_number} ---`);

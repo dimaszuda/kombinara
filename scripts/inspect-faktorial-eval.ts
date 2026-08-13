@@ -1,4 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
+
 const p = new PrismaClient();
 
 async function main() {
@@ -11,7 +12,7 @@ async function main() {
 
   for (const s of subs) {
     console.log(`\n===== Submission #${s.id} | total=${s.totalScore} | ${s.evaluatedAt} =====`);
-    const perQuestion = Array.isArray(s.perQuestionResults) ? s.perQuestionResults : [];
+    const perQuestion = (Array.isArray(s.perQuestionResults) ? s.perQuestionResults : []) as any[];
     for (const q of perQuestion) {
       console.log(
         `  Q${q.question_number}: total=${q.total_score} | process_raw=${q.process_raw_score} | process_scaled=${q.process_scaled_score} | final_answer=${q.final_answer_score} | guardrail=${q.guardrail_applied} | mistake=${q.mistake_category}`

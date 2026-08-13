@@ -1,4 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
+
 const p = new PrismaClient();
 
 async function main() {
@@ -6,7 +7,7 @@ async function main() {
     where: { id: 100 },
     select: { answers: true },
   });
-  const answers = Array.isArray(sub?.answers) ? sub.answers : [];
+  const answers = (Array.isArray(sub?.answers) ? sub.answers : []) as any[];
   for (const a of answers) {
     console.log(`\n===== Q${a.question_number} =====`);
     console.log(`cara_mengerjakan: ${JSON.stringify(a.cara_mengerjakan)}`);
