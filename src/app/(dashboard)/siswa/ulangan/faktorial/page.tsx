@@ -148,14 +148,15 @@ function parseSoal4Table(jawabanAkhir: string): { benarSalah: string; alasan: st
     }
     const val = match[1].trim();
 
-    // Format: "✅ | alasan" / "❌ | alasan" — emoji first, optional "|" after it
+    // Format: "✅ | alasan" / "❌ | alasan" — emoji first, optional "|" after it.
+    // Collapse ANY run of "|" separators — this also heals old corrupted
+    // drafts where a "|" leaked into the alasan on every keystroke.
     if (val.startsWith("✅") || val.startsWith("❌")) {
       const emoji = val.slice(0, 1);
-      // Trim first, then remove the "|" separator, then trim again.
       const rest = val
         .slice(1)
         .trim()
-        .replace(/^\|/, "")
+        .replace(/^(?:\s*\|)+/, "")
         .trim();
       return { benarSalah: emoji, alasan: rest };
     }
@@ -169,8 +170,9 @@ function parseSoal4Table(jawabanAkhir: string): { benarSalah: string; alasan: st
       return { benarSalah: emoji, alasan: (legacy[2] ?? "").trim() };
     }
 
-    // Plain alasan without B/S selection.
-    return { benarSalah: "", alasan: val };
+    // Plain alasan without B/S selection. Also collapse leftover "|" runs
+    // from the old buggy format.
+    return { benarSalah: "", alasan: val.replace(/^(?:\s*\|)+/, "").trim() };
   });
 }
 
@@ -1670,11 +1672,30 @@ function Soal4Table({
   jawabanAkhir: string;
   onUpdate: (newVal: string) => void;
 }) {
-  const rows = parseSoal4Table(jawabanAkhir);
+  // Local state is the single source of truth for the UI. The parent string is
+  // only WRITTEN during editing (never read back per keystroke), so whatever
+  // the student types is shown exactly as typed — no delimiter round-trip that
+  // can leak "|" characters, multiply them, or make the cursor jump.
+  const [rows, setRows] = useState<{ benarSalah: string; alasan: string }[]>(() =>
+    parseSoal4Table(jawabanAkhir)
+  );
+  const lastPushedRef = useRef(jawabanAkhir);
+
+  // Re-sync only when the parent value changed from OUTSIDE this component
+  // (draft restore / answer reset), not from our own pushes.
+  useEffect(() => {
+    if (jawabanAkhir !== lastPushedRef.current) {
+      lastPushedRef.current = jawabanAkhir;
+      setRows(parseSoal4Table(jawabanAkhir));
+    }
+  }, [jawabanAkhir]);
 
   function updateRow(idx: number, field: "benarSalah" | "alasan", value: string) {
     const newRows = rows.map((r, i) => (i === idx ? { ...r, [field]: value } : r));
-    onUpdate(serializeSoal4Table(newRows));
+    const serialized = serializeSoal4Table(newRows);
+    lastPushedRef.current = serialized;
+    setRows(newRows);
+    onUpdate(serialized);
   }
 
   return (
