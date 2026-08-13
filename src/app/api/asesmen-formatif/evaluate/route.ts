@@ -290,6 +290,38 @@ const LEVEL_MAP: Record<string, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/** Extract the LAST number found in a string. Returns null if none. */
+function extractLastNumber(s: string): string | null {
+  const matches = s.match(/\d+/g);
+  if (!matches || matches.length === 0) return null;
+  return matches[matches.length - 1];
+}
+
+/**
+ * Per-part comparison for multi-line answers (e.g. faktorial "a) ...\nb) ...").
+ *
+ * Ground truth lines seperti "a) 5! = 120" diakhiri oleh ANGKA hasil akhir
+ * bagian tersebut. Mode ini hanya aktif jika SETIAP baris ground truth
+ * diakhiri angka (agar tidak salah cocok untuk soal teks/aljabar seperti
+ * faktorial soal 4, 5, 7) dan jumlah baris jawaban siswa sama.
+ */
+function perPartLastNumberMatch(jawaban: string, gt: string): boolean {
+  const jawabanLines = jawaban.split("\n").map((l) => l.trim()).filter(Boolean);
+  const gtLines = gt.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (jawabanLines.length === 0 || jawabanLines.length !== gtLines.length) {
+    return false;
+  }
+  for (let i = 0; i < gtLines.length; i++) {
+    // GT line must clearly end with the numeric answer.
+    if (!/\d\s*$/.test(gtLines[i])) return false;
+    const gtNum = extractLastNumber(gtLines[i]);
+    const jawabanNum = extractLastNumber(jawabanLines[i]);
+    if (gtNum === null || jawabanNum === null) return false;
+    if (gtNum !== jawabanNum) return false;
+  }
+  return true;
+}
+
 async function getStudentId() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -407,7 +439,17 @@ export async function POST(req: Request) {
         normalizedJawaban === normalizedGT ||
         jawabanAkhirClean === String(soalRef.answer);
 
-      // Fallback: pure numeric comparison (strips ALL non-digit chars)
+      // Fallback 1: per-part comparison for multi-line answers (e.g. faktorial).
+      // Siswa menulis "a) 120\nb) 30\nc) 12\nd) 4" sedangkan kunci memuat
+      // langkah hitung "a) 5! = 120\nb) 3!+4! = 6+24 = 30\n...".
+      // Bandingkan angka TERAKHIR di tiap baris kunci dengan jawaban siswa.
+      if (!isJawabanAkhirTrue) {
+        if (perPartLastNumberMatch(jawabanAkhirClean, String(soalRef.answer))) {
+          isJawabanAkhirTrue = true;
+        }
+      }
+
+      // Fallback 2: pure numeric comparison (strips ALL non-digit chars)
       // Catches cases like "325 cara" vs "325" — siswa menambahkan teks
       // setelah angka yang sebenarnya sudah benar.
       if (!isJawabanAkhirTrue) {
