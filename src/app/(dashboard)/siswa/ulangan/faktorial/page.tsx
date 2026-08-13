@@ -140,34 +140,37 @@ const SOAL4_ROWS = [
 /** Parse soal 4 table data from jawaban_akhir: returns array of { benarSalah, alasan } */
 function parseSoal4Table(jawabanAkhir: string): { benarSalah: string; alasan: string }[] {
   return SOAL4_ROWS.map((row) => {
-    // Try primary format: "a) ✅ | alasan"
-    const regex = new RegExp(`${row.key}\\) ([✅❌])\\|(.+)$`, "m");
+    // One line per row, anchored at the start of the line: "a) ..."
+    const regex = new RegExp(`^${row.key}\\)\\s*(.+)$`, "m");
     const match = jawabanAkhir.match(regex);
-    if (match) {
-      return { benarSalah: match[1]?.trim() ?? "", alasan: match[2]?.trim() ?? "" };
+    if (!match) {
+      return { benarSalah: "", alasan: "" };
     }
-    // Try fallback: any text after "a) "
-    const simpleRegex = new RegExp(`${row.key}\\) (.+)$`, "m");
-    const simpleMatch = jawabanAkhir.match(simpleRegex);
-    if (simpleMatch) {
-      const val = simpleMatch[1].trim();
-      // Case 1: starts with emoji followed by optional |
-      if (val.startsWith("✅") || val.startsWith("❌")) {
-        const emoji = val.slice(0, 1);
-        const rest = val.slice(1).replace(/^\|?\s*/, "").trim();
-        return { benarSalah: emoji, alasan: rest };
-      }
-      // Case 2: contains "Benar" or "Salah" text
-      if (val.toLowerCase().includes("benar")) {
-        return { benarSalah: "✅", alasan: val.replace(/benar/i, "").replace(/^\|?\s*/, "").trim() };
-      }
-      if (val.toLowerCase().includes("salah")) {
-        return { benarSalah: "❌", alasan: val.replace(/salah/i, "").replace(/^\|?\s*/, "").trim() };
-      }
-      // Case 3: no emoji — strip any leading "| " from old format
-      return { benarSalah: "", alasan: val.replace(/^\|\s*/, "").trim() };
+    const val = match[1].trim();
+
+    // Format: "✅ | alasan" / "❌ | alasan" — emoji first, optional "|" after it
+    if (val.startsWith("✅") || val.startsWith("❌")) {
+      const emoji = val.slice(0, 1);
+      // Trim first, then remove the "|" separator, then trim again.
+      const rest = val
+        .slice(1)
+        .trim()
+        .replace(/^\|/, "")
+        .trim();
+      return { benarSalah: emoji, alasan: rest };
     }
-    return { benarSalah: "", alasan: "" };
+
+    // Legacy format: "Benar | alasan" / "Salah alasan". Only match when the
+    // value STARTS with the word, so an alasan that merely contains
+    // "benar"/"salah" (e.g. "Pernyataan ini benar") is left untouched.
+    const legacy = val.match(/^(Benar|Salah)\b\s*(?:\|\s*)?(.*)$/i);
+    if (legacy) {
+      const emoji = /^benar$/i.test(legacy[1]) ? "✅" : "❌";
+      return { benarSalah: emoji, alasan: (legacy[2] ?? "").trim() };
+    }
+
+    // Plain alasan without B/S selection.
+    return { benarSalah: "", alasan: val };
   });
 }
 
@@ -1704,7 +1707,7 @@ function Soal4Table({
             <div style={{ flex: 4, padding: "6px 8px", display: "flex", alignItems: "center", minWidth: 0 }}>
               <textarea
                 value={rows[idx]?.alasan ?? ""}
-                onChange={(e) => updateRow(idx, "alasan", e.target.value)}
+                onChange={(e) => updateRow(idx, "alasan", e.target.value.replace(/\r?\n/g, " "))}
                 placeholder="Tulis alasan..."
                 rows={2}
                 className="w-full px-2.5 py-1.5 rounded-lg text-sm text-[#2C2C2A] resize-y border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
