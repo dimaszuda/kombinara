@@ -21,7 +21,6 @@ import { useEvaluationPersistence } from "@/hooks/useEvaluationPersistence";
 import RuleBox from "@/components/Quiz Ulangan/RuleBox";
 import IntroInfoCard from "@/components/Quiz Ulangan/IntroInfoCard";
 import EvaluatingScreen from "@/components/Quiz Ulangan/EvaluatingScreen";
-import NumericAnswerInput from "@/components/shared/NumericAnswerInput";
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const DURASI_DETIK = 120 * 60; // 120 menit
@@ -104,15 +103,14 @@ function timerColor(secs: number) {
   return "#b91c1c";
 }
 
-function isAnswered(a: AnswerPair) {
+function isAnswered(a: AnswerPair, questionNumber?: number) {
+  // Soal 4 (tabel benar/salah): dianggap terjawab bila minimal ada satu pilihan ✅/❌.
+  if (questionNumber === 4) return /[✅❌]/.test(a.jawaban_akhir);
   return a.cara_hitung.trim().length > 0 || a.jawaban_akhir.trim().length > 0;
 }
 
 // ── Sub-answer helpers ───────────────────────────────────────────────────────
 const SUB_DELIMITER = "\n";
-
-/** Soal dengan sub-part yang jawabannya murni integer — input dibatasi hanya angka. */
-const INTEGER_ONLY_SUB_PARTS = new Set([1, 2, 3, 6]);
 
 /** Parse sub-answers from jawaban_akhir string. Returns array of values per part. */
 function parseSubAnswers(jawabanAkhir: string, parts: string[]): string[] {
@@ -137,52 +135,35 @@ const SOAL4_ROWS = [
   { key: "d", statement: "n! / (n-1)! = n" },
 ];
 
-/** Parse soal 4 table data from jawaban_akhir: returns array of { benarSalah, alasan } */
-function parseSoal4Table(jawabanAkhir: string): { benarSalah: string; alasan: string }[] {
+/**
+ * Parse soal 4 table data dari jawaban_akhir — kini hanya berisi pilihan
+ * benar/salah per baris (kolom alasan sudah dihapus dari UI).
+ *
+ * Menerima:
+ * - Format baru      : "a) ❌"
+ * - Format lama/draft: "a) ✅ | alasan", "a) Benar | alasan", "a) ❌ | | alasan"
+ */
+function parseSoal4Table(jawabanAkhir: string): { benarSalah: string }[] {
   return SOAL4_ROWS.map((row) => {
-    // One line per row, anchored at the start of the line: "a) ..."
     const regex = new RegExp(`^${row.key}\\)\\s*(.+)$`, "m");
     const match = jawabanAkhir.match(regex);
-    if (!match) {
-      return { benarSalah: "", alasan: "" };
-    }
+    if (!match) return { benarSalah: "" };
     const val = match[1].trim();
 
-    // Format: "✅ | alasan" / "❌ | alasan" — emoji first, optional "|" after it.
-    // Collapse ANY run of "|" separators — this also heals old corrupted
-    // drafts where a "|" leaked into the alasan on every keystroke.
-    if (val.startsWith("✅") || val.startsWith("❌")) {
-      const emoji = val.slice(0, 1);
-      const rest = val
-        .slice(1)
-        .trim()
-        .replace(/^(?:\s*\|)+/, "")
-        .trim();
-      return { benarSalah: emoji, alasan: rest };
-    }
+    // Emoji ✅/❌ di mana pun dalam nilai (format baru & draft lama ter-heal).
+    const emoji = val.match(/[✅❌]/);
+    if (emoji) return { benarSalah: emoji[0] };
 
-    // Legacy format: "Benar | alasan" / "Salah alasan". Only match when the
-    // value STARTS with the word, so an alasan that merely contains
-    // "benar"/"salah" (e.g. "Pernyataan ini benar") is left untouched.
-    const legacy = val.match(/^(Benar|Salah)\b\s*(?:\|\s*)?(.*)$/i);
-    if (legacy) {
-      const emoji = /^benar$/i.test(legacy[1]) ? "✅" : "❌";
-      return { benarSalah: emoji, alasan: (legacy[2] ?? "").trim() };
-    }
+    // Legacy "Benar"/"Salah" — hanya bila di AWAL nilai.
+    const legacy = val.match(/^(Benar|Salah)\b/i);
+    if (legacy) return { benarSalah: /^benar$/i.test(legacy[1]) ? "✅" : "❌" };
 
-    // Plain alasan without B/S selection. Also collapse leftover "|" runs
-    // from the old buggy format.
-    return { benarSalah: "", alasan: val.replace(/^(?:\s*\|)+/, "").trim() };
+    return { benarSalah: "" };
   });
 }
 
-function serializeSoal4Table(rows: { benarSalah: string; alasan: string }[]): string {
-  return SOAL4_ROWS.map((row, i) => {
-    const bs = rows[i]?.benarSalah || "";
-    const alasan = rows[i]?.alasan || "";
-    // Only include | separator when benarSalah is actually set
-    return bs ? `${row.key}) ${bs} | ${alasan}` : `${row.key}) ${alasan}`;
-  }).join("\n");
+function serializeSoal4Table(rows: { benarSalah: string }[]): string {
+  return SOAL4_ROWS.map((row, i) => `${row.key}) ${rows[i]?.benarSalah || ""}`).join("\n");
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -1145,7 +1126,9 @@ function ActiveScreen({
   const [showConfirm, setShowConfirm] = useState(false);
   const color = timerColor(timeLeft);
   const pct = (timeLeft / DURASI_DETIK) * 100;
-  const answeredCount = answers.filter(isAnswered).length;
+  const answeredCount = answers.filter((a, i) =>
+    isAnswered(a, remainingQuestions[i])
+  ).length;
 
   // Build filtered soal list
   const filteredSoal = remainingQuestions
@@ -1158,31 +1141,6 @@ function ActiveScreen({
     moduleSlug: "faktorial",
     deviceType,
   });
-
-  const pasteTargetRefs = useRef<
-    Map<
-      number,
-      { cara: HTMLTextAreaElement | null; jawaban: HTMLInputElement | null }
-    >
-  >(new Map());
-
-  const registerPasteForQuestion = useCallback(
-    (
-      idx: number,
-      caraEl: HTMLTextAreaElement | null,
-      jawabanEl: HTMLInputElement | null
-    ) => {
-      const prev = pasteTargetRefs.current.get(idx);
-      if (prev) {
-        integrity.registerPasteTarget(`cara_hitung_${idx + 1}`, null);
-        integrity.registerPasteTarget(`jawaban_akhir_${idx + 1}`, null);
-      }
-      pasteTargetRefs.current.set(idx, { cara: caraEl, jawaban: jawabanEl });
-      integrity.registerPasteTarget(`cara_hitung_${idx + 1}`, caraEl);
-      integrity.registerPasteTarget(`jawaban_akhir_${idx + 1}`, jawabanEl);
-    },
-    [integrity]
-  );
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "0 24px 48px" }}>
@@ -1327,7 +1285,7 @@ function ActiveScreen({
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {filteredSoal.map((soal, i) => {
-            const answered = isAnswered(answers[i]);
+            const answered = isAnswered(answers[i], soal.question_number);
             return (
               <a
                 key={soal.question_number}
@@ -1392,7 +1350,7 @@ function ActiveScreen({
         }}
       >
         {filteredSoal.map((soal, i) => {
-          const answered = isAnswered(answers[i]);
+          const answered = isAnswered(answers[i], soal.question_number);
           const lm = LEVEL_META[soal.level];
           const qNum = soal.question_number;
           const subParts = SUB_PART_CONFIG[qNum];
@@ -1425,76 +1383,51 @@ function ActiveScreen({
                 </div>
                 <p style={{ fontSize: 15, color: "#2C2C2A", lineHeight: 1.75, margin: "0 0 18px", fontWeight: 500, whiteSpace: "pre-wrap" }}>{soal.question}</p>
 
-                {/* ── Soal 4: Table with dropdown + alasan ── */}
+                {/* ── Soal 4: Tabel benar/salah (tanpa alasan) ── */}
                 {isSoal4 ? (
                   <Soal4Table
                     jawabanAkhir={answers[i].jawaban_akhir}
                     onUpdate={(newJawabanAkhir) => onUpdateAnswer(i, "jawaban_akhir", newJawabanAkhir)}
                   />
-                ) : qNum === 7 || qNum === 10 ? (
-                  /* Soal 7 & 10: only Cara Hitung, no Jawaban Akhir */
+                ) : subParts ? (
+                  /* ── Sub-part answers: "a. soal" + input per bagian ── */
                   <div>
-                    <label htmlFor={`cara-hitung-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Cara Hitung</label>
-                    <textarea id={`cara-hitung-${i}`} ref={(el) => { const prev = pasteTargetRefs.current.get(i); registerPasteForQuestion(i, el, null); }} value={answers[i].cara_hitung} onChange={(e) => onUpdateAnswer(i, "cara_hitung", e.target.value)} placeholder="Tuliskan analisis dan perhitunganmu di sini..." rows={5} className="w-full px-3 py-2.5 rounded-lg text-sm leading-relaxed text-[#2C2C2A] resize-y border border-[#d4e8d4] bg-[#fafffe] placeholder:text-[#b0c4b1] focus:outline-none focus:ring-2 focus:ring-[#346739]/30 focus:border-[#346739] transition-all" style={{ fontFamily: "inherit" }} />
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                      {(() => {
+                        const subValues = parseSubAnswers(answers[i].jawaban_akhir, subParts);
+                        return subParts.map((letter, si) => {
+                          const subQuestion = soal.sub_questions?.[si] ?? "";
+                          const inputId = `jawaban-${qNum}-${letter}`;
+                          return (
+                            <div key={letter}>
+                              <label htmlFor={inputId} style={{ fontSize: 14, fontWeight: 600, color: "#2C2C2A", lineHeight: 1.65, display: "block", marginBottom: 6 }}>
+                                {letter}. {subQuestion}
+                              </label>
+                              <input
+                                id={inputId}
+                                ref={(el) => integrity.registerPasteTarget(`jawaban_akhir_${qNum}_${letter}`, el)}
+                                type="text"
+                                value={subValues[si]}
+                                onChange={(e) => {
+                                  const newSubValues = [...subValues];
+                                  newSubValues[si] = e.target.value;
+                                  onUpdateAnswer(i, "jawaban_akhir", serializeSubAnswers(subParts, newSubValues));
+                                }}
+                                placeholder="tulis jawabanmu disini"
+                                className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
+                                style={{ fontFamily: "inherit" }}
+                              />
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
                   </div>
                 ) : (
-                  <>
-                    {/* Cara Hitung textarea */}
-                    <div style={{ marginBottom: 14 }}>
-                      <label htmlFor={`cara-hitung-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Cara Hitung</label>
-                      <textarea id={`cara-hitung-${i}`} ref={(el) => { const prev = pasteTargetRefs.current.get(i); registerPasteForQuestion(i, el, prev?.jawaban ?? null); }} value={answers[i].cara_hitung} onChange={(e) => onUpdateAnswer(i, "cara_hitung", e.target.value)} placeholder="Tuliskan langkah-langkah perhitunganmu di sini..." rows={4} className="w-full px-3 py-2.5 rounded-lg text-sm leading-relaxed text-[#2C2C2A] resize-y border border-[#d4e8d4] bg-[#fafffe] placeholder:text-[#b0c4b1] focus:outline-none focus:ring-2 focus:ring-[#346739]/30 focus:border-[#346739] transition-all" style={{ fontFamily: "inherit" }} />
-                    </div>
-
-                    {/* ── Sub-inputs for soal 1,2,3,5,6 ── */}
-                    {subParts ? (
-                      <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: "#663362", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Jawaban Akhir</label>
-                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                          {(() => {
-                            const subValues = parseSubAnswers(answers[i].jawaban_akhir, subParts);
-                            const restrictInteger = INTEGER_ONLY_SUB_PARTS.has(qNum);
-                            return subParts.map((letter, si) => (
-                              <div key={letter} style={{ display: "flex", alignItems: "center", gap: 6, flex: "1 1 auto", minWidth: 100 }}>
-                                <span style={{ fontSize: 13, fontWeight: 700, color: "#2C2C2A", whiteSpace: "nowrap" }}>{letter})</span>
-                                {restrictInteger ? (
-                                  <NumericAnswerInput
-                                    value={subValues[si]}
-                                    onChange={(val) => {
-                                      const newSubValues = [...subValues];
-                                      newSubValues[si] = val;
-                                      onUpdateAnswer(i, "jawaban_akhir", serializeSubAnswers(subParts, newSubValues));
-                                    }}
-                                    placeholder="Angka"
-                                    className="flex-1 min-w-0 px-2.5 py-2 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
-                                    style={{ fontFamily: "inherit" }}
-                                  />
-                                ) : (
-                                  <input
-                                    type="text"
-                                    value={subValues[si]}
-                                    onChange={(e) => {
-                                      const newSubValues = [...subValues];
-                                      newSubValues[si] = e.target.value;
-                                      onUpdateAnswer(i, "jawaban_akhir", serializeSubAnswers(subParts, newSubValues));
-                                    }}
-                                    placeholder="..."
-                                    className="flex-1 min-w-0 px-2.5 py-2 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
-                                    style={{ fontFamily: "inherit" }}
-                                  />
-                                )}
-                              </div>
-                            ));
-                          })()}
-                        </div>
-                      </div>
-                    ) : (
-                      /* Standard single Jawaban Akhir input */
-                      <div>
-                        <label htmlFor={`jawaban-akhir-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#663362", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Jawaban Akhir</label>
-                        <input id={`jawaban-akhir-${i}`} ref={(el) => { const prev = pasteTargetRefs.current.get(i); registerPasteForQuestion(i, prev?.cara ?? null, el); }} type="text" value={answers[i].jawaban_akhir} onChange={(e) => onUpdateAnswer(i, "jawaban_akhir", e.target.value)} placeholder="Tulis jawaban akhirmu di sini..." className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all" style={{ fontFamily: "inherit" }} />
-                      </div>
-                    )}
-                  </>
+                  /* Standard single answer input (fallback) */
+                  <div>
+                    <input id={`jawaban-akhir-${i}`} ref={(el) => integrity.registerPasteTarget(`jawaban_akhir_${qNum}`, el)} type="text" value={answers[i].jawaban_akhir} onChange={(e) => onUpdateAnswer(i, "jawaban_akhir", e.target.value)} placeholder="tulis jawabanmu disini" className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all" style={{ fontFamily: "inherit" }} />
+                  </div>
                 )}
               </div>
             </div>
@@ -1672,11 +1605,10 @@ function Soal4Table({
   jawabanAkhir: string;
   onUpdate: (newVal: string) => void;
 }) {
-  // Local state is the single source of truth for the UI. The parent string is
-  // only WRITTEN during editing (never read back per keystroke), so whatever
-  // the student types is shown exactly as typed — no delimiter round-trip that
-  // can leak "|" characters, multiply them, or make the cursor jump.
-  const [rows, setRows] = useState<{ benarSalah: string; alasan: string }[]>(() =>
+  // Local state adalah sumber kebenaran UI — string parent hanya DITULIS
+  // saat siswa memilih (tidak di-read balik per ketukan), jadi tidak ada
+  // round-trip parse/serialize yang bisa merusak input.
+  const [rows, setRows] = useState<{ benarSalah: string }[]>(() =>
     parseSoal4Table(jawabanAkhir)
   );
   const lastPushedRef = useRef(jawabanAkhir);
@@ -1690,8 +1622,10 @@ function Soal4Table({
     }
   }, [jawabanAkhir]);
 
-  function updateRow(idx: number, field: "benarSalah" | "alasan", value: string) {
-    const newRows = rows.map((r, i) => (i === idx ? { ...r, [field]: value } : r));
+  function updateRow(idx: number, value: string) {
+    const newRows = rows.map((r, i) =>
+      i === idx ? { ...r, benarSalah: value } : r
+    );
     const serialized = serializeSoal4Table(newRows);
     lastPushedRef.current = serialized;
     setRows(newRows);
@@ -1700,40 +1634,28 @@ function Soal4Table({
 
   return (
     <div>
-      <label style={{ fontSize: 12, fontWeight: 700, color: "#663362", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>Jawaban Per Pernyataan</label>
       <div style={{ border: "1.5px solid #e2ede2", borderRadius: 10, overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", backgroundColor: "#f8fdf8", borderBottom: "1.5px solid #e2ede2", fontWeight: 700, fontSize: 11, color: "#346739", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           <div style={{ width: 36, padding: "8px 10px", textAlign: "center", flexShrink: 0 }}>No</div>
-          <div style={{ flex: 2, padding: "8px 10px", minWidth: 0 }}>Pernyataan</div>
-          <div style={{ width: 90, padding: "8px 10px", textAlign: "center", flexShrink: 0 }}>B/S</div>
-          <div style={{ flex: 4, padding: "8px 10px", minWidth: 0 }}>Alasan</div>
+          <div style={{ flex: 1, padding: "8px 10px", minWidth: 0 }}>Pernyataan</div>
+          <div style={{ width: 110, padding: "8px 10px", textAlign: "center", flexShrink: 0 }}>Benar/Salah</div>
         </div>
         {/* Rows */}
         {SOAL4_ROWS.map((row, idx) => (
           <div key={row.key} style={{ display: "flex", borderBottom: idx < SOAL4_ROWS.length - 1 ? "1px solid #e2ede2" : "none", alignItems: "stretch" }}>
             <div style={{ width: 36, padding: "8px 10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#2C2C2A", flexShrink: 0, borderRight: "1px solid #f0f4f0" }}>{row.key}</div>
-            <div style={{ flex: 2, padding: "8px 10px", display: "flex", alignItems: "center", fontSize: 12, color: "#2C2C2A", minWidth: 0, borderRight: "1px solid #f0f4f0", lineHeight: 1.4 }}>{row.statement}</div>
-            <div style={{ width: 90, padding: "8px 6px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRight: "1px solid #f0f4f0" }}>
+            <div style={{ flex: 1, padding: "8px 10px", display: "flex", alignItems: "center", fontSize: 13, color: "#2C2C2A", minWidth: 0, borderRight: "1px solid #f0f4f0", lineHeight: 1.5 }}>{row.statement}</div>
+            <div style={{ width: 110, padding: "8px 8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <select
                 value={rows[idx]?.benarSalah ?? ""}
-                onChange={(e) => updateRow(idx, "benarSalah", e.target.value)}
-                style={{ width: "100%", padding: "5px 4px", borderRadius: 6, border: "1.5px solid #e2ede2", fontSize: 12, color: "#2C2C2A", backgroundColor: "#fff", outline: "none", fontFamily: "inherit", cursor: "pointer", textAlign: "center" }}
+                onChange={(e) => updateRow(idx, e.target.value)}
+                style={{ width: "100%", padding: "6px 4px", borderRadius: 6, border: "1.5px solid #e2ede2", fontSize: 12, color: "#2C2C2A", backgroundColor: "#fff", outline: "none", fontFamily: "inherit", cursor: "pointer", textAlign: "center" }}
               >
-                <option value="">—</option>
+                <option value="">Pilih...</option>
                 <option value="✅">✅ Benar</option>
                 <option value="❌">❌ Salah</option>
               </select>
-            </div>
-            <div style={{ flex: 4, padding: "6px 8px", display: "flex", alignItems: "center", minWidth: 0 }}>
-              <textarea
-                value={rows[idx]?.alasan ?? ""}
-                onChange={(e) => updateRow(idx, "alasan", e.target.value.replace(/\r?\n/g, " "))}
-                placeholder="Tulis alasan..."
-                rows={2}
-                className="w-full px-2.5 py-1.5 rounded-lg text-sm text-[#2C2C2A] resize-y border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
-                style={{ fontFamily: "inherit" }}
-              />
             </div>
           </div>
         ))}
@@ -1748,7 +1670,9 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
   const filteredSoal = remainingQuestions
     .map((qn) => SOAL_DATA.find((s) => s.question_number === qn))
     .filter((s): s is typeof SOAL_DATA[number] => s !== undefined);
-  const answeredCount = answers.filter(isAnswered).length;
+  const answeredCount = answers.filter((a, i) =>
+    isAnswered(a, remainingQuestions[i])
+  ).length;
   const allAnswered = answeredCount === answers.length;
 
   return (
@@ -1878,7 +1802,7 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
         }}
       >
         {filteredSoal.map((soal, i) => {
-          const answered = isAnswered(answers[i]);
+          const answered = isAnswered(answers[i], soal.question_number);
           return (
             <div key={soal.question_number}>
               {answers[i].cara_hitung.trim() && (

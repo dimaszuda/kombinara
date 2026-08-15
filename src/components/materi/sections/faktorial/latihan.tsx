@@ -25,17 +25,20 @@ export const SOAL_DATA: Array<{
   answer: string;
   /** Ground-truth langkah pengerjaan (kunci jawaban untuk AI evaluation). */
   cara: string;
+  /** Teks tiap sub-bagian (a, b, c, ...) — dirender per baris dengan input jawaban. */
+  sub_questions?: string[];
 }> = [
   // ── Level Dasar: Memahami definisi, menghitung nilai faktorial ──────────
   {
     question_number: 1,
     level: "mudah",
-    question:
-      "Hitunglah nilai faktorial berikut!\n" +
-      "a. 5! = ...\n" +
-      "b. 3! + 4! = ...\n" +
-      "c. 3! × 2! = ...\n" +
-      "d. 0! + 1! + 2! = ...",
+    question: "Hitunglah nilai faktorial berikut!",
+    sub_questions: [
+      "5! = ...",
+      "3! + 4! = ...",
+      "3! × 2! = ...",
+      "0! + 1! + 2! = ...",
+    ],
     answer:
       "a) 5! = 120\n" +
       "b) 3!+4! = 6+24 = 30\n" +
@@ -50,11 +53,8 @@ export const SOAL_DATA: Array<{
   {
     question_number: 2,
     level: "mudah",
-    question:
-      "Sederhanakan ekspresi berikut tanpa menghitung nilai faktorial secara penuh!\n" +
-      "a. 7! / 5! = ...\n" +
-      "b. 9! / 7! = ...\n" +
-      "c. 6! / (4! · 2!) = ...",
+    question: "Sederhanakan ekspresi berikut tanpa menghitung nilai faktorial secara penuh!",
+    sub_questions: ["7! / 5! = ...", "9! / 7! = ...", "6! / (4! · 2!) = ..."],
     answer:
       "a) 7!/5! = 42\n" +
       "b) 9!/7! = 72\n" +
@@ -67,11 +67,8 @@ export const SOAL_DATA: Array<{
   {
     question_number: 3,
     level: "mudah",
-    question:
-      "Tentukan nilai n yang memenuhi persamaan berikut!\n" +
-      "a. n! = 24 → n = ...\n" +
-      "b. n! = 720 → n = ...\n" +
-      "c. (n+1)! = 120 → n = ...",
+    question: "Tentukan nilai n yang memenuhi persamaan berikut!",
+    sub_questions: ["n! = 24 → n = ...", "n! = 720 → n = ...", "(n+1)! = 120 → n = ..."],
     answer:
       "a) n! = 24 → n = 4\n" +
       "b) n! = 720 → n = 6\n" +
@@ -86,12 +83,7 @@ export const SOAL_DATA: Array<{
   {
     question_number: 4,
     level: "menengah",
-    question:
-      "Manakah pernyataan berikut yang benar? Beri tanda ✅ atau ❌, lalu jelaskan alasanmu!\n" +
-      "a. 0! = 0\n" +
-      "b. 5! / 3! = 2!\n" +
-      "c. 5! = 5 × 4!\n" +
-      "d. n! / (n-1)! = n",
+    question: "Manakah pernyataan berikut yang benar? Pilih ✅ jika pernyataan benar atau ❌ jika salah!",
     answer:
       "a) Salah — 0! = 1, bukan 0\n" +
       "b) Salah — 5!/3! = 20, bukan 2! (=2)\n" +
@@ -106,11 +98,8 @@ export const SOAL_DATA: Array<{
   {
     question_number: 5,
     level: "menengah",
-    question:
-      "Sederhanakan ekspresi berikut:\n" +
-      "a. (n+2)! / n! = ...\n" +
-      "b. (n+1)! / (n-1)! = ...\n" +
-      "c. n! / ((n-3)! · 3!) = ...",
+    question: "Sederhanakan ekspresi berikut:",
+    sub_questions: ["(n+2)! / n! = ...", "(n+1)! / (n-1)! = ...", "n! / ((n-3)! · 3!) = ..."],
     answer:
       "a) (n+2)(n+1)\n" +
       "b) (n+1)n\n" +
@@ -123,10 +112,8 @@ export const SOAL_DATA: Array<{
   {
     question_number: 6,
     level: "menengah",
-    question:
-      "Tentukan nilai n yang memenuhi:\n" +
-      "a. n! / (n-2)! = 30\n" +
-      "b. (n+1)! / (n-1)! = 56",
+    question: "Tentukan nilai n yang memenuhi:",
+    sub_questions: ["n! / (n-2)! = 30", "(n+1)! / (n-1)! = 56"],
     answer:
       "a) n!/(n-2)! = 30 → n(n-1)=30 → n = 6\n" +
       "b) (n+1)!/(n-1)! = 56 → (n+1)n=56 → n = 7",
@@ -145,11 +132,12 @@ export const SOAL_DATA: Array<{
   {
     question_number: 7,
     level: "menengah",
-    question:
-      "Lima siswa (Aldi, Bella, Citra, Dani, Eka) akan berfoto berjajar untuk kenang-kenangan.\n\n" +
-      "a. Berapa banyak cara mereka bisa berjajar? Tuliskan dalam bentuk faktorial dan hitung nilainya.\n\n" +
-      "b. Jika Aldi sudah pasti berada di posisi paling kiri, berapa banyak cara tersisa untuk menyusun keempat orang lainnya?\n\n" +
-      "c. Berapakah perbandingan antara jawaban a. dan b.? Apa artinya?",
+    question: "Lima siswa (Aldi, Bella, Citra, Dani, Eka) akan berfoto berjajar untuk kenang-kenangan.",
+    sub_questions: [
+      "Berapa banyak cara mereka bisa berjajar? Tuliskan dalam bentuk faktorial dan hitung nilainya.",
+      "Jika Aldi sudah pasti berada di posisi paling kiri, berapa banyak cara tersisa untuk menyusun keempat orang lainnya?",
+      "Berapakah perbandingan antara jawaban a. dan b.? Apa artinya?",
+    ],
     answer:
       "a) 5! = 120 cara\n" +
       "b) 4! = 24 cara (Aldi tetap di kiri)\n" +
@@ -179,7 +167,7 @@ export const SUB_PART_CONFIG: Record<number, string[]> = {
   4: ["a", "b", "c", "d"],
   5: ["a", "b", "c"],
   6: ["a", "b"],
-  // Soal 7 uses standard single Jawaban Akhir (jawabannya panjang, bukan per-huruf)
+  7: ["a", "b", "c"],
 };
 
 // ============================================================================
