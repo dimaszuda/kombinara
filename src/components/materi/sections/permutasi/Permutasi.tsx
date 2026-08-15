@@ -3563,11 +3563,162 @@ function GradedAnswerInput({ value, onChange, placeholder, label, expectedAnswer
 }
  
 // ════════════════════════════════════════════════════════════════
+// BlankInput — isian titik-titik inline di Langkah Berpikir.
+// Rule-based penuh (sama seperti GradedAnswerInput), tanpa AI.
+// ════════════════════════════════════════════════════════════════
+ 
+type BlankInputProps = {
+  value: string;
+  onChange: (v: string) => void;
+  expectedAnswer: string;
+  /** Optional DB save metadata — fires save to /api/contoh-soal-bertahap on every check */
+  saveMeta?: {
+    questionKey: string;
+    difficultyLevel: "mudah" | "sedang" | "hots";
+    orderIndex: number;
+  };
+  /** Called when the blank is graded "correct" */
+  onCorrect?: () => void;
+  readOnly?: boolean;
+  savedAnswer?: { value?: string; isCorrect?: boolean };
+};
+ 
+function BlankInput({ value, onChange, expectedAnswer, saveMeta, onCorrect, readOnly = false, savedAnswer }: BlankInputProps) {
+  const [grade, setGrade] = useState<"idle" | "correct" | "incorrect">("idle");
+  const onCorrectCalled = useRef(false);
+  const didRestore = useRef(false);
+ 
+  // Auto-restore dari savedAnswer (misal dari "Lihat jawabanku")
+  useEffect(() => {
+    if (!savedAnswer || didRestore.current) return;
+    if (savedAnswer.value !== undefined && String(savedAnswer.value).trim()) {
+      onChange(String(savedAnswer.value));
+      const result = savedAnswer.isCorrect === true ? "correct" : "incorrect";
+      setGrade(result);
+      if (result === "correct") onCorrectCalled.current = true;
+    }
+    didRestore.current = true;
+  }, [savedAnswer, onChange]);
+ 
+  function handleChange(v: string) {
+    onChange(v);
+    if (grade !== "idle") setGrade("idle");
+    onCorrectCalled.current = false;
+  }
+ 
+  function handleCheck() {
+    if (!value.trim()) return;
+    const result = checkAnswer(value, expectedAnswer);
+    setGrade(result);
+ 
+    // Save EVERY attempt to DB (fire-and-forget)
+    if (saveMeta) {
+      fetch("/api/contoh-soal-bertahap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "permutasi_siklis",
+          question_key: saveMeta.questionKey,
+          difficulty_level: saveMeta.difficultyLevel,
+          order_index: saveMeta.orderIndex,
+          answer: { value, expectedAnswer, graded: result },
+          is_correct: result === "correct",
+        }),
+      }).catch((err) => console.error("[contoh-soal] DB save error:", err));
+    }
+  }
+ 
+  // Notify parent once when blank becomes correct
+  useEffect(() => {
+    if (grade === "correct" && onCorrect && !onCorrectCalled.current) {
+      onCorrectCalled.current = true;
+      onCorrect();
+    }
+  }, [grade, onCorrect]);
+ 
+  return (
+    <span className="inline-flex items-center gap-1 align-middle">
+      <input
+        type="text"
+        inputMode="numeric"
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        placeholder="…"
+        disabled={readOnly || grade === "correct"}
+        style={{ width: `${Math.max(4, expectedAnswer.length + 2)}ch` }}
+        className={
+          "rounded-md border px-1.5 py-0.5 text-center text-sm font-semibold text-[#2C2C2A] outline-none focus:ring-2 transition-colors " +
+          (readOnly || grade === "correct"
+            ? "border-[#346739] bg-[#DBFFD5]/60 text-[#346739]"
+            : grade === "incorrect"
+              ? "border-[#C44F4F] bg-[#C44F4F08] focus:ring-[#C44F4F22]"
+              : "border-[#34673944] bg-white focus:border-[#346739] focus:ring-[#34673922]")
+        }
+      />
+      {grade === "correct" ? (
+        <span className="text-sm font-bold text-[#346739]">✓</span>
+      ) : grade === "incorrect" ? (
+        <span className="text-xs font-bold text-[#C44F4F]">✕</span>
+      ) : !readOnly ? (
+        <button
+          type="button"
+          onClick={handleCheck}
+          disabled={!value.trim()}
+          className="shrink-0 rounded-md border border-[#34673944] bg-[#DBFFD5]/40 px-1.5 py-0.5 text-[10px] font-semibold text-[#346739] transition-colors hover:bg-[#DBFFD5] disabled:cursor-not-allowed disabled:opacity-50 active:scale-95"
+        >
+          Cek
+        </button>
+      ) : null}
+    </span>
+  );
+}
+ 
+/** State helper untuk blank isian di Langkah Berpikir (full rule-based) */
+function useBlankState(blankCount: number) {
+  const [blanks, setBlanks] = useState<Record<string, string>>({});
+  const [correctSet, setCorrectSet] = useState<Set<string>>(new Set());
+  const allDone = correctSet.size >= blankCount;
+ 
+  function setBlank(key: string) {
+    return (v: string) => setBlanks((prev) => ({ ...prev, [key]: v }));
+  }
+ 
+  function markCorrect(key: string) {
+    setCorrectSet((prev) => {
+      const s = new Set(prev);
+      s.add(key);
+      return s;
+    });
+  }
+ 
+  return { blanks, setBlank, markCorrect, allDone };
+}
+ 
+// ════════════════════════════════════════════════════════════════
 // Small shared UI bits
 // ════════════════════════════════════════════════════════════════
  
-function ThinkingStep({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-[#2C2C2A] leading-relaxed">{children}</p>;
+type LangkahBerpikirProps = {
+  /** Langkah-langkah berpikir yang ditampilkan (konten statis, murni UI) */
+  steps: React.ReactNode[];
+};
+
+function LangkahBerpikir({ steps }: LangkahBerpikirProps) {
+  return (
+    <div className="rounded-lg border border-[#34673922] bg-[#DBFFD5]/30 px-4 py-3">
+      <p className="mb-2 text-xs font-semibold text-[#346739]">💡 Langkah Berpikir</p>
+      <ol className="list-none space-y-1.5 pl-0">
+        {steps.map((step, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
+              {i + 1}
+            </span>
+            <div className="text-sm leading-relaxed text-[#2C2C2A]">{step}</div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
 }
  
 function InsightBox({ children }: { children: React.ReactNode }) {
@@ -3616,11 +3767,10 @@ function SimShell({ title, children, onReset }: { title: string; children: React
 const KANDIDAT = ["Ayu", "Bima", "Citra", "Dewi", "Eko", "Fani"];
 const JABATAN = ["Ketua", "Sekretaris", "Bendahara"];
  
-function Contoh1({ onSoalDone, readOnly = false, savedAnswer }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswer?: { value: string; isCorrect: boolean } }) {
-  const [jawaban, setJawaban] = useState("");
-  const [done, setDone] = useState(false);
+function Contoh1({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: Record<string, { value: string; isCorrect: boolean }> }) {
+  const { blanks, setBlank, markCorrect, allDone } = useBlankState(4);
 
-  useEffect(() => { if (done && onSoalDone) onSoalDone(); }, [done, onSoalDone]);
+  useEffect(() => { if (allDone && onSoalDone) onSoalDone(); }, [allDone, onSoalDone]);
   const [slots, setSlots] = useState<(string | null)[]>([null, null, null]);
   const [dragging, setDragging] = useState<string | null>(null);
  
@@ -3705,14 +3855,25 @@ function Contoh1({ onSoalDone, readOnly = false, savedAnswer }: { onSoalDone?: (
         </p>
       </SimShell>
  
-      <ThinkingStep>
-        <b>Langkah Berpikir:</b> Ini permutasi karena jabatan berbeda → urutan penting. n = 6, r = 3, sehingga
-        dipakai rumus P(n, r) = n!/(n−r)!.
-      </ThinkingStep>
+      <LangkahBerpikir
+        steps={[
+          <>Ini <b>permutasi</b> karena jabatan berbeda → urutan penting.</>,
+          <>Dari soal: <b>n = 6</b> dan <b>r = 3</b>.</>,
+          <RichText>{"Terapkan rumus: $P(6,3) = \\dfrac{6!}{(6-3)!} = \\dfrac{6!}{3!}$"}</RichText>,
+          <span>
+            Hitung: <RichText>{"$\\dfrac{6!}{3!} = \\dfrac{6 \\times 5 \\times 4 \\times \\cancel{3!}}{\\cancel{3!}} =$"}</RichText>{" "}
+            <BlankInput value={blanks["a"] ?? ""} onChange={setBlank("a")} expectedAnswer="6" saveMeta={{ questionKey: "contoh_1_a", difficultyLevel: "mudah", orderIndex: 0 }} onCorrect={() => markCorrect("a")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_1_a"]} />
+            {" × "}
+            <BlankInput value={blanks["b"] ?? ""} onChange={setBlank("b")} expectedAnswer="5" saveMeta={{ questionKey: "contoh_1_b", difficultyLevel: "mudah", orderIndex: 0 }} onCorrect={() => markCorrect("b")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_1_b"]} />
+            {" × "}
+            <BlankInput value={blanks["c"] ?? ""} onChange={setBlank("c")} expectedAnswer="4" saveMeta={{ questionKey: "contoh_1_c", difficultyLevel: "mudah", orderIndex: 0 }} onCorrect={() => markCorrect("c")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_1_c"]} />
+            {" = "}
+            <BlankInput value={blanks["total"] ?? ""} onChange={setBlank("total")} expectedAnswer="120" saveMeta={{ questionKey: "contoh_1_total", difficultyLevel: "mudah", orderIndex: 0 }} onCorrect={() => markCorrect("total")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_1_total"] ?? savedAnswers?.["contoh_1"]} />
+            {" susunan."}
+          </span>,
+        ]}
+      />
  
-      <div className="mt-3">
-        <GradedAnswerInput value={jawaban} onChange={setJawaban} placeholder="Jumlah total susunan = ..." label="Jawaban akhir" expectedAnswer="120" saveMeta={{ questionKey: "contoh_1", difficultyLevel: "mudah", orderIndex: 0 }} onCorrect={() => setDone(true)} readOnly={readOnly} savedAnswer={savedAnswer} />
-      </div>
     </SoalCardBertahap>
   );
 }
@@ -3732,11 +3893,10 @@ function useCircleLayout(n: number, radius = 70, cx = 100, cy = 100): { x: numbe
   }, [n, radius, cx, cy]);
 }
  
-function Contoh2({ onSoalDone, readOnly = false, savedAnswer }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswer?: { value: string; isCorrect: boolean } }) {
-  const [jawaban, setJawaban] = useState("");
-  const [done, setDone] = useState(false);
+function Contoh2({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: Record<string, { value: string; isCorrect: boolean }> }) {
+  const { blanks, setBlank, markCorrect, allDone } = useBlankState(2);
 
-  useEffect(() => { if (done && onSoalDone) onSoalDone(); }, [done, onSoalDone]);
+  useEffect(() => { if (allDone && onSoalDone) onSoalDone(); }, [allDone, onSoalDone]);
   const [seats, setSeats] = useState<(string | null)[]>(Array(6).fill(null));
   const [dragging, setDragging] = useState<string | null>(null);
   const [rotated, setRotated] = useState(0);
@@ -3853,14 +4013,25 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswer }: { onSoalDone?: (
         </div>
       </SimShell>
  
-      <ThinkingStep>
-        <b>Langkah Berpikir:</b> Susunan melingkar tidak memiliki titik referensi tetap (tidak ada
-        &ldquo;kursi nomor 1&rdquo;), sehingga digunakan <b>permutasi siklis</b>: P(siklis n) = (n − 1)!.
-      </ThinkingStep>
+      <LangkahBerpikir
+        steps={[
+          <>
+            <b>Identifikasi situasi:</b> Apakah ada &ldquo;kursi nomor 1&rdquo; di meja bundar? → <b>Tidak</b> —
+            tidak ada titik referensi yang membedakan posisi → susunan melingkar → gunakan <b>permutasi siklis</b>.
+          </>,
+          <span>
+            Terapkan rumus: <RichText>{"$P_{\\text{siklis}}(6) = (6-1)! =$"}</RichText>{" "}
+            <BlankInput value={blanks["f"] ?? ""} onChange={setBlank("f")} expectedAnswer="5" saveMeta={{ questionKey: "contoh_2_a", difficultyLevel: "mudah", orderIndex: 1 }} onCorrect={() => markCorrect("f")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_2_a"]} />
+            <RichText>{"$! =$"}</RichText>{" "}
+            <BlankInput value={blanks["total"] ?? ""} onChange={setBlank("total")} expectedAnswer="120" saveMeta={{ questionKey: "contoh_2_total", difficultyLevel: "mudah", orderIndex: 1 }} onCorrect={() => markCorrect("total")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_2_total"] ?? savedAnswers?.["contoh_2"]} />
+          </span>,
+          <>
+            <b>Masuk akal?</b> Jika duduk berjajar: 6! = 720 susunan. Melingkar lebih sedikit karena rotasi
+            dianggap sama: 720 ÷ 6 = 120. ✓
+          </>,
+        ]}
+      />
  
-      <div className="mt-3">
-        <GradedAnswerInput value={jawaban} onChange={setJawaban} placeholder="Jumlah susunan berbeda = ..." label="Jawaban akhir" expectedAnswer="120" saveMeta={{ questionKey: "contoh_2", difficultyLevel: "mudah", orderIndex: 1 }} onCorrect={() => setDone(true)} readOnly={readOnly} savedAnswer={savedAnswer} />
-      </div>
     </SoalCardBertahap>
   );
 }
@@ -3869,13 +4040,8 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswer }: { onSoalDone?: (
 // CONTOH 3 — Toggle kasus Rafi (pilih kasus, lihat cabang berubah)
 // ════════════════════════════════════════════════════════════════
  
-function Contoh3({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: { kasus1?: { value: string; isCorrect: boolean }; kasus2?: { value: string; isCorrect: boolean }; total?: { value: string; isCorrect: boolean } } }) {
-  const [kasus1, setKasus1] = useState("");
-  const [kasus2, setKasus2] = useState("");
-  const [total, setTotal] = useState("");
-  const [correctSet, setCorrectSet] = useState<Set<string>>(new Set());
-  const allDone = correctSet.size >= 3;
-  function markCorrect(key: string) { setCorrectSet(prev => { const s = new Set(prev); s.add(key); return s; }); }
+function Contoh3({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: Record<string, { value: string; isCorrect: boolean }> }) {
+  const { blanks, setBlank, markCorrect, allDone } = useBlankState(6);
   const [activeCase, setActiveCase] = useState<1 | 2 | null>(null);
 
   useEffect(() => { if (allDone && onSoalDone) onSoalDone(); }, [allDone, onSoalDone]);
@@ -3931,16 +4097,39 @@ function Contoh3({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
         )}
       </SimShell>
  
-      <ThinkingStep>
-        <b>Langkah Berpikir:</b> Ada syarat khusus untuk Rafi, sehingga soal harus <b>dipilah menjadi dua
-        kasus</b> yang saling lepas, lalu hasilnya digabung dengan kaidah penjumlahan.
-      </ThinkingStep>
+      <LangkahBerpikir
+        steps={[
+          <>
+            <b>Identifikasi syarat:</b> Ada syarat khusus untuk Rafi → soal harus <b>dipilah menjadi kasus</b>.
+          </>,
+          <div>
+            <b>Pilah kasus:</b>
+            <p className="mt-1">
+              <b>Kasus 1 — Rafi menjadi Ketua:</b> posisi Ketua hanya untuk Rafi (1 cara). Posisi Wakil,
+              Sekretaris, Bendahara diisi 9 siswa tersisa secara berurutan: P(9, 3) = 9!/(9−3)! ={" "}
+              <BlankInput value={blanks["k1a"] ?? ""} onChange={setBlank("k1a")} expectedAnswer="9" saveMeta={{ questionKey: "contoh_3_k1a", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k1a")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_3_k1a"]} />
+              {" × "}
+              <BlankInput value={blanks["k1b"] ?? ""} onChange={setBlank("k1b")} expectedAnswer="8" saveMeta={{ questionKey: "contoh_3_k1b", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k1b")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_3_k1b"]} />
+              {" × "}
+              <BlankInput value={blanks["k1c"] ?? ""} onChange={setBlank("k1c")} expectedAnswer="7" saveMeta={{ questionKey: "contoh_3_k1c", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k1c")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_3_k1c"]} />
+              {" = "}
+              <BlankInput value={blanks["k1Total"] ?? ""} onChange={setBlank("k1Total")} expectedAnswer="504" saveMeta={{ questionKey: "contoh_3_kasus1", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k1Total")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_3_kasus1"]} />
+              {". Subtotal Kasus 1 = 1 × 504 = 504."}
+            </p>
+            <p>
+              <b>Kasus 2 — Rafi tidak ikut:</b> tersisa 9 siswa untuk 4 posisi: P(9, 4) = 9 × 8 × 7 × 6 ={" "}
+              <BlankInput value={blanks["k2Total"] ?? ""} onChange={setBlank("k2Total")} expectedAnswer="3024" saveMeta={{ questionKey: "contoh_3_kasus2", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k2Total")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_3_kasus2"]} />
+              {"."}
+            </p>
+          </div>,
+          <>
+            <b>Gabungkan:</b> kedua kasus saling lepas → kaidah penjumlahan: Total = 504 + 3.024 ={" "}
+            <BlankInput value={blanks["total"] ?? ""} onChange={setBlank("total")} expectedAnswer="3528" saveMeta={{ questionKey: "contoh_3_total", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("total")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_3_total"]} />
+            {" susunan."}
+          </>,
+        ]}
+      />
  
-      <div className="mt-3 space-y-2.5">
-        <GradedAnswerInput value={kasus1} onChange={setKasus1} placeholder="Subtotal Kasus 1 = ..." label="Kasus 1: Rafi menjadi Ketua" expectedAnswer="504" saveMeta={{ questionKey: "contoh_3_kasus1", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k1")} readOnly={readOnly} savedAnswer={savedAnswers?.kasus1} />
-        <GradedAnswerInput value={kasus2} onChange={setKasus2} placeholder="Subtotal Kasus 2 = ..." label="Kasus 2: Rafi tidak ikut" expectedAnswer="3024" saveMeta={{ questionKey: "contoh_3_kasus2", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k2")} readOnly={readOnly} savedAnswer={savedAnswers?.kasus2} />
-        <GradedAnswerInput value={total} onChange={setTotal} placeholder="Total = Kasus 1 + Kasus 2 = ..." label="Gabungkan (Kaidah Penjumlahan)" expectedAnswer="3528" saveMeta={{ questionKey: "contoh_3_total", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("t")} readOnly={readOnly} savedAnswer={savedAnswers?.total} />
-      </div>
     </SoalCardBertahap>
   );
 }
@@ -4035,11 +4224,15 @@ function Contoh4({ onSoalDone, readOnly = false, savedAnswer }: { onSoalDone?: (
         </p>
       </SimShell>
  
-      <ThinkingStep>
-        <b>Langkah Berpikir:</b> Kata &ldquo;MATEMATIKA&rdquo; punya 10 huruf dengan pengulangan: M(2), A(3),
-        T(2), E(1), I(1), K(1). Karena ada huruf yang sama, digunakan <b>permutasi dengan pengulangan</b>:
-        P = n!/(k₁!·k₂!·...).
-      </ThinkingStep>
+      <LangkahBerpikir
+        steps={[
+          <>
+            Hitung huruf pada kata &ldquo;MATEMATIKA&rdquo;: <b>M(2), A(3), T(2), E(1), I(1), K(1)</b> → total <b>10 huruf</b>.
+          </>,
+          <>Karena ada huruf yang sama, gunakan <b>permutasi dengan pengulangan</b>.</>,
+          <RichText>{"$P = \\dfrac{10!}{2! \\cdot 3! \\cdot 2! \\cdot 1! \\cdot 1! \\cdot 1!} = \\dfrac{3628800}{2 \\cdot 6 \\cdot 2} = \\dfrac{3628800}{24} = 151.200$"}</RichText>,
+        ]}
+      />
  
       <div className="mt-3">
         <GradedAnswerInput value={jawaban} onChange={setJawaban} placeholder="Jumlah total susunan = ..." label="Jawaban akhir" expectedAnswer="151200" saveMeta={{ questionKey: "contoh_4", difficultyLevel: "sedang", orderIndex: 3 }} onCorrect={() => setDone(true)} readOnly={readOnly} savedAnswer={savedAnswer} />
@@ -4060,13 +4253,8 @@ const PASANGAN = [
   { id: "p5", nama: "Pak Gilang & Bu Hana" },
 ];
  
-function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: { siklis5?: { value: string; isCorrect: boolean }; dalamBlok?: { value: string; isCorrect: boolean }; total?: { value: string; isCorrect: boolean } } }) {
-  const [siklis5, setSiklis5] = useState("");
-  const [dalamBlok, setDalamBlok] = useState("");
-  const [total, setTotal] = useState("");
-  const [correctSet, setCorrectSet] = useState<Set<string>>(new Set());
-  const allDone = correctSet.size >= 3;
-  function markCorrect(key: string) { setCorrectSet(prev => { const s = new Set(prev); s.add(key); return s; }); }
+function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: Record<string, { value: string; isCorrect: boolean }> }) {
+  const { blanks, setBlank, markCorrect, allDone } = useBlankState(4);
   const [blockSeats, setBlockSeats] = useState<(string | null)[]>(Array(5).fill(null));
   const [dragging, setDragging] = useState<string | null>(null);
   const [swapped, setSwapped] = useState<Record<string, boolean>>({});
@@ -4167,16 +4355,31 @@ function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
         </div>
       </SimShell>
  
-      <ThinkingStep>
-        <b>Langkah Berpikir:</b> Gabungkan tiap pasangan menjadi satu blok, sehingga tersisa 5 blok yang
-        disusun melingkar. Setelah itu, hitung juga kemungkinan susunan suami-istri di dalam tiap blok.
-      </ThinkingStep>
+      <LangkahBerpikir
+        steps={[
+          <>
+            <b>Gabungkan tiap pasang jadi satu blok:</b> suami dan istri harus berdampingan → ada 5 blok yang
+            disusun melingkar.
+          </>,
+          <span>
+            Susunan melingkar 5 blok: <RichText>{"$P_{\\text{siklis}}(5) = (5-1)! =$"}</RichText>{" "}
+            <BlankInput value={blanks["f"] ?? ""} onChange={setBlank("f")} expectedAnswer="4" saveMeta={{ questionKey: "contoh_5_a", difficultyLevel: "sedang", orderIndex: 4 }} onCorrect={() => markCorrect("f")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_5_a"]} />
+            <RichText>{"$! =$"}</RichText>{" "}
+            <BlankInput value={blanks["siklis5"] ?? ""} onChange={setBlank("siklis5")} expectedAnswer="24" saveMeta={{ questionKey: "contoh_5_siklis5", difficultyLevel: "sedang", orderIndex: 4 }} onCorrect={() => markCorrect("siklis5")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_5_siklis5"]} />
+          </span>,
+          <>
+            <b>Susunan dalam setiap blok:</b> suami dan istri bisa bertukar posisi → 2! = 2 cara per pasangan.
+          </>,
+          <span>
+            Kalikan: <RichText>{"Total $= 24 \\times 2^5 = 24 \\times$"}</RichText>{" "}
+            <BlankInput value={blanks["dalamBlok"] ?? ""} onChange={setBlank("dalamBlok")} expectedAnswer="32" saveMeta={{ questionKey: "contoh_5_dalamBlok", difficultyLevel: "sedang", orderIndex: 4 }} onCorrect={() => markCorrect("dalamBlok")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_5_dalamBlok"]} />
+            <RichText>{"$ =$"}</RichText>{" "}
+            <BlankInput value={blanks["total"] ?? ""} onChange={setBlank("total")} expectedAnswer="768" saveMeta={{ questionKey: "contoh_5_total", difficultyLevel: "sedang", orderIndex: 4 }} onCorrect={() => markCorrect("total")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_5_total"]} />
+            {" susunan."}
+          </span>,
+        ]}
+      />
  
-      <div className="mt-3 space-y-2.5">
-        <GradedAnswerInput value={siklis5} onChange={setSiklis5} placeholder="P(siklis 5 blok) = ..." label="Susunan melingkar 5 blok" expectedAnswer="24" saveMeta={{ questionKey: "contoh_5_siklis5", difficultyLevel: "sedang", orderIndex: 4 }} onCorrect={() => markCorrect("s")} readOnly={readOnly} savedAnswer={savedAnswers?.siklis5} />
-        <GradedAnswerInput value={dalamBlok} onChange={setDalamBlok} placeholder="2^5 = ..." label="Susunan di dalam tiap blok" expectedAnswer="32" saveMeta={{ questionKey: "contoh_5_dalamBlok", difficultyLevel: "sedang", orderIndex: 4 }} onCorrect={() => markCorrect("d")} readOnly={readOnly} savedAnswer={savedAnswers?.dalamBlok} />
-        <GradedAnswerInput value={total} onChange={setTotal} placeholder="Total = P(siklis 5) × 2^5 = ..." label="Total" expectedAnswer="768" saveMeta={{ questionKey: "contoh_5_total", difficultyLevel: "sedang", orderIndex: 4 }} onCorrect={() => markCorrect("t")} readOnly={readOnly} savedAnswer={savedAnswers?.total} />
-      </div>
  
       <InsightBox>Strategi blok: ketika ada syarat &ldquo;harus berdampingan&rdquo;, gabungkan objek tersebut menjadi satu unit terlebih dahulu.</InsightBox>
     </SoalCardBertahap>
@@ -4189,13 +4392,8 @@ function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
  
 const DIGIT_SET = ["1", "1", "2", "2", "3"];
  
-function Contoh6({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: { kasus1?: { value: string; isCorrect: boolean }; kasus2?: { value: string; isCorrect: boolean }; total?: { value: string; isCorrect: boolean } } }) {
-  const [kasus1, setKasus1] = useState("");
-  const [kasus2, setKasus2] = useState("");
-  const [total, setTotal] = useState("");
-  const [correctSet, setCorrectSet] = useState<Set<string>>(new Set());
-  const allDone = correctSet.size >= 3;
-  function markCorrect(key: string) { setCorrectSet(prev => { const s = new Set(prev); s.add(key); return s; }); }
+function Contoh6({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: Record<string, { value: string; isCorrect: boolean }> }) {
+  const { blanks, setBlank, markCorrect, allDone } = useBlankState(8);
   const [order, setOrder] = useState(DIGIT_SET);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
@@ -4250,16 +4448,40 @@ function Contoh6({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
         </p>
       </SimShell>
  
-      <ThinkingStep>
-        <b>Langkah Berpikir:</b> Ada 5 digit dengan angka berulang: 1(2×), 2(2×). Syarat bilangan &gt; 20.000
-        berarti digit pertama harus ≥ 2, sehingga soal dipilah menjadi kasus berdasarkan digit pertama.
-      </ThinkingStep>
+      <LangkahBerpikir
+        steps={[
+          <>
+            <b>Identifikasi situasi:</b> total 5 digit dengan angka berulang — 1 muncul 2 kali, 2 muncul 2 kali.
+            Syarat &gt; 20.000 berarti digit pertama ≥ 2 → pilah kasus berdasarkan digit pertama.
+          </>,
+          <div>
+            <b>Tentukan digit pertama yang memenuhi:</b> bisa <b>2</b> atau <b>3</b>.
+            <p className="mt-1">
+              <b>Kasus 1 — digit pertama = 2:</b> sisa angka {'{1, 1, 2, 3}'} → P = 4!/2! = 24/2 ={" "}
+              <BlankInput value={blanks["k1"] ?? ""} onChange={setBlank("k1")} expectedAnswer="12" saveMeta={{ questionKey: "contoh_6_kasus1", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k1")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_kasus1"]} />
+              {"."}
+            </p>
+            <p>
+              <b>Kasus 2 — digit pertama = 3:</b> sisa angka {'{1, 1, 2, 2}'} → P = 4!/(
+              <BlankInput value={blanks["k2a"] ?? ""} onChange={setBlank("k2a")} expectedAnswer="2" saveMeta={{ questionKey: "contoh_6_k2a", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k2a")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_k2a"]} />
+              !·<BlankInput value={blanks["k2b"] ?? ""} onChange={setBlank("k2b")} expectedAnswer="2" saveMeta={{ questionKey: "contoh_6_k2b", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k2b")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_k2b"]} />
+              !) = 24/<BlankInput value={blanks["k2c"] ?? ""} onChange={setBlank("k2c")} expectedAnswer="4" saveMeta={{ questionKey: "contoh_6_k2c", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k2c")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_k2c"]} />
+              {" = "}<BlankInput value={blanks["k2d"] ?? ""} onChange={setBlank("k2d")} expectedAnswer="6" saveMeta={{ questionKey: "contoh_6_kasus2", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k2d")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_kasus2"]} />
+              {"."}
+            </p>
+          </div>,
+          <>
+            <b>Gabungkan:</b> Total ={" "}
+            <BlankInput value={blanks["t1"] ?? ""} onChange={setBlank("t1")} expectedAnswer="12" saveMeta={{ questionKey: "contoh_6_t1", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("t1")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_t1"]} />
+            {" + "}
+            <BlankInput value={blanks["t2"] ?? ""} onChange={setBlank("t2")} expectedAnswer="6" saveMeta={{ questionKey: "contoh_6_t2", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("t2")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_t2"]} />
+            {" = "}
+            <BlankInput value={blanks["t3"] ?? ""} onChange={setBlank("t3")} expectedAnswer="18" saveMeta={{ questionKey: "contoh_6_total", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("t3")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_total"]} />
+            {" bilangan."}
+          </>,
+        ]}
+      />
  
-      <div className="mt-3 space-y-2.5">
-        <GradedAnswerInput value={kasus1} onChange={setKasus1} placeholder="Subtotal Kasus 1 = ..." label="Kasus 1: Digit pertama = 2" expectedAnswer="12" saveMeta={{ questionKey: "contoh_6_kasus1", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k1")} readOnly={readOnly} savedAnswer={savedAnswers?.kasus1} />
-        <GradedAnswerInput value={kasus2} onChange={setKasus2} placeholder="Subtotal Kasus 2 = ..." label="Kasus 2: Digit pertama = 3" expectedAnswer="6" saveMeta={{ questionKey: "contoh_6_kasus2", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k2")} readOnly={readOnly} savedAnswer={savedAnswers?.kasus2} />
-        <GradedAnswerInput value={total} onChange={setTotal} placeholder="Total = Kasus 1 + Kasus 2 = ..." label="Total" expectedAnswer="18" saveMeta={{ questionKey: "contoh_6_total", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("t")} readOnly={readOnly} savedAnswer={savedAnswers?.total} />
-      </div>
  
       <InsightBox>Perhatikan: di setiap kasus, sisa angka yang tersusun berbeda komposisinya — sehingga rumus penyebutnya pun berbeda.</InsightBox>
     </SoalCardBertahap>
@@ -4272,13 +4494,8 @@ function Contoh6({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
  
 const NAMA_8 = ["Ari", "Budi", "Citra", "Dewi", "Eko", "Fani", "Gita", "Hadi"];
  
-function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: { totalSemua?: { value: string; isCorrect: boolean }; berdekatan?: { value: string; isCorrect: boolean }; totalAkhir?: { value: string; isCorrect: boolean } } }) {
-  const [totalSemua, setTotalSemua] = useState("");
-  const [berdekatan, setBerdekatan] = useState("");
-  const [totalAkhir, setTotalAkhir] = useState("");
-  const [correctSet, setCorrectSet] = useState<Set<string>>(new Set());
-  const allDone = correctSet.size >= 3;
-  function markCorrect(key: string) { setCorrectSet(prev => { const s = new Set(prev); s.add(key); return s; }); }
+function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: () => void; readOnly?: boolean; savedAnswers?: Record<string, { value: string; isCorrect: boolean }> }) {
+  const { blanks, setBlank, markCorrect, allDone } = useBlankState(8);
   const [seats, setSeats] = useState<string[]>(NAMA_8);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const positions = useCircleLayout(8, 78, 100, 100);
@@ -4383,16 +4600,40 @@ function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
         </div>
       </SimShell>
 
-      <ThinkingStep>
-        <b>Langkah Berpikir:</b> Gunakan <b>strategi komplemen</b>: susunan Ari-Budi tidak berdekatan = total
-        semua susunan dikurangi susunan Ari-Budi berdekatan.
-      </ThinkingStep>
+      <LangkahBerpikir
+        steps={[
+          <>
+            <b>Pilih strategi:</b> menghitung langsung &ldquo;Ari dan Budi tidak berdekatan&rdquo; lebih rumit →
+            gunakan <b>strategi komplemen</b>: Ari-Budi tidak berdekatan = total semua susunan − susunan Ari-Budi berdekatan.
+          </>,
+          <span>
+            Total semua susunan: <RichText>{"$P_{\\text{siklis}}(8) = (8-1)! = 7! =$"}</RichText>{" "}
+            <BlankInput value={blanks["totalSemua"] ?? ""} onChange={setBlank("totalSemua")} expectedAnswer="5040" saveMeta={{ questionKey: "contoh_7_totalSemua", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("totalSemua")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_7_totalSemua"]} />
+          </span>,
+          <span>
+            <b>Hitung Ari dan Budi berdekatan:</b> gabungkan keduanya sebagai satu blok → ada 7 objek yang disusun
+            melingkar: <RichText>{"$P_{\\text{siklis}}(7) = (7-1)! = 6! =$"}</RichText>{" "}
+            <BlankInput value={blanks["siklis7"] ?? ""} onChange={setBlank("siklis7")} expectedAnswer="720" saveMeta={{ questionKey: "contoh_7_a", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("siklis7")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_7_a"]} />
+            {". Dalam blok, keduanya bisa bertukar posisi: 2! = "}
+            <BlankInput value={blanks["dua1"] ?? ""} onChange={setBlank("dua1")} expectedAnswer="2" saveMeta={{ questionKey: "contoh_7_b", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("dua1")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_7_b"]} />
+            {" cara. Berdekatan = 720 × "}
+            <BlankInput value={blanks["dua2"] ?? ""} onChange={setBlank("dua2")} expectedAnswer="2" saveMeta={{ questionKey: "contoh_7_c", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("dua2")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_7_c"]} />
+            {" = "}
+            <BlankInput value={blanks["berdekatan"] ?? ""} onChange={setBlank("berdekatan")} expectedAnswer="1440" saveMeta={{ questionKey: "contoh_7_berdekatan", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("berdekatan")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_7_berdekatan"]} />
+            {"."}
+          </span>,
+          <>
+            <b>Komplemen:</b> Total ={" "}
+            <BlankInput value={blanks["t1"] ?? ""} onChange={setBlank("t1")} expectedAnswer="5040" saveMeta={{ questionKey: "contoh_7_t1", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("t1")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_7_t1"]} />
+            {" − "}
+            <BlankInput value={blanks["t2"] ?? ""} onChange={setBlank("t2")} expectedAnswer="1440" saveMeta={{ questionKey: "contoh_7_t2", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("t2")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_7_t2"]} />
+            {" = "}
+            <BlankInput value={blanks["totalAkhir"] ?? ""} onChange={setBlank("totalAkhir")} expectedAnswer="3600" saveMeta={{ questionKey: "contoh_7_totalAkhir", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("totalAkhir")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_7_totalAkhir"]} />
+            {" susunan."}
+          </>,
+        ]}
+      />
 
-      <div className="mt-3 space-y-2.5">
-        <GradedAnswerInput value={totalSemua} onChange={setTotalSemua} placeholder="P(siklis 8) = ..." label="Total semua susunan" expectedAnswer="5040" saveMeta={{ questionKey: "contoh_7_totalSemua", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("ts")} readOnly={readOnly} savedAnswer={savedAnswers?.totalSemua} />
-        <GradedAnswerInput value={berdekatan} onChange={setBerdekatan} placeholder="P(siklis 7) × 2! = ..." label="Ari dan Budi berdekatan" expectedAnswer="1440" saveMeta={{ questionKey: "contoh_7_berdekatan", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("bd")} readOnly={readOnly} savedAnswer={savedAnswers?.berdekatan} />
-        <GradedAnswerInput value={totalAkhir} onChange={setTotalAkhir} placeholder="Total = Total semua − Berdekatan = ..." label="Komplemen" expectedAnswer="3600" saveMeta={{ questionKey: "contoh_7_totalAkhir", difficultyLevel: "hots", orderIndex: 6 }} onCorrect={() => markCorrect("ta")} readOnly={readOnly} savedAnswer={savedAnswers?.totalAkhir} />
-      </div>
  
       <InsightBox>Strategi komplemen sangat efisien ketika syarat &ldquo;tidak boleh&rdquo; lebih mudah dihitung daripada syarat &ldquo;harus&rdquo;.</InsightBox>
     </SoalCardBertahap>
@@ -4424,13 +4665,13 @@ function ContohSoalBertahap({ contohStep = 0, onSoalDone, readOnly = false, save
       <SectionBadge>Contoh Soal Bertahap</SectionBadge>
  
       <div className="flex flex-col gap-5">
-        {contohStep >= 0 && <Contoh1 onSoalDone={contohStep === 0 ? onSoalDone : undefined} readOnly={readOnly} savedAnswer={savedAnswers["contoh_1"]} />}
-        {contohStep >= 1 && <Contoh2 onSoalDone={contohStep === 1 ? onSoalDone : undefined} readOnly={readOnly} savedAnswer={savedAnswers["contoh_2"]} />}
-        {contohStep >= 2 && <Contoh3 onSoalDone={contohStep === 2 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={{ kasus1: savedAnswers["contoh_3_kasus1"], kasus2: savedAnswers["contoh_3_kasus2"], total: savedAnswers["contoh_3_total"] }} />}
+        {contohStep >= 0 && <Contoh1 onSoalDone={contohStep === 0 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={savedAnswers} />}
+        {contohStep >= 1 && <Contoh2 onSoalDone={contohStep === 1 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={savedAnswers} />}
+        {contohStep >= 2 && <Contoh3 onSoalDone={contohStep === 2 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={savedAnswers} />}
         {contohStep >= 3 && <Contoh4 onSoalDone={contohStep === 3 ? onSoalDone : undefined} readOnly={readOnly} savedAnswer={savedAnswers["contoh_4"]} />}
-        {contohStep >= 4 && <Contoh5 onSoalDone={contohStep === 4 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={{ siklis5: savedAnswers["contoh_5_siklis5"], dalamBlok: savedAnswers["contoh_5_dalamBlok"], total: savedAnswers["contoh_5_total"] }} />}
-        {contohStep >= 5 && <Contoh6 onSoalDone={contohStep === 5 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={{ kasus1: savedAnswers["contoh_6_kasus1"], kasus2: savedAnswers["contoh_6_kasus2"], total: savedAnswers["contoh_6_total"] }} />}
-        {contohStep >= 6 && <Contoh7 onSoalDone={contohStep === 6 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={{ totalSemua: savedAnswers["contoh_7_totalSemua"], berdekatan: savedAnswers["contoh_7_berdekatan"], totalAkhir: savedAnswers["contoh_7_totalAkhir"] }} />}
+        {contohStep >= 4 && <Contoh5 onSoalDone={contohStep === 4 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={savedAnswers} />}
+        {contohStep >= 5 && <Contoh6 onSoalDone={contohStep === 5 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={savedAnswers} />}
+        {contohStep >= 6 && <Contoh7 onSoalDone={contohStep === 6 ? onSoalDone : undefined} readOnly={readOnly} savedAnswers={savedAnswers} />}
       </div>
  
       <div className="border-b-2 border-[#34673966] mt-4" />
