@@ -2451,8 +2451,8 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
                 </thead>
                 <tbody className="divide-y divide-[#34673915]">
                   {[
-                    { label: "A₁A₂D", tanpa: "ADA", ket: "—", ro: true },
-                    { label: "A₂A₁D", tanpa: "ADA", ket: "Sama dengan baris 1", ro: true },
+                    { label: "A₁A₂D", tanpa: "AAD", ket: "—", ro: true },
+                    { label: "A₂A₁D", tanpa: "AAD", ket: "Sama dengan baris 1", ro: true },
                     { label: "A₁DA₂", tanpa: "ADA", ket: "—", ro: true },
                     { label: "A₂DA₁", tanpa: null, ket: "Sama dengan baris 3", ro: false, val: adaR4Tanpa, set: setAdaR4Tanpa },
                     { label: "DA₁A₂", tanpa: "DAA", ket: "—", ro: true },
