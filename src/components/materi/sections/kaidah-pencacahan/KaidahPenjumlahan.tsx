@@ -906,11 +906,13 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
 
 function PenjelasanKonsep({ onNext, conceptId }: ReadOnlySectionProps & { conceptId?: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleLanjutkan() {
     if (!conceptId || isSubmitting) return;
 
     setIsSubmitting(true);
+    setError(null);
     try {
       const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
@@ -923,15 +925,20 @@ function PenjelasanKonsep({ onNext, conceptId }: ReadOnlySectionProps & { concep
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Failed to update section status");
+        throw new Error(data?.error ?? "Gagal menyimpan progres section");
       }
 
       onNext?.();
     } catch (err) {
       console.error("[PenjelasanKonsep] Failed to complete section:", err);
-      // Still allow local navigation even if server fails --
-      // the status update will be retried on next page load via seeding check.
-      onNext?.();
+      // JANGAN lanjut lokal jika server gagal — mencegah status DB
+      // (penjelasan_konsep) tertinggal 'unlocked' saat section berikutnya
+      // sudah dikerjakan. Siswa harus retry sampai tersimpan.
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal menyimpan progres. Coba lagi ya!"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -999,6 +1006,11 @@ function PenjelasanKonsep({ onNext, conceptId }: ReadOnlySectionProps & { concep
         </div>
       </div>
       {onNext && <NextButton onClick={handleLanjutkan} />}
+      {error && (
+        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+          ⚠️ {error}
+        </p>
+      )}
       <div className="border-b-2 border-[#34673966] mt-4" />
     </article>
   );
@@ -1774,13 +1786,10 @@ export default function KaidahPenjumlahan({
   } {
     const cs: Record<number, boolean> = { ...initialCompletedSections };
 
-    // Section 2 (Penjelasan Konsep, read-only) — infer dari section 1 atau 5
-    if (cs[1] || cs[5]) cs[2] = true;
+    // Section 2 (Penjelasan Konsep, read-only) — status dari DB adalah
+    // sumber kebenaran. JANGAN di-infer dari section lain.
     // Section 4 (Mengapa Corner, read-only) — infer dari section 5
     if (cs[5]) cs[4] = true;
-    // Section 3 (Contoh Soal) — now tracked by DB via contoh_soal_bertahap_attempts,
-    // also infer from section 5 as fallback
-    if (cs[5] && !cs[3]) cs[3] = true;
 
     // Cari section pertama yang belum complete
     let firstUncompleted = TOTAL_SECTIONS - 1;

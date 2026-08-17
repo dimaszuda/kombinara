@@ -439,6 +439,14 @@ export async function seedKombinasiSectionStatus(
  * button-click completion for penjelasan_konsep).
  *
  * Rules:
+ * 0. SEQUENTIAL INTEGRITY: Before marking the current section completed,
+ *    any same-concept predecessor section that is not yet completed is
+ *    backfilled as completed. This guarantees the DB never contains a
+ *    completed section whose predecessor is still 'locked'/'unlocked'
+ *    (root-cause fix for the bug: "penjelasan_konsep unlocked while
+ *    contoh_soal completed", caused by client-side inference / fail-open
+ *    navigation). Self-healing: even a buggy client cannot corrupt the
+ *    sequential invariant.
  * 1. UPSERT current section: status = 'completed', completed_at = NOW().
  *    If the row doesn't exist (e.g., seed hasn't run yet), it will be created.
  * 2. Look up the next step from MATERI_SECTIONS (index + 1).
@@ -482,6 +490,67 @@ export async function completeSectionAndUnlockNext(
     throw new Error(
       `[completeSectionAndUnlockNext] Unknown section: concept_id=${conceptId}, section=${section}`
     );
+  }
+
+  // ── 0. Sequential integrity: backfill same-concept predecessors ──
+  // Collect ALL sections of the SAME concept that come before the current
+  // one. If any of them is missing or not completed, mark it completed
+  // before proceeding. This keeps the prefix invariant:
+  //   section N completed ⇒ sections 0..N-1 (same concept) completed.
+  const predecessors: { conceptId: string; section: string }[] = [];
+  for (let i = currentIndex - 1; i >= 0; i--) {
+    const entry = ALL_SECTIONS[i];
+    if (entry.conceptId !== conceptId) break;
+    predecessors.push({ conceptId: entry.conceptId, section: entry.section });
+  }
+
+  if (predecessors.length > 0) {
+    const predSections = predecessors.map((p) => p.section);
+    const existingRows = await db.studentSectionStatus.findMany({
+      where: {
+        studentId,
+        conceptId,
+        section: { in: predSections },
+      },
+      select: { section: true, status: true },
+    });
+    const completedSet = new Set(
+      existingRows
+        .filter((r) => r.status === "completed")
+        .map((r) => r.section)
+    );
+    const missing = predecessors.filter((p) => !completedSet.has(p.section));
+
+    if (missing.length > 0) {
+      const now = new Date();
+      for (const pred of missing) {
+        await db.studentSectionStatus.upsert({
+          where: {
+            studentId_conceptId_section: {
+              studentId,
+              conceptId,
+              section: pred.section,
+            },
+          },
+          create: {
+            studentId,
+            conceptId,
+            section: pred.section,
+            status: "completed",
+            completedAt: now,
+          },
+          update: {
+            status: "completed",
+            completedAt: now,
+          },
+        });
+      }
+      console.warn(
+        `[completeSectionAndUnlockNext] Backfilled ${missing.length} predecessor section(s) ` +
+          `for student=${studentId} concept=${conceptId} before=${section}: ` +
+          missing.map((m) => m.section).join(", ")
+      );
+    }
   }
 
   // ── 1. Mark current section as completed (upsert — resilient to missing rows) ──

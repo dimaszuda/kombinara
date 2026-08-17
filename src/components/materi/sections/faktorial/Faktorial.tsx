@@ -1019,9 +1019,11 @@ function AktivitasDeepLearning({ readOnly = false, onComplete, savedData }: Sect
 
 function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleNext = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
@@ -1033,13 +1035,21 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        console.error("[penjelasan-konsep] Complete failed:", res.status, data?.error);
+        throw new Error(data?.error ?? "Gagal menyimpan progres section");
       }
+      if (onNext) onNext();
     } catch (err) {
       console.error("[penjelasan-konsep] Complete error:", err);
+      // JANGAN lanjut lokal jika server gagal — mencegah status DB
+      // (penjelasan_konsep) tertinggal 'unlocked' saat section berikutnya
+      // sudah dikerjakan. Siswa harus retry sampai tersimpan.
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal menyimpan progres. Coba lagi ya!"
+      );
     } finally {
       setLoading(false);
-      if (onNext) onNext();
     }
   };
 
@@ -1109,6 +1119,11 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
       <div className="border-b-2 border-[#34673966] mt-4" />
 
       {onNext && <NextButton onClick={handleNext} loading={loading} />}
+      {error && (
+        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+          ⚠️ {error}
+        </p>
+      )}
     </article>
   );
 }
@@ -1651,14 +1666,17 @@ function MengapaCorner({ readOnly = false, onNext, savedData }: { readOnly?: boo
       }).catch((err) => console.error("[mengapa-corner] DB save error:", err));
 
       // 3. Mark mengapa_corner as completed in student_section_status
-      fetch("/api/student-section-status/complete", {
+      const completeRes = await fetch("/api/student-section-status/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           concept_id: "faktorial",
           section: "mengapa_corner",
         }),
-      }).catch((err) => console.error("[mengapa-corner] complete section error:", err));
+      });
+      if (!completeRes.ok) {
+        throw new Error("Gagal menyimpan progres section");
+      }
 
       setSaved(true);
 
@@ -2243,10 +2261,9 @@ export default function FaktorialContent({
   } {
     const cs: Record<number, boolean> = { ...initialCompletedSections };
 
-    // Section 2 (Penjelasan Konsep, read-only) — infer dari section 3 atau 5
-    if (cs[3] || cs[5]) cs[2] = true;
-    // Section 4 (Mengapa Corner, read-only) — infer dari section 5
-    if (cs[5]) cs[4] = true;
+    // Section 2 (Penjelasan Konsep) dan section 4 (Mengapa Corner) adalah
+    // DB-tracked read-only sections — status dari DB adalah sumber kebenaran.
+    // JANGAN di-infer dari section lain.
 
     // Cari section pertama yang belum complete
     let firstUncompleted = TOTAL_SECTIONS - 1;
@@ -2282,13 +2299,8 @@ export default function FaktorialContent({
   function markComplete(sectionIndex: number) {
     setCompletedSections((prev) => {
       const next = { ...prev, [sectionIndex]: true };
-      // Auto-infer read-only sections
-      if (sectionIndex === 3 || sectionIndex === 5) {
-        next[2] = true; // penjelasan_konsep inferred from contoh_soal or refleksi
-      }
-      if (sectionIndex === 5) {
-        next[4] = true; // mengapa_corner
-      }
+      // DB-tracked sections (penjelasan_konsep, mengapa_corner) TIDAK
+      // di-infer di sini — statusnya hanya dari DB / tombol eksplisit.
       return next;
     });
     if (sectionIndex < TOTAL_SECTIONS - 1) {

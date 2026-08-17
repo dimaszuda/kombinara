@@ -1909,9 +1909,11 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
 
 function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleNext = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
@@ -1923,13 +1925,18 @@ function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        console.error("[penjelasan-konsep-1] Complete failed:", res.status, data?.error);
+        throw new Error(data?.error ?? "Gagal menyimpan progres section");
       }
+      if (onNext) onNext();
     } catch (err) {
       console.error("[penjelasan-konsep-1] Complete error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal menyimpan progres. Coba lagi ya!"
+      );
     } finally {
       setLoading(false);
-      if (onNext) onNext();
     }
   };
 
@@ -1995,6 +2002,11 @@ function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
       <div className="border-b-2 border-[#34673966] mt-4" />
 
       {onNext && <NextButton onClick={handleNext} loading={loading} />}
+      {error && (
+        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+          ⚠️ {error}
+        </p>
+      )}
     </article>
   );
 }
@@ -2690,9 +2702,11 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
 
 function PenjelasanKonsep2({ onNext }: { onNext?: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleNext = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
@@ -2704,13 +2718,18 @@ function PenjelasanKonsep2({ onNext }: { onNext?: () => void }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        console.error("[penjelasan-konsep-2] Complete failed:", res.status, data?.error);
+        throw new Error(data?.error ?? "Gagal menyimpan progres section");
       }
+      if (onNext) onNext();
     } catch (err) {
       console.error("[penjelasan-konsep-2] Complete error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal menyimpan progres. Coba lagi ya!"
+      );
     } finally {
       setLoading(false);
-      if (onNext) onNext();
     }
   };
 
@@ -2743,6 +2762,11 @@ function PenjelasanKonsep2({ onNext }: { onNext?: () => void }) {
       <div className="border-b-2 border-[#34673966] mt-4" />
 
       {onNext && <NextButton onClick={handleNext} loading={loading} />}
+      {error && (
+        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+          ⚠️ {error}
+        </p>
+      )}
     </article>
   );
 }
@@ -3323,9 +3347,11 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
 
 function PenjelasanKonsep3({ onNext }: { onNext?: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleNext = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/student-section-status/complete", {
         method: "POST",
@@ -3337,13 +3363,18 @@ function PenjelasanKonsep3({ onNext }: { onNext?: () => void }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        console.error("[penjelasan-konsep-3] Complete failed:", res.status, data?.error);
+        throw new Error(data?.error ?? "Gagal menyimpan progres section");
       }
+      if (onNext) onNext();
     } catch (err) {
       console.error("[penjelasan-konsep-3] Complete error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal menyimpan progres. Coba lagi ya!"
+      );
     } finally {
       setLoading(false);
-      if (onNext) onNext();
     }
   };
 
@@ -3401,6 +3432,11 @@ function PenjelasanKonsep3({ onNext }: { onNext?: () => void }) {
       <div className="border-b-2 border-[#34673966] mt-4" />
 
       {onNext && <NextButton onClick={handleNext} loading={loading} />}
+      {error && (
+        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+          ⚠️ {error}
+        </p>
+      )}
     </article>
   );
 }
@@ -5136,10 +5172,8 @@ export default function PermutasiContent({
   } {
     const cs: Record<number, boolean> = { ...initialCompletedSections };
 
-    // Penjelasan Konsep sections are read-only; infer from LATER sections only (backward)
-    if (cs[3]) cs[2] = true;  // PK1 → inferred if next concept's eksplorasi (3) done
-    if (cs[6]) cs[5] = true;  // PK2 → inferred if next concept's eksplorasi (6) done
-    if (cs[9]) cs[8] = true;  // PK3 → inferred if contoh-soal (9) done
+    // Penjelasan Konsep sections adalah DB-tracked read-only sections —
+    // status dari DB adalah sumber kebenaran. JANGAN di-infer dari section lain.
 
     // Cari section pertama yang belum complete
     let firstUncompleted = TOTAL_PERMUTASI_SECTIONS - 1;
@@ -5185,10 +5219,8 @@ export default function PermutasiContent({
   function markComplete(sectionIndex: number) {
     setCompletedSections((prev) => {
       const next = { ...prev, [sectionIndex]: true };
-      // Auto-infer read-only penjelasan_konsep sections (backward only)
-      if (sectionIndex === 3) next[2] = true;  // eksplorasi2 done → PK1 must be done
-      if (sectionIndex === 6) next[5] = true;  // eksplorasi3 done → PK2 must be done
-      if (sectionIndex === 9) next[8] = true;  // contoh-soal done → PK3 must be done
+      // DB-tracked penjelasan_konsep sections TIDAK di-infer di sini —
+      // statusnya hanya dari DB / tombol eksplisit.
       return next;
     });
     if (sectionIndex < TOTAL_PERMUTASI_SECTIONS - 1) {

@@ -1092,20 +1092,38 @@ function AktivitasDeepLearning({
 
 function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
   const [completing, setCompleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleNext = async () => {
     setCompleting(true);
+    setError(null);
     try {
-      await saveAnswer({
-        section: "penjelasan_konsep",
-        questionKey: "_complete",
-        answer: {},
-        isFinalInSection: true,
-        action: "complete",
+      const res = await fetch("/api/student-section-status/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept_id: "kombinasi",
+          section: "penjelasan_konsep",
+        }),
       });
-    } catch { /* ignore */ }
-    setCompleting(false);
-    if (onNext) onNext();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Gagal menyimpan progres section");
+      }
+      if (onNext) onNext();
+    } catch (err) {
+      console.error("[penjelasan-konsep] Complete error:", err);
+      // JANGAN lanjut lokal jika server gagal — mencegah status DB
+      // (penjelasan_konsep) tertinggal 'unlocked' saat section berikutnya
+      // sudah dikerjakan. Siswa harus retry sampai tersimpan.
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Gagal menyimpan progres. Coba lagi ya!"
+      );
+    } finally {
+      setCompleting(false);
+    }
   };
 
   return (
@@ -1194,6 +1212,11 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
 
       <div className="border-b-2 border-[#34673966] mt-4" />
       {onNext && <NextButton onClick={handleNext} loading={completing} />}
+      {error && (
+        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+          ⚠️ {error}
+        </p>
+      )}
     </article>
   );
 }
@@ -2268,8 +2291,8 @@ export default function KombinasiContent({
   } {
     const cs: Record<number, boolean> = { ...initialCompletedSections };
 
-    // Section 2 (Penjelasan Konsep, read-only) — infer dari section 3 atau 4 atau 6
-    if (cs[3] || cs[4] || cs[6]) cs[2] = true;
+    // Section 2 (Penjelasan Konsep) adalah DB-tracked read-only section —
+    // status dari DB adalah sumber kebenaran. JANGAN di-infer dari section lain.
     // Section 5 (Permutasi vs Kombinasi, read-only) — infer dari section 6
     if (cs[6]) cs[5] = true;
 
@@ -2307,12 +2330,9 @@ export default function KombinasiContent({
   function markComplete(sectionIndex: number) {
     setCompletedSections((prev) => {
       const next = { ...prev, [sectionIndex]: true };
-      // Auto-infer read-only sections
-      if (sectionIndex === 3 || sectionIndex === 4 || sectionIndex === 6) {
-        next[2] = true; // penjelasan_konsep inferred
-      }
+      // penjelasan_konsep TIDAK di-infer di sini — DB adalah sumber kebenaran.
       if (sectionIndex === 6) {
-        next[5] = true; // permutasi_vs_kombinasi inferred
+        next[5] = true; // permutasi_vs_kombinasi (UI-only) inferred
       }
       return next;
     });

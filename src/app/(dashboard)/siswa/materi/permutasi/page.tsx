@@ -104,22 +104,22 @@ export default function PermutasiPage() {
         if (c1Eksplorasi === "completed") cs[0] = true;
         // Section 1: aktivitas deep learning (c1)
         if (c1Deep === "completed") cs[1] = true;
-        // Section 2: penjelasan konsep (c1) — read-only, inferred from section 1 or 3
-        if (c1Penjelasan === "completed" || cs[1]) cs[2] = true;
+        // Section 2: penjelasan konsep (c1) — read-only, status dari DB
+        if (c1Penjelasan === "completed") cs[2] = true;
 
         // Section 3: eksplorasi kontekstual (c2)
         if (c2Eksplorasi === "completed") cs[3] = true;
         // Section 4: aktivitas deep learning (c2)
         if (c2Deep === "completed") cs[4] = true;
-        // Section 5: penjelasan konsep (c2) — read-only
-        if (c2Penjelasan === "completed" || cs[4]) cs[5] = true;
+        // Section 5: penjelasan konsep (c2) — read-only, status dari DB
+        if (c2Penjelasan === "completed") cs[5] = true;
 
         // Section 6: eksplorasi kontekstual (c3)
         if (c3Eksplorasi === "completed") cs[6] = true;
         // Section 7: aktivitas deep learning (c3)
         if (c3Deep === "completed") cs[7] = true;
-        // Section 8: penjelasan konsep (c3) — read-only
-        if (c3Penjelasan === "completed" || cs[7]) cs[8] = true;
+        // Section 8: penjelasan konsep (c3) — read-only, status dari DB
+        if (c3Penjelasan === "completed") cs[8] = true;
         // Section 9: contoh soal (c3)
         if (c3Contoh === "completed") cs[9] = true;
         // Section 10: refleksi mini (c3)
@@ -146,11 +146,14 @@ export default function PermutasiPage() {
     const cs = completedSections;
 
     if (cs[0]) keys.add("permutasi-1a");
-    if (cs[1]) { keys.add("permutasi-1b"); keys.add("permutasi-1c"); }
+    if (cs[1]) keys.add("permutasi-1b");
+    if (cs[2]) keys.add("permutasi-1c");
     if (cs[3]) keys.add("permutasi-2a");
-    if (cs[4]) { keys.add("permutasi-2b"); keys.add("permutasi-2c"); }
+    if (cs[4]) keys.add("permutasi-2b");
+    if (cs[5]) keys.add("permutasi-2c");
     if (cs[6]) keys.add("permutasi-3a");
-    if (cs[7]) { keys.add("permutasi-3b"); keys.add("permutasi-3c"); }
+    if (cs[7]) keys.add("permutasi-3b");
+    if (cs[8]) keys.add("permutasi-3c");
     if (cs[9]) keys.add("permutasi-3d");
     if (cs[10]) { keys.add("permutasi-3e"); keys.add("permutasi-3f"); }
     if (allDone) {
@@ -162,10 +165,13 @@ export default function PermutasiPage() {
     let active: string | null = null;
     if (!cs[0]) active = "permutasi-1a";
     else if (!cs[1]) active = "permutasi-1b";
+    else if (!cs[2]) active = "permutasi-1c";
     else if (!cs[3]) active = "permutasi-2a";
     else if (!cs[4]) active = "permutasi-2b";
+    else if (!cs[5]) active = "permutasi-2c";
     else if (!cs[6]) active = "permutasi-3a";
     else if (!cs[7]) active = "permutasi-3b";
+    else if (!cs[8]) active = "permutasi-3c";
     else if (!cs[9]) active = "permutasi-3d";
     else if (!cs[10]) active = "permutasi-3f";
     else active = null;

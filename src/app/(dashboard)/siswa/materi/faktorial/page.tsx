@@ -88,7 +88,8 @@ export default function FaktorialPage() {
 
     // Section index → TOC key mapping
     if (cs[0]) keys.add("faktorial-1"); // eksplorasi
-    if (cs[1]) { keys.add("faktorial-2"); keys.add("faktorial-3"); } // deep learning → implies penjelasan done
+    if (cs[1]) keys.add("faktorial-2"); // deep learning
+    if (cs[2]) keys.add("faktorial-3"); // penjelasan konsep
     if (cs[3]) keys.add("faktorial-4"); // contoh soal
     if (cs[4]) keys.add("faktorial-5"); // mengapa corner
     if (cs[5]) { keys.add("faktorial-6"); keys.add("faktorial-7"); } // refleksi → implies aktivitas & refleksi done
@@ -98,6 +99,7 @@ export default function FaktorialPage() {
     let active: string | null = null;
     if (!cs[0]) active = "faktorial-1";
     else if (!cs[1]) active = "faktorial-2";
+    else if (!cs[2]) active = "faktorial-3";
     else if (!cs[3]) active = "faktorial-4";
     else if (!cs[4]) active = "faktorial-5";
     else if (!cs[5]) active = "faktorial-7";

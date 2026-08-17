@@ -258,7 +258,8 @@ export default function MateriDetailPage({
     // Kaidah Penjumlahan
     const pj = penjumlahanCompletedSections;
     if (pj[0]) keys.add("penjumlahan-1");
-    if (pj[1]) { keys.add("penjumlahan-2"); keys.add("penjumlahan-3"); }
+    if (pj[1]) keys.add("penjumlahan-2");
+    if (pj[2]) keys.add("penjumlahan-3");
     if (pj[3]) { keys.add("penjumlahan-4"); keys.add("penjumlahan-5"); }
     if (pj[5]) keys.add("penjumlahan-6");
     if (passKaidahPenjumlahan) keys.add("penjumlahan");
@@ -266,7 +267,8 @@ export default function MateriDetailPage({
     // Kaidah Perkalian
     const pk = perkalianCompletedSections;
     if (pk[0]) keys.add("perkalian-1");
-    if (pk[1]) { keys.add("perkalian-2"); keys.add("perkalian-3"); }
+    if (pk[1]) keys.add("perkalian-2");
+    if (pk[2]) keys.add("perkalian-3");
     if (pk[3]) { keys.add("perkalian-4"); keys.add("perkalian-5"); }
     if (pk[7]) { keys.add("perkalian-6"); keys.add("perkalian-7"); keys.add("perkalian-8"); }
     if (passKaidahPerkalian) keys.add("perkalian");
