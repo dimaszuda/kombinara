@@ -208,7 +208,6 @@ export const TantanganPrompt = async (
 
 const StepByStepItemSchema = z.object({
   score: z.number().min(0).max(3),
-  reasoning: z.string(),
 });
 
 const AsesmenFormatifItemSchema = z.object({
@@ -230,16 +229,49 @@ const AsesmenFormatifItemSchema = z.object({
   feedback: z.string(),
 });
 
+const AsesmenFormatifBatchSchema = z.array(AsesmenFormatifItemSchema);
+
 export type AsesmenFormatifItemResult = z.infer<typeof AsesmenFormatifItemSchema>;
 
-export const AsesmenFormatifEvaluatePrompt = async (
-  soal: string,
-  levelSoal: string,
-  caraHitung: string,
-  jawabanAkhir: string,
-  isJawabanAkhirTrue: boolean,
-  caraGroundTruth: string
-): Promise<AsesmenFormatifItemResult> => {
+/** Input satu soal untuk evaluasi batch asesmen formatif. */
+export interface AsesmenFormatifEvalItemInput {
+  soal: string;
+  levelSoal: string;
+  caraHitung: string;
+  jawabanAkhir: string;
+  isJawabanAkhirTrue: boolean;
+  caraGroundTruth: string;
+}
+
+/** Hasil fallback per soal saat AI gagal (bentuk konsisten dengan schema). */
+function buildAsesmenFormatifFallback(): AsesmenFormatifItemResult {
+  return {
+    step_by_step: {
+      identifikasi_kondisi: { score: 0 },
+      pemilihan_rumus: { score: 0 },
+      eksekusi_perhitungan: { score: 0 },
+      justifikasi: { score: 0 },
+    },
+    process_raw_score: 0,
+    process_scaled_score: 0,
+    final_answer_score: 0,
+    total_score: 0,
+    guardrail_applied: null,
+    mistake_category: null,
+    mistake_detail: "Gagal mengevaluasi jawaban.",
+    feedback: "Maaf, ada kendala saat mengevaluasi jawabanmu. Coba lagi nanti ya!",
+  };
+}
+
+/**
+ * Evaluasi Asesmen Formatif — VERSI BATCH.
+ * Semua soal dalam satu submission dikirim dalam SATU panggilan AI,
+ * sehingga system prompt hanya dibayar sekali (bukan per soal).
+ * Hasil dikembalikan sebagai array dengan urutan sama dengan input.
+ */
+export const AsesmenFormatifEvaluateBatchPrompt = async (
+  items: AsesmenFormatifEvalItemInput[]
+): Promise<AsesmenFormatifItemResult[]> => {
   const response = await client.responses.parse({
     model: "gpt-4o",
     temperature: 0.4,
@@ -248,38 +280,29 @@ export const AsesmenFormatifEvaluatePrompt = async (
       {
         role: "user",
         content: PROMPTS.AsesmenFormatif.user(
-          soal,
-          levelSoal,
-          caraHitung,
-          jawabanAkhir,
-          isJawabanAkhirTrue,
-          caraGroundTruth
+          items.map((it) => ({
+            soal: it.soal,
+            level_soal: it.levelSoal,
+            cara_hitung: it.caraHitung,
+            jawaban_akhir: it.jawabanAkhir,
+            is_jawaban_akhir_true: it.isJawabanAkhirTrue,
+            cara_ground_truth: it.caraGroundTruth,
+          }))
         ),
       },
     ],
     text: {
-      format: zodTextFormat(AsesmenFormatifItemSchema, "asesmen_formatif_eval"),
+      format: zodTextFormat(AsesmenFormatifBatchSchema, "asesmen_formatif_eval_batch"),
     },
   });
 
-  return (
-    response.output_parsed ?? {
-      step_by_step: {
-        identifikasi_kondisi: { score: 0, reasoning: "Evaluasi gagal" },
-        pemilihan_rumus: { score: 0, reasoning: "Evaluasi gagal" },
-        eksekusi_perhitungan: { score: 0, reasoning: "Evaluasi gagal" },
-        justifikasi: { score: 0, reasoning: "Evaluasi gagal" },
-      },
-      process_raw_score: 0,
-      process_scaled_score: 0,
-      final_answer_score: 0,
-      total_score: 0,
-      guardrail_applied: null,
-      mistake_category: null,
-      mistake_detail: "Gagal mengevaluasi jawaban.",
-      feedback: "Maaf, ada kendala saat mengevaluasi jawabanmu. Coba lagi nanti ya!",
-    }
-  );
+  const parsed = response.output_parsed;
+  if (parsed && Array.isArray(parsed)) {
+    // Jaga panjang array konsisten dengan jumlah soal; kekosongan → fallback.
+    return items.map((_, i) => parsed[i] ?? buildAsesmenFormatifFallback());
+  }
+
+  return items.map(() => buildAsesmenFormatifFallback());
 };
 
 // ---------------------------------------------------------------------------
@@ -476,12 +499,9 @@ function buildSectionContext(
   return `-- Konteks pembelajaran siswa --
 ${parts.join("\n")}
 
-Siswa TIDAK menyertakan teks yang dipilih (tidak melakukan highlight/seleksi teks). Gunakan konteks section di atas untuk memahami di mana posisi siswa dalam materi.
-- Section dengan tanda ✓ sudah selesai dikerjakan siswa.
-- Section dengan tanda ▶ sedang aktif (sedang dikerjakan).
-- Section dengan tanda ○ sudah terbuka tapi belum selesai.
-- Section yang TIDAK muncul dalam daftar di atas BELUM bisa diakses siswa (masih terkunci).
-- Jika siswa meminta rangkuman, rangkum hanya section yang SUDAH SELESAI (✓) saja — jangan membocorkan isi section yang sedang aktif (▶) atau yang belum selesai (○).`;
+Arti tanda: ✓ selesai, ▶ sedang dikerjakan, ○ terbuka tapi belum selesai.
+- Section yang TIDAK ada dalam daftar masih terkunci — jangan dibahas.
+- Untuk rangkuman, rangkum hanya section bertanda ✓ — jangan bocorkan isi section ▶ atau ○.`;
 }
 
 // ─── Shared helper: build messages array ──────────────────────────────────

@@ -21,8 +21,8 @@
  *   End:    data: [DONE]\n\n
  *
  * Features:
- * - Sliding window memory (10 pasang percakapan terakhir)
- * - Semantic cache via Upstash Vector + Redis
+ * - Sliding window memory (5 pesan percakapan terakhir)
+ * - Exact-match cache (Redis) + Semantic cache (Upstash Vector + Redis)
  * - Persist semua percakapan ke ai_messages (user + assistant)
  * - SSE streaming untuk pengalaman chat real-time
  */
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
     // ── 3. Simpan pesan USER ke DB (fire-and-forget) ───────────
     persistMessage(studentId, convId, "user", trimmedQuestion);
 
-    // ── 4. Validate history & build sliding window ──────────────
+    // ── 4. Validate history & build sliding window (5 pesan terakhir) ──
     let parsedHistory: ChatHistoryItem[] | undefined;
     if (Array.isArray(history)) {
       parsedHistory = history
@@ -112,7 +112,7 @@ export async function POST(req: Request) {
             (item as ChatHistoryItem).role &&
             (item as ChatHistoryItem).content
         )
-        .slice(-10) as ChatHistoryItem[];
+        .slice(-5) as ChatHistoryItem[];
     }
 
     // ── 5. Semantic Cache Check ─────────────────────────────────
@@ -127,6 +127,17 @@ export async function POST(req: Request) {
     //  STREAMING PATH (SSE)
     // ══════════════════════════════════════════════════════════════
     if (useStream === true) {
+      // ── Cek cache SEBELUM masuk streaming (hemat panggilan AI) ──
+      const cachedExact = await semanticCache.getExact(cacheQuestion, lab);
+      const cachedStream =
+        cachedExact ?? (await semanticCache.get(cacheQuestion, lab));
+
+      if (cachedStream) {
+        // Simpan jawaban ASSISTANT dari cache ke DB (fire-and-forget)
+        persistMessage(studentId, convId, "assistant", cachedStream.answer);
+        return streamCachedAnswer(cachedStream.answer);
+      }
+
       const encoder = new TextEncoder();
 
       const stream = new ReadableStream({
@@ -190,7 +201,10 @@ export async function POST(req: Request) {
     // ══════════════════════════════════════════════════════════════
     //  NON-STREAMING PATH (existing behaviour)
     // ══════════════════════════════════════════════════════════════
-    const cached = await semanticCache.get(cacheQuestion, lab);
+    // Layer 1: exact-match cache (cepat, tanpa embedding)
+    const cachedExact = await semanticCache.getExact(cacheQuestion, lab);
+    // Layer 2: semantic cache (embedding + vector similarity)
+    const cached = cachedExact ?? (await semanticCache.get(cacheQuestion, lab));
     if (cached) {
       // Simpan jawaban ASSISTANT dari cache ke DB (fire-and-forget)
       persistMessage(studentId, convId, "assistant", cached.answer);
@@ -228,6 +242,38 @@ export async function POST(req: Request) {
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Stream jawaban CACHE sebagai SSE dengan format yang sama seperti
+ * streaming AI biasa, supaya frontend tidak perlu berubah sama sekali.
+ * Jawaban dipecah per 64 karakter biar efek ketik tetap terasa.
+ */
+function streamCachedAnswer(answer: string): Response {
+  const encoder = new TextEncoder();
+  const chunkSize = 64;
+
+  const stream = new ReadableStream({
+    start(controller) {
+      for (let i = 0; i < answer.length; i += chunkSize) {
+        const chunk = answer.slice(i, i + chunkSize);
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ v: chunk })}\n\n`)
+        );
+      }
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}
 
 /**
  * Simpan satu pesan ke tabel ai_messages.

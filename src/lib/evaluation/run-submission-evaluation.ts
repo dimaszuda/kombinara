@@ -6,7 +6,10 @@
  * `src/app/api/asesmen-formatif/evaluate/route.ts`.
  */
 
-import { AsesmenFormatifEvaluatePrompt } from "../ai/client";
+import {
+  AsesmenFormatifEvaluateBatchPrompt,
+  type AsesmenFormatifEvalItemInput,
+} from "../ai/client";
 import {
   getSoalData,
   LEVEL_MAP,
@@ -122,16 +125,15 @@ function gradeFaktorialSoal4(jawabanAkhir: string): Record<string, unknown> {
   const finalAnswer = Math.round(fraction * weights.final * 100) / 100;
   const totalScore = Math.round(fraction * 10 * 100) / 100;
   const componentScore = Math.round(fraction * 3);
-  const reasoning = `Penilaian otomatis: ${correct}/${marks.length} penilaian benar/salah tepat.`;
 
   if (!answeredAny) {
     return {
       question_number: 4,
       step_by_step: {
-        identifikasi_kondisi: { score: 0, reasoning: "Tidak dijawab" },
-        pemilihan_rumus: { score: 0, reasoning: "Tidak dijawab" },
-        eksekusi_perhitungan: { score: 0, reasoning: "Tidak dijawab" },
-        justifikasi: { score: 0, reasoning: "Tidak dijawab" },
+        identifikasi_kondisi: { score: 0 },
+        pemilihan_rumus: { score: 0 },
+        eksekusi_perhitungan: { score: 0 },
+        justifikasi: { score: 0 },
       },
       process_raw_score: 0,
       process_scaled_score: 0,
@@ -147,10 +149,10 @@ function gradeFaktorialSoal4(jawabanAkhir: string): Record<string, unknown> {
   return {
     question_number: 4,
     step_by_step: {
-      identifikasi_kondisi: { score: componentScore, reasoning },
-      pemilihan_rumus: { score: componentScore, reasoning },
-      eksekusi_perhitungan: { score: componentScore, reasoning },
-      justifikasi: { score: componentScore, reasoning },
+      identifikasi_kondisi: { score: componentScore },
+      pemilihan_rumus: { score: componentScore },
+      eksekusi_perhitungan: { score: componentScore },
+      justifikasi: { score: componentScore },
     },
     process_raw_score: correct * 3,
     process_scaled_score: processScaled,
@@ -169,14 +171,26 @@ function gradeFaktorialSoal4(jawabanAkhir: string): Record<string, unknown> {
 
 // ─── Core evaluation ────────────────────────────────────────────────────────────
 
+/** Soal yang menunggu evaluasi AI (dikirim dalam satu panggilan batch). */
+interface PendingAIEval {
+  index: number;
+  questionNumber: number;
+  levelLabel: string;
+  isJawabanAkhirTrue: boolean;
+  input: AsesmenFormatifEvalItemInput;
+}
+
 export async function evaluateAnswers(
   answers: SubmittedAnswer[],
   moduleSlug: string
 ): Promise<EvaluationOutcome> {
   const soalData = getSoalData(moduleSlug);
 
-  // Evaluate each question
-  const perQuestionResults: Record<string, unknown>[] = [];
+  // Evaluate each question.
+  // Soal rule-based langsung dinilai di sini; soal yang butuh AI dikumpulkan
+  // dulu, lalu dikirim dalam SATU panggilan batch (hemat system prompt).
+  const perQuestionResults: (Record<string, unknown> | null)[] = [];
+  const pendingAI: PendingAIEval[] = [];
   let totalScoreSum = 0;
 
   for (const answer of answers) {
@@ -208,10 +222,10 @@ export async function evaluateAnswers(
       perQuestionResults.push({
         question_number: answer.question_number,
         step_by_step: {
-          identifikasi_kondisi: { score: 0, reasoning: "Tidak dijawab" },
-          pemilihan_rumus: { score: 0, reasoning: "Tidak dijawab" },
-          eksekusi_perhitungan: { score: 0, reasoning: "Tidak dijawab" },
-          justifikasi: { score: 0, reasoning: "Tidak dijawab" },
+          identifikasi_kondisi: { score: 0 },
+          pemilihan_rumus: { score: 0 },
+          eksekusi_perhitungan: { score: 0 },
+          justifikasi: { score: 0 },
         },
         process_raw_score: 0,
         process_scaled_score: 0,
@@ -319,10 +333,10 @@ export async function evaluateAnswers(
         perQuestionResults.push({
           question_number: answer.question_number,
           step_by_step: {
-            identifikasi_kondisi: { score: 0, reasoning: "Cara hitung terlalu singkat — tidak bisa dinilai." },
-            pemilihan_rumus: { score: 0, reasoning: "Cara hitung terlalu singkat." },
-            eksekusi_perhitungan: { score: 0, reasoning: "Cara hitung terlalu singkat." },
-            justifikasi: { score: 0, reasoning: "Cara hitung terlalu singkat." },
+            identifikasi_kondisi: { score: 0 },
+            pemilihan_rumus: { score: 0 },
+            eksekusi_perhitungan: { score: 0 },
+            justifikasi: { score: 0 },
           },
           process_raw_score: 0,
           process_scaled_score: 0,
@@ -339,10 +353,10 @@ export async function evaluateAnswers(
         perQuestionResults.push({
           question_number: answer.question_number,
           step_by_step: {
-            identifikasi_kondisi: { score: 0, reasoning: "Cara hitung terlalu singkat untuk dinilai" },
-            pemilihan_rumus: { score: 0, reasoning: "Cara hitung terlalu singkat" },
-            eksekusi_perhitungan: { score: 0, reasoning: "Cara hitung terlalu singkat" },
-            justifikasi: { score: 0, reasoning: "Cara hitung terlalu singkat" },
+            identifikasi_kondisi: { score: 0 },
+            pemilihan_rumus: { score: 0 },
+            eksekusi_perhitungan: { score: 0 },
+            justifikasi: { score: 0 },
           },
           process_raw_score: 0,
           process_scaled_score: 0,
@@ -365,84 +379,110 @@ export async function evaluateAnswers(
       caraHitung = jawabanAkhirClean || "(tidak diisi)";
     }
 
-    // ── Jawaban akhir benar + cara cukup → tetap kirim ke AI ─
+    // ── Kumpulkan untuk evaluasi AI BATCH (satu panggilan per submission) ──
     // AI akan menilai proses secara detail. Prompt sudah dijamin:
     // jika is_jawaban_akhir_true = TRUE → final_answer_score HARUS skor penuh,
     // dan jika proses juga sesuai ground truth → total_score WAJIB 10/10.
-    // Jadi tidak ada fast-path skip — biar AI yang memutuskan.
-
     const levelLabel = LEVEL_MAP[soalRef.level] ?? soalRef.level;
 
-    const result = await AsesmenFormatifEvaluatePrompt(
-      soalRef.question,
+    // Placeholder menjaga urutan hasil sama dengan urutan jawaban siswa.
+    const index = perQuestionResults.length;
+    perQuestionResults.push(null);
+
+    pendingAI.push({
+      index,
+      questionNumber: answer.question_number,
       levelLabel,
-      caraHitung,
-      jawabanAkhir,
       isJawabanAkhirTrue,
-      soalRef.cara
-    );
-
-    // ── FAKTORIAL: grading deterministik ─────────────────────────────
-    // AI sering salah aritmatika skor: contoh nyata di DB — process_raw
-    // sempurna 12/12 tapi final_answer=0 sehingga siswa benar hanya dapat
-    // 6/10, atau process_scaled=8.4 padahal maks 7.
-    // Untuk faktorial, skor dihitung ulang di backend secara deterministik:
-    //   - proses = raw/12 × bobot proses
-    //   - jawaban akhir terverifikasi mesin → skor penuh sesuai bobot
-    //     (guardrail anti-menebak tetap berlaku)
-    //   - jawaban akhir tidak terverifikasi mesin (teks/aljabar) → pakai
-    //     penilaian AI, dibatasi maksimum bobot
-    //   - total = proses + jawaban akhir
-    let finalResult = result;
-    if (moduleSlug === "faktorial") {
-      const weights = SCORE_WEIGHTS[levelLabel] ?? { process: 6, final: 4 };
-      let processScaled: number;
-      let finalAnswer: number;
-      let guardrail = result.guardrail_applied;
-      if (isJawabanAkhirTrue) {
-        // Jawaban akhir terverifikasi mesin → skor penuh. UI baru tidak
-        // mengumpulkan cara hitung terpisah, jadi tidak ada komponen proses
-        // yang bisa dinilai — dan guardrail anti-menebak tidak relevan.
-        processScaled = weights.process;
-        finalAnswer = weights.final;
-        guardrail = null;
-      } else {
-        // Jawaban teks/aljabar yang tidak bisa diverifikasi mesin —
-        // percaya penilaian AI tapi jangan sampai melebihi bobot.
-        processScaled = Math.min(Math.max(0, result.process_scaled_score), weights.process);
-        finalAnswer = Math.min(Math.max(0, result.final_answer_score), weights.final);
-      }
-      const total = Math.min(10, Math.round((processScaled + finalAnswer) * 100) / 100);
-
-      finalResult = {
-        ...result,
-        process_scaled_score: processScaled,
-        final_answer_score: finalAnswer,
-        total_score: total,
-        guardrail_applied: guardrail,
-      };
-    }
-
-    perQuestionResults.push({
-      question_number: answer.question_number,
-      ...finalResult,
+      input: {
+        soal: soalRef.question,
+        levelSoal: levelLabel,
+        caraHitung,
+        jawabanAkhir,
+        isJawabanAkhirTrue,
+        caraGroundTruth: soalRef.cara,
+      },
     });
-
-    // Clamp per-question total_score to 0-10 (safety net)
-    totalScoreSum += Math.min(10, Math.max(0, finalResult.total_score));
   }
 
+  // ── SATU panggilan AI untuk semua soal yang butuh evaluasi ────────
+  if (pendingAI.length > 0) {
+    const batchResults = await AsesmenFormatifEvaluateBatchPrompt(
+      pendingAI.map((p) => p.input)
+    );
+
+    for (let i = 0; i < pendingAI.length; i++) {
+      const p = pendingAI[i];
+      const result = batchResults[i];
+      if (!result) continue; // tidak mungkin terjadi (client menjamin panjang), jaga-jaga
+
+      // ── FAKTORIAL: grading deterministik ─────────────────────────────
+      // AI sering salah aritmatika skor: contoh nyata di DB — process_raw
+      // sempurna 12/12 tapi final_answer=0 sehingga siswa benar hanya dapat
+      // 6/10, atau process_scaled=8.4 padahal maks 7.
+      // Untuk faktorial, skor dihitung ulang di backend secara deterministik:
+      //   - proses = raw/12 × bobot proses
+      //   - jawaban akhir terverifikasi mesin → skor penuh sesuai bobot
+      //     (guardrail anti-menebak tetap berlaku)
+      //   - jawaban akhir tidak terverifikasi mesin (teks/aljabar) → pakai
+      //     penilaian AI, dibatasi maksimum bobot
+      //   - total = proses + jawaban akhir
+      let finalResult = result;
+      if (moduleSlug === "faktorial") {
+        const weights = SCORE_WEIGHTS[p.levelLabel] ?? { process: 6, final: 4 };
+        let processScaled: number;
+        let finalAnswer: number;
+        let guardrail = result.guardrail_applied;
+        if (p.isJawabanAkhirTrue) {
+          // Jawaban akhir terverifikasi mesin → skor penuh. UI baru tidak
+          // mengumpulkan cara hitung terpisah, jadi tidak ada komponen proses
+          // yang bisa dinilai — dan guardrail anti-menebak tidak relevan.
+          processScaled = weights.process;
+          finalAnswer = weights.final;
+          guardrail = null;
+        } else {
+          // Jawaban teks/aljabar yang tidak bisa diverifikasi mesin —
+          // percaya penilaian AI tapi jangan sampai melebihi bobot.
+          processScaled = Math.min(Math.max(0, result.process_scaled_score), weights.process);
+          finalAnswer = Math.min(Math.max(0, result.final_answer_score), weights.final);
+        }
+        const total = Math.min(10, Math.round((processScaled + finalAnswer) * 100) / 100);
+
+        finalResult = {
+          ...result,
+          process_scaled_score: processScaled,
+          final_answer_score: finalAnswer,
+          total_score: total,
+          guardrail_applied: guardrail,
+        };
+      }
+
+      perQuestionResults[p.index] = {
+        question_number: p.questionNumber,
+        ...finalResult,
+      };
+
+      // Clamp per-question total_score to 0-10 (safety net)
+      totalScoreSum += Math.min(10, Math.max(0, finalResult.total_score));
+    }
+  }
+
+  // Semua placeholder harusnya sudah terisi; filter defensif untuk null.
+  const finalResults = perQuestionResults.filter(
+    (r): r is Record<string, unknown> => r !== null
+  );
+
   // Compute overall score (average, scaled to 100), clamped to 0-100
-  const overallScore = perQuestionResults.length > 0
-    ? Math.min(100, Math.max(0, Math.round((totalScoreSum / (perQuestionResults.length * 10)) * 100)))
+  const overallScore = finalResults.length > 0
+    ? Math.min(100, Math.max(0, Math.round((totalScoreSum / (finalResults.length * 10)) * 100)))
     : 0;
 
   // Generate overall AI feedback
-  const aiFeedback = generateOverallFeedback(perQuestionResults, overallScore, moduleSlug);
+  const aiFeedback = generateOverallFeedback(finalResults, overallScore, moduleSlug);
 
   return {
     totalScore: overallScore,
-    perQuestionResults,
+    perQuestionResults: finalResults,
     aiFeedback,
   };
 }

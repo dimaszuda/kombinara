@@ -160,6 +160,58 @@ export class SemanticCache {
     }
   }
 
+  // ------------------------------------------------------------------
+  // Layer 1: Exact-Match Cache (tanpa embedding)
+  // ------------------------------------------------------------------
+
+  /**
+   * Normalisasi pertanyaan untuk exact-match: lowercase, collapse spasi
+   * berulang, buang tanda baca di akhir. Pertanyaan yang sama persis
+   * (walau beda kapital/spasi/tanda baca) akan menghasilkan key yang sama.
+   */
+  private static normalizeQuestion(question: string): string {
+    return question
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/[?!.,;]+$/, "");
+  }
+
+  /** Hash pendek djb2 (hex) — tidak butuh modul crypto, aman di semua runtime. */
+  private static hashString(s: string): string {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) {
+      h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    }
+    return (h >>> 0).toString(16);
+  }
+
+  /** Redis key untuk layer exact-match. */
+  private exactKey(question: string, lab: string): string {
+    return `exact_cache:${lab}:${SemanticCache.hashString(
+      SemanticCache.normalizeQuestion(question)
+    )}`;
+  }
+
+  /**
+   * Cek cache exact-match: 1 Redis read, tanpa embedding.
+   * Dipanggil SEBELUM semantic get untuk menghemat biaya embedding
+   * sekaligus mempercepat hit yang sering.
+   */
+  async getExact(question: string, lab: string): Promise<CacheEntry | null> {
+    try {
+      const raw = await this.redis.get<CacheEntry>(this.exactKey(question, lab));
+      if (raw) {
+        console.log("[semantic-cache] ✅ EXACT HIT");
+      }
+      return raw ?? null;
+    } catch (err) {
+      // Jangan crash — cache is optional optimization
+      console.warn("[semantic-cache] ⚠️  Error saat getExact:", err);
+      return null;
+    }
+  }
+
   /**
    * Simpan jawaban ke cache (Redis + Vector).
    *
@@ -170,9 +222,13 @@ export class SemanticCache {
    */
   async set(question: string, lab: string, answer: string): Promise<string> {
     const cacheId = randomUUID();
-    const vector = await this.embed(question);
-
     const entry: CacheEntry = { answer, question, lab };
+
+    // Layer 1: exact-match — ditulis DULU, tanpa butuh embedding,
+    // supaya tetap bisa dipakai kalau layanan embedding sedang error.
+    await this.redis.set(this.exactKey(question, lab), entry, { ex: this.ttl });
+
+    const vector = await this.embed(question);
 
     // Simpan jawaban di Redis (dengan TTL)
     await this.redis.set(this.redisKey(cacheId), entry, { ex: this.ttl });

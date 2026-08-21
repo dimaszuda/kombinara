@@ -826,7 +826,6 @@ export default function Chatbot({
 
       // Streaming message ID dibuat saat chunk pertama tiba
       let streamingMsgId: string | null = null;
-      let accumulated = "";
 
       try {
         const body: Record<string, unknown> = {
@@ -854,7 +853,7 @@ export default function Chatbot({
         // Sliding window: kirim history 5 percakapan terakhir
         const allMessages = messagesRef.current;
         const conversationMsgs = allMessages.filter((m) => !m.id.endsWith("-ai-init"));
-        const recent = conversationMsgs.slice(-10);
+        const recent = conversationMsgs.slice(-5);
         if (recent.length > 0) {
           body.history = recent.map((m) => ({
             role: m.type === "user" ? "user" : "assistant",
