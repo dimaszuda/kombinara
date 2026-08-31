@@ -98,6 +98,28 @@ const SECTION_KEYS: { key: SectionKey; label: string }[] = [
   { key: "aktivitas", label: "Aktivitas siswa" },
 ];
 
+const getDurationScatterDomain = (data: Array<{ x: number }>) => {
+  if (!data.length) return [0, "dataMax"] as [number, string];
+
+  const values = data
+    .map((point) => Number(point.x))
+    .filter((value) => Number.isFinite(value));
+
+  if (!values.length) return [0, "dataMax"] as [number, string];
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+    return [0, Math.max(max, 1)] as [number, number];
+  }
+
+  const padding = Math.max(1, Math.min(5, (max - min) * 0.12));
+  const lowerBound = Math.max(0, Math.floor(min - padding));
+
+  return [lowerBound, "dataMax"] as [number, string];
+};
+
 // ═══════════════════════════════════════════════════════════════
 // Column definitions for SortableTable (module-level, no state)
 // ═══════════════════════════════════════════════════════════════
@@ -1147,6 +1169,8 @@ export default function KombinaraDashboard() {
     // Fallback ke dummy data (filtered by materiAsesmen)
     return filteredAsesmen.slice(0, 80).map((s) => ({ x: s.formDurasi, y: s.formNilai }));
   }, [filteredAsesmen, dashData]);
+  const diagScatterDomain = useMemo(() => getDurationScatterDomain(scatterDiag), [scatterDiag]);
+  const formScatterDomain = useMemo(() => getDurationScatterDomain(scatterForm), [scatterForm]);
 
   // Total siswa: prioritas data real, fallback ke dummy
   const totalSiswa = dashData?.totalSiswa ?? filtered.length;
@@ -1444,7 +1468,7 @@ export default function KombinaraDashboard() {
               <ResponsiveContainer width="100%" height={160}>
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEE" />
-                  <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={[0, "dataMax"]} tickCount={5} tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
+                  <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={diagScatterDomain} tickCount={5} tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
                   <YAxis dataKey="y" name="Nilai" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Nilai", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#8A8A8A" } }} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} cursor={{ strokeDasharray: "3 3" }} />
                   <Scatter data={scatterDiag.filter((d) => d.passed)} fill={COLORS.green} />
@@ -1541,7 +1565,7 @@ export default function KombinaraDashboard() {
               <ResponsiveContainer width="100%" height={160}>
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEE" />
-                  <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={[0, "dataMax"]} tickCount={5} tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
+                  <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={formScatterDomain} tickCount={5} tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
                   <YAxis dataKey="y" name="Nilai" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Nilai", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#8A8A8A" } }} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} cursor={{ strokeDasharray: "3 3" }} />
                   <Scatter data={scatterForm} fill={COLORS.green} />
