@@ -255,7 +255,7 @@ Rubrik score:
         Tulis feedback yang KONKRET, membangun, dan gunakan kata ganti 'kamu'. Fokus ke proses berpikir, bukan ke hasil akhir. Jangan sebutkan jawaban benar secara eksplisit. Maksimal 2-3 kalimat per soal. Jika jawaban sempurna, beri afirmasi yang tulus dan singkat.
       `,
       user: (items: Array<{ soal: string; level_soal: string; cara_hitung: string; jawaban_akhir: string; is_jawaban_akhir_true: boolean; cara_ground_truth: string }>) =>
-        `Berikut adalah ${items.length} jawaban siswa. Nilai SATU PER SATU dan return JSON ARRAY dengan panjang ${items.length}. Urutan elemen HARUS sama dengan urutan soal di bawah (index 0 = soal pertama).
+        `Berikut adalah ${items.length} jawaban siswa. Nilai SATU PER SATU dan return JSON dengan format {"results": [...]} — array "results" berisi ${items.length} objek, urutan elemen HARUS sama dengan urutan soal di bawah (index 0 = soal pertama).
 
 ${items
   .map(
@@ -269,25 +269,27 @@ Kunci cara pengerjaan (ground truth): ${it.cara_ground_truth}`
   )
   .join("\n\n")}
 
-Berikan evaluasi untuk SETIAP soal dalam format JSON array berikut (satu objek per soal, total ${items.length} objek):
-[
-  {
-    "step_by_step": {
-      "identifikasi_kondisi": { "score": number (0-3) },
-      "pemilihan_rumus": { "score": number (0-3) },
-      "eksekusi_perhitungan": { "score": number (0-3) },
-      "justifikasi": { "score": number (0-3) }
-    },
-    "process_raw_score": number (0-12, jumlah 4 komponen),
-    "process_scaled_score": number (0-10, sudah diskala ke bobot level),
-    "final_answer_score": number (0-10, sudah diskala ke bobot level),
-    "total_score": number (0-10),
-    "guardrail_applied": "string menjelaskan guardrail yang diterapkan" | null,
-    "mistake_category": "konsep" | "formula" | "perhitungan" | "lainnya" | null,
-    "mistake_detail": "string penjelasan singkat letak kesalahan" | null,
-    "feedback": "string feedback untuk siswa (2-3 kalimat)"
-  }
-]`
+Berikan evaluasi untuk SETIAP soal dalam format JSON berikut (satu objek per soal, total ${items.length} objek):
+{
+  "results": [
+    {
+      "step_by_step": {
+        "identifikasi_kondisi": { "score": number (0-3) },
+        "pemilihan_rumus": { "score": number (0-3) },
+        "eksekusi_perhitungan": { "score": number (0-3) },
+        "justifikasi": { "score": number (0-3) }
+      },
+      "process_raw_score": number (0-12, jumlah 4 komponen),
+      "process_scaled_score": number (0-10, sudah diskala ke bobot level),
+      "final_answer_score": number (0-10, sudah diskala ke bobot level),
+      "total_score": number (0-10),
+      "guardrail_applied": "string menjelaskan guardrail yang diterapkan" | null,
+      "mistake_category": "konsep" | "formula" | "perhitungan" | "lainnya" | null,
+      "mistake_detail": "string penjelasan singkat letak kesalahan" | null,
+      "feedback": "string feedback untuk siswa (2-3 kalimat)"
+    }
+  ]
+}`
     },
 
   // ── Tantangan (10 soal open-ended deep thinking, penutup modul) ──

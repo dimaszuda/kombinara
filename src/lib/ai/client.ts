@@ -229,7 +229,12 @@ const AsesmenFormatifItemSchema = z.object({
   feedback: z.string(),
 });
 
-const AsesmenFormatifBatchSchema = z.array(AsesmenFormatifItemSchema);
+// PENTING: root schema structured output OpenAI HARUS bertipe object —
+// array di root DITOLAK API (400 invalid schema). Bungkus dengan objek
+// { results: [...] } supaya batching jalan.
+const AsesmenFormatifBatchSchema = z.object({
+  results: z.array(AsesmenFormatifItemSchema),
+});
 
 export type AsesmenFormatifItemResult = z.infer<typeof AsesmenFormatifItemSchema>;
 
@@ -296,7 +301,7 @@ export const AsesmenFormatifEvaluateBatchPrompt = async (
     },
   });
 
-  const parsed = response.output_parsed;
+  const parsed = response.output_parsed?.results;
   if (parsed && Array.isArray(parsed)) {
     // Jaga panjang array konsisten dengan jumlah soal; kekosongan → fallback.
     return items.map((_, i) => parsed[i] ?? buildAsesmenFormatifFallback());
