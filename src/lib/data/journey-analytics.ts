@@ -140,16 +140,39 @@ export async function getMateriJourney(
     penjelasan_konsep: string;
     refleksi_mini: string;
   }>>`
-    WITH all_combinations AS (
+    WITH concept_map AS (
+      SELECT * FROM (VALUES
+        -- Kaidah Pencacahan: aktivitas modul tercatat di kaidah_penjumlahan,
+        -- ditampilkan juga di baris kaidah_perkalian (keduanya sub-materi induk).
+        ('kaidah_penjumlahan', 'kaidah_penjumlahan'),
+        ('kaidah_penjumlahan', 'kaidah_perkalian'),
+        ('kaidah_perkalian', 'kaidah_perkalian'),
+        ('kaidah-pencacahan', 'kaidah_penjumlahan'),
+        ('kaidah-pencacahan', 'kaidah_perkalian'),
+        ('faktorial', 'faktorial'),
+        ('kombinasi', 'kombinasi'),
+        -- Permutasi: aktivitas tercatat di konsep induk, dipetakan ke 3 sub-materi.
+        ('permutasi', 'permutasi_r_unsur_dari_n_unsur'),
+        ('permutasi', 'permutasi_dengan_unsur_sama'),
+        ('permutasi', 'permutasi_siklis')
+      ) AS t(source_id, child_id)
+    ),
+
+    concept_list AS (
+      SELECT child_id AS concept_id
+      FROM concept_map
+      UNION
+      SELECT DISTINCT concept_id
+      FROM public.aktivitas_siswa_entries
+    ),
+
+    all_combinations AS (
       SELECT
         a.student_id,
         a.name,
         d.concept_id
       FROM public.students a
-      CROSS JOIN (
-        SELECT DISTINCT concept_id
-        FROM public.aktivitas_siswa_entries
-      ) d
+      CROSS JOIN concept_list d
       JOIN public.users c ON a.user_id = c.user_id
       WHERE c.role = 'siswa'
         ${classWhere}
@@ -164,9 +187,11 @@ export async function getMateriJourney(
         ac.concept_id,
         COUNT(b.entry_id) FILTER (WHERE b.is_correct = TRUE) AS correct_count
       FROM all_combinations ac
+      LEFT JOIN concept_map m
+        ON m.child_id = ac.concept_id
       LEFT JOIN public.aktivitas_siswa_entries b
         ON ac.student_id = b.student_id
-       AND ac.concept_id = b.concept_id
+       AND b.concept_id = m.source_id
       GROUP BY ac.student_id, ac.name, ac.concept_id
     ),
 
@@ -232,6 +257,7 @@ export async function getMateriJourney(
         'not completed'
       ) AS refleksi_mini
     FROM all_status
+    WHERE concept_id NOT IN ('permutasi', 'kaidah-pencacahan')
     GROUP BY student_id, name, concept_id
     ORDER BY name, concept_id
   `;

@@ -60,15 +60,39 @@ export interface GuruDashboardData {
 // Queries
 // ═══════════════════════════════════════════════════════════════
 
-/** Total Kelas — hanya kelas yang memiliki siswa, difilter oleh kelas */
+/**
+ * Kelas yang ditampilkan di dashboard guru.
+ * Kelas lain disembunyikan dari filter & tile dashboard, TAPI TIDAK dihapus dari DB.
+ */
+const VISIBLE_CLASSES: Array<{ className: string; group: string }> = [
+  { className: "XII", group: "G" },
+  { className: "XII", group: "J" },
+  { className: "XII", group: "L" },
+];
+
+/** Ambil id kelas yang visible untuk dipakai sebagai filter query. */
+async function getVisibleClassIds(): Promise<number[]> {
+  const classes = await prisma.class.findMany({
+    where: { OR: VISIBLE_CLASSES },
+    select: { id: true },
+  });
+  return classes.map((c) => c.id);
+}
+
+/** Total Kelas — hanya kelas visible (XII G/J/L) yang memiliki siswa, difilter oleh kelas */
 export async function getTotalKelas(classIds?: number[]): Promise<number> {
-  const hasFilter = classIds && classIds.length > 0;
+  const visibleIds = await getVisibleClassIds();
+  const targetIds = classIds && classIds.length > 0
+    ? classIds.filter((id) => visibleIds.includes(id))
+    : visibleIds;
+
+  if (targetIds.length === 0) return 0;
 
   const result = await prisma.student.groupBy({
     by: ["classId"],
     where: {
       user: { role: "siswa" },
-      ...(hasFilter ? { classId: { in: classIds } } : {}),
+      classId: { in: targetIds },
     },
   });
 
@@ -104,9 +128,10 @@ export async function getSiswaGenderBreakdown(classIds?: number[]): Promise<Gend
   }));
 }
 
-/** Daftar kelas untuk opsi filter */
+/** Daftar kelas untuk opsi filter — hanya kelas visible (XII G/J/L) */
 export async function getKelasOptions(): Promise<KelasOption[]> {
   const classes = await prisma.class.findMany({
+    where: { OR: VISIBLE_CLASSES },
     select: { id: true, className: true, group: true },
     orderBy: [{ className: "asc" }, { group: "asc" }],
   });
@@ -116,17 +141,22 @@ export async function getKelasOptions(): Promise<KelasOption[]> {
   }));
 }
 
-/** Distribusi Siswa per Kelas */
+/** Distribusi Siswa per Kelas — hanya kelas visible (XII G/J/L) */
 export async function getDistribusiKelas(
   classIds?: number[]
 ): Promise<DistribusiKelasItem[]> {
-  const hasFilter = classIds && classIds.length > 0;
+  const visibleIds = await getVisibleClassIds();
+  const targetIds = classIds && classIds.length > 0
+    ? classIds.filter((id) => visibleIds.includes(id))
+    : visibleIds;
+
+  if (targetIds.length === 0) return [];
 
   const students = await prisma.student.groupBy({
     by: ["classId"],
     where: {
       user: { role: "siswa" },
-      ...(hasFilter ? { classId: { in: classIds } } : {}),
+      classId: { in: targetIds },
     },
     _count: { _all: true },
   });

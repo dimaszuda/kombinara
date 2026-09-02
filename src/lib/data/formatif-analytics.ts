@@ -68,7 +68,7 @@ export interface FormatifDetailItem {
   totalAttempts: number;
   /** Durasi pengerjaan dalam menit */
   durasiMenit: number;
-  /** Status: "Selesai" jika total_score = 100, "Belum Selesai" jika belum */
+  /** Status: "Selesai" jika total_score >= 70, "Belum Selesai" jika belum */
   status: string;
 }
 
@@ -451,7 +451,7 @@ export async function getFormatifAttemptDistribution(
  *   - conceptId: filter materi (diterapkan di CTE)
  *   - attempt: "latest" → submission terbaru; number → percobaan ke-n (1-based, ASC)
  *
- * Status: "Selesai" jika total_score = 100, "Belum Selesai" jika belum.
+ * Status: "Selesai" jika total_score >= 70, "Belum Selesai" jika belum.
  */
 export async function getFormatifDetailPerSiswa(
   filter: FormatifFilter = {}
@@ -541,7 +541,7 @@ export async function getFormatifDetailPerSiswa(
       c.total_attempts,
       c.durasi,
       CASE
-        WHEN c.total_score = 100
+        WHEN c.total_score >= 70
           THEN 'Selesai'
         ELSE 'Belum Selesai'
       END AS status
