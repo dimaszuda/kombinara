@@ -9,6 +9,7 @@
 
 import { prisma } from "@/lib/prisma/client";
 import { formatTanggal } from "@/lib/date";
+import { ALL_SECTIONS } from "@/lib/data/student-section-status";
 import { Prisma } from "@prisma/client";
 
 // ═══════════════════════════════════════════════════════════════
@@ -218,17 +219,31 @@ export async function getDaftarSiswa(
 // Progress Belajar Siswa
 // ═══════════════════════════════════════════════════════════════
 
-/** Total langkah per materi (denominator untuk persentase) */
-const MATERI_TOTAL_STEPS: Record<string, number> = {
-  all: 34,
-  pendahuluan: 4,
-  default: 6,
-};
+/**
+ * Total langkah (denominator persentase).
+ *
+ * Numerator & denominator harus di granularity yang sama: per SECTION,
+ * bukan per konsep. Kalau numerator per konsep (max 8) tapi denominator 34,
+ * semua siswa mentok di ~24%.
+ */
+
+/** Total langkah "semua materi": semua section yang di-track di DB + 1 langkah asesmen diagnostik. */
+const TOTAL_ALL_STEPS = ALL_SECTIONS.length + 1; // 36 section + 1 diagnostik = 37
+
+/** Section pendahuluan — disimpan di DB di bawah concept `kaidah_penjumlahan`. */
+const PENDAHULUAN_SECTIONS = ["apersepsi", "pemantik", "refleksi_sebelum_mulai"] as const;
 
 function getTotalSteps(materis: string[] | undefined): number {
-  if (!materis || materis.length === 0) return MATERI_TOTAL_STEPS.all;
-  if (materis.includes("pendahuluan")) return MATERI_TOTAL_STEPS.pendahuluan;
-  return MATERI_TOTAL_STEPS.default;
+  if (!materis || materis.length === 0) return TOTAL_ALL_STEPS;
+  if (materis.includes("pendahuluan")) return PENDAHULUAN_SECTIONS.length + 1; // 3 section + 1 diagnostik = 4
+
+  // Jumlah section per conceptId dari konstanta kanonik (student-section-status.ts)
+  const sectionCounts: Record<string, number> = {};
+  for (const s of ALL_SECTIONS) {
+    sectionCounts[s.conceptId] = (sectionCounts[s.conceptId] ?? 0) + 1;
+  }
+  const total = materis.reduce((sum, m) => sum + (sectionCounts[m] ?? 0), 0);
+  return total > 0 ? total : 6; // fallback aman jika slug tak dikenal
 }
 
 /**
@@ -254,7 +269,9 @@ export async function getStudentProgress(
     ? Prisma.sql`AND FALSE` // diagnostic hanya dihitung untuk pendahuluan atau all
     : Prisma.empty;
   const materiSectionFilter = !isMateriAll
-    ? Prisma.sql`AND b.concept_id IN (${Prisma.join(materis.map((m) => Prisma.sql`${m}`))})`
+    ? materis.includes("pendahuluan")
+      ? Prisma.sql`AND b.concept_id = 'kaidah_penjumlahan' AND b.section IN (${Prisma.join(PENDAHULUAN_SECTIONS.map((s) => Prisma.sql`${s}`))})`
+      : Prisma.sql`AND b.concept_id IN (${Prisma.join(materis.map((m) => Prisma.sql`${m}`))})`
     : Prisma.empty;
 
   const rows = await prisma.$queryRaw<Array<{
@@ -267,7 +284,7 @@ export async function getStudentProgress(
       SELECT DISTINCT
         a.student_id,
         a.name,
-        'pendahuluan' AS materi,
+        'diagnostik' AS langkah,
         CONCAT(d.class_name, ' ', d."group") AS kelas
       FROM students a
       JOIN diagnostic_attempts b ON a.student_id = b.student_id
@@ -284,7 +301,7 @@ export async function getStudentProgress(
       SELECT DISTINCT
         a.student_id,
         a.name,
-        b.concept_id AS materi,
+        b.concept_id || ':' || b.section AS langkah,
         CONCAT(d.class_name, ' ', d."group") AS kelas
       FROM students a
       JOIN student_section_status b ON a.student_id = b.student_id
@@ -310,9 +327,9 @@ export async function getStudentProgress(
     studentId: r.student_id,
     name: r.name,
     kelas: r.kelas,
-    completed: Number(r.completed),
+    completed: Math.min(totalSteps, Number(r.completed)),
     total: totalSteps,
-    pct: Math.round((Number(r.completed) / totalSteps) * 100),
+    pct: Math.min(100, Math.round((Number(r.completed) / totalSteps) * 100)),
   }));
 }
 

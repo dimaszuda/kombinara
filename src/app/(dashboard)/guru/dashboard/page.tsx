@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect, ReactNode } from "react";
+import React, { useState, useMemo, useEffect, useCallback, ReactNode } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ScatterChart, Scatter, PieChart, Pie, Cell, Legend
@@ -545,9 +545,12 @@ interface FilterBarProps {
   setDiagAttempt: (val: number | "latest") => void;
   formAttempt: number | "latest";
   setFormAttempt: (val: number | "latest") => void;
+  onDownloadExcel: () => void;
+  exporting: boolean;
+  canDownload: boolean;
 }
 
-function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, setDiagAttempt, formAttempt, setFormAttempt }: FilterBarProps) {
+function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, setDiagAttempt, formAttempt, setFormAttempt, onDownloadExcel, exporting, canDownload }: FilterBarProps) {
   const selectStyle: React.CSSProperties = {
     padding: "7px 10px",
     borderRadius: 6,
@@ -658,6 +661,53 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
           Reset filter
         </button>
       ) : null}
+      <button
+        onClick={onDownloadExcel}
+        disabled={!canDownload || exporting}
+        title={
+          canDownload
+            ? "Download semua data dashboard sebagai file Excel (1 file, banyak sheet)"
+            : "Tunggu data dashboard selesai dimuat"
+        }
+        style={{
+          marginLeft: "auto",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          fontSize: 13,
+          fontWeight: 600,
+          color: COLORS.white,
+          background: COLORS.green,
+          border: "none",
+          borderRadius: 6,
+          padding: "8px 14px",
+          cursor: canDownload && !exporting ? "pointer" : "not-allowed",
+          opacity: canDownload && !exporting ? 1 : 0.65,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {exporting ? (
+          <>
+            <span
+              style={{
+                width: 12,
+                height: 12,
+                border: "2px solid rgba(255,255,255,0.45)",
+                borderTop: "2px solid #FFFFFF",
+                borderRadius: "50%",
+                animation: "spin 0.7s linear infinite",
+                flexShrink: 0,
+              }}
+            />
+            Menyiapkan file...
+          </>
+        ) : (
+          <>
+            <i className="ti ti-download" style={{ fontSize: 15 }} />
+            Download Excel
+          </>
+        )}
+      </button>
       {loading ? (
         <div
           style={{
@@ -921,6 +971,7 @@ export default function KombinaraDashboard() {
   const [diagAttempt, setDiagAttempt] = useState<number | "latest">("latest");
   const [formAttempt, setFormAttempt] = useState<number | "latest">("latest");
   const [modal, setModal] = useState<ModalState | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   // ── API: hitung classIds & materi slug untuk filter ──────
   const selectedClassIds = useMemo(() => {
@@ -1301,6 +1352,138 @@ export default function KombinaraDashboard() {
     },
   ], [setModal]);
 
+  // ── Download Excel (1 file, banyak sheet) ──────────────────
+  const handleDownloadExcel = useCallback(async () => {
+    if (!dashData || exporting) return;
+    setExporting(true);
+    try {
+      const { downloadDashboardExcel } = await import("@/lib/export/dashboard-excel");
+
+      const tanggal = new Date().toISOString().slice(0, 10);
+      const kelasLabel =
+        filters.kelas === "all"
+          ? "Semua kelas"
+          : (dashData.kelasOptions.find((k) => String(k.classId) === filters.kelas)?.namaKelas ?? filters.kelas);
+      const materiAsesmenLabel =
+        filters.materiAsesmen === "all"
+          ? "Semua materi"
+          : (MATERI_ASESMEN_OPTIONS.find((m) => m.value === filters.materiAsesmen)?.label ?? filters.materiAsesmen);
+
+      const conceptLabel = (conceptId: string | string[]) => {
+        const ids = Array.isArray(conceptId) ? conceptId : [conceptId];
+        return ids
+          .map((id) => Object.entries(MATERI_SLUG_MAP).find(([, slug]) => slug === id)?.[0] ?? id)
+          .join(", ");
+      };
+
+      const genderLabel = (g: string) => {
+        const lower = g.toLowerCase();
+        if (lower === "laki-laki" || lower === "laki" || lower === "male") return "Laki-laki";
+        if (lower === "perempuan" || lower === "female") return "Perempuan";
+        return g;
+      };
+
+      const pendahuluanDone = (v: string) => (v === "Completed" ? "Selesai" : "Belum");
+      const materiDone = (v: string) => (v === "completed" ? "Selesai" : "Belum");
+
+      // Scatter export pakai data real + nama/kelas (fallback ke dummy seperti chart)
+      const diagDurasiRaw: { nama: string; kelas: string; durasiMenit: number; nilai: number; passed: boolean }[] =
+        dashData.diagnostic?.durationScatter && dashData.diagnostic.durationScatter.length > 0
+          ? dashData.diagnostic.durationScatter.map((d) => ({ nama: d.nama, kelas: d.kelas, durasiMenit: d.durasiMenit, nilai: d.nilai, passed: d.passed }))
+          : filtered.map((s) => ({ nama: s.nama, kelas: s.kelas, durasiMenit: s.diagDurasi, nilai: s.diagNilai, passed: s.diagPassed }));
+
+      const formDurasiRaw: { nama: string; kelas: string; durasiMenit: number; nilai: number }[] =
+        dashData.formatif?.durationScatter && dashData.formatif.durationScatter.length > 0
+          ? dashData.formatif.durationScatter
+          : filteredAsesmen.map((s) => ({ nama: s.nama, kelas: s.kelas, durasiMenit: s.formDurasi, nilai: s.formNilai }));
+
+      await downloadDashboardExcel({
+        filename: `dashboard-guru-${tanggal}.xlsx`,
+        info: [
+          { label: "Kelas", value: kelasLabel },
+          { label: "Materi", value: filters.materi === "all" ? "Semua materi" : filters.materi },
+          { label: "Materi Asesmen", value: materiAsesmenLabel },
+          { label: "Percobaan Diagnostik", value: diagAttempt === "latest" ? "Terakhir" : `Percobaan ${diagAttempt}` },
+          { label: "Percobaan Formatif", value: formAttempt === "latest" ? "Terakhir" : `Percobaan ${formAttempt}` },
+          { label: "Tanggal Export", value: tanggal },
+        ],
+        ringkasan: [
+          { metrik: "Total Kelas", nilai: dashData.totalKelas },
+          { metrik: "Total Siswa", nilai: dashData.totalSiswa },
+        ],
+        gender: (dashData.genderBreakdown ?? []).map((g) => ({ gender: genderLabel(g.gender), jumlah: g.total })),
+        distribusiKelas: realDistribusi.map((d) => ({ kelas: d.kelas, jumlah: d.total })),
+        daftarSiswa: (dashData.daftarSiswa ?? []).map((s) => ({ nama: s.name, kelas: s.kelas, tanggalJoin: s.tanggalJoin })),
+        progress: progressData.map((p) => ({ nama: p.name, kelas: p.kelas, selesai: p.completed, total: p.total, persen: p.pct })),
+        diagNilai: diagBar.map((b) => ({ nilai: b.score, jumlahSiswa: b.total })),
+        diagStats: diagStats.n > 0 ? diagStats : null,
+        diagDurasi: diagDurasiRaw.slice(0, 80).map((d) => ({
+          nama: d.nama,
+          kelas: d.kelas,
+          durasiMenit: d.durasiMenit,
+          nilai: d.nilai,
+          status: d.passed ? "Lulus" : "Belum lulus",
+        })),
+        diagPercobaan: diagAttemptDist.map((a) => ({ percobaan: a.attempt, jumlahSiswa: a.total })),
+        diagDetail: diagTableRows.map((r) => ({
+          nama: r.nama,
+          kelas: r.kelas,
+          nilai: r.nilai,
+          percobaan: r.attemptNumber,
+          durasiMenit: r.durasiMenit,
+          status: r.status,
+          tanggalSubmit: r.submittedAt,
+        })),
+        journeyPendahuluan: (dashData.journey?.pendahuluan ?? []).map((j) => ({
+          nama: j.nama,
+          apersepsi: pendahuluanDone(j.apersepsi),
+          pemantik: pendahuluanDone(j.pemantik),
+          refleksi: pendahuluanDone(j.refleksi),
+        })),
+        journeyMateri: (dashData.journey?.materi ?? []).map((j) => ({
+          nama: j.nama,
+          konsep: conceptLabel(j.conceptId),
+          eksplorasi: materiDone(j.eksplorasiKontekstual),
+          deepLearning: materiDone(j.aktivitasDeepLearning),
+          penjelasan: materiDone(j.penjelasanKonsep),
+          contohSoal: materiDone(j.contohSoal),
+          aktivitas: materiDone(j.aktivitasSiswa),
+          refleksi: materiDone(j.refleksiMini),
+        })),
+        formNilai: formBar.map((b) => ({ range: b.score, jumlahSiswa: b.total })),
+        formStats: formStats.n > 0 ? formStats : null,
+        formDurasi: formDurasiRaw.slice(0, 80).map((d) => ({
+          nama: d.nama,
+          kelas: d.kelas,
+          durasiMenit: d.durasiMenit,
+          nilai: d.nilai,
+        })),
+        formPercobaan: formAttemptDist.map((a) => ({ percobaan: a.attempt, jumlah: a.total })),
+        formDetail: formTableRows.map((r) => ({
+          nama: r.nama,
+          kelas: r.kelas,
+          materi: conceptLabel(r.conceptId),
+          nilai: r.nilai,
+          percobaan: r.attemptNumber,
+          durasiMenit: r.durasiMenit,
+          status: r.status,
+        })),
+        integritas: integrityLog.map((i) => ({
+          nama: i.nama,
+          kelas: i.kelas,
+          materi: i.materi,
+          jenisKejadian: i.jenisKejadian,
+          jumlah: i.jumlah,
+        })),
+      });
+    } catch (err) {
+      console.error("[dashboard] ❌ Gagal export Excel:", err);
+      window.alert("Gagal membuat file Excel. Silakan coba lagi.");
+    } finally {
+      setExporting(false);
+    }
+  }, [dashData, exporting, filters, diagAttempt, formAttempt, filtered, filteredAsesmen, realDistribusi, progressData, diagBar, diagStats, formBar, formStats, diagAttemptDist, formAttemptDist, diagTableRows, formTableRows, integrityLog]);
+
   return (
     <div style={{ maxWidth: 1240, margin: "0 auto", paddingBottom: 60 }}>
       {/* ── Error banner ─────────────────────────────────── */}
@@ -1352,6 +1535,9 @@ export default function KombinaraDashboard() {
         setDiagAttempt={setDiagAttempt}
         formAttempt={formAttempt}
         setFormAttempt={setFormAttempt}
+        onDownloadExcel={handleDownloadExcel}
+        exporting={exporting}
+        canDownload={dashData !== null}
       />
 
       <div>
