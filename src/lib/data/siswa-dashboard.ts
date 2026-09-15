@@ -69,11 +69,12 @@ export const TOC_DATA = [
   { no: 12, bagian: "Materi 5: Kombinasi" },
   { no: 13, bagian: "Aktivitas Siswa" },
   { no: 14, bagian: "Latihan Pemahaman" },
-  { no: 15, bagian: "Tantangan Deep Thinking" },
+  { no: 15, bagian: "Tantangan" },
   { no: 16, bagian: "Asesmen Diri Siswa" },
-  { no: 17, bagian: "Rangkuman Konsep" },
-  { no: 18, bagian: "Glosarium" },
-  { no: 19, bagian: "Kunci Jawaban" },
+  { no: 17, bagian: "Refleksi Mendalam" },
+  { no: 18, bagian: "Rangkuman Konsep" },
+  { no: 19, bagian: "Glosarium" },
+  { no: 20, bagian: "Kunci Jawaban" },
 ];
 
 export const PETUNJUK_SISWA = [
@@ -85,7 +86,7 @@ export const PETUNJUK_SISWA = [
   "Setelah selesai mengerjakan materi, bukalah fitur Aktivitas Siswa dan kerjakan sesuai dengan materi yang kamu selesaikan",
   "Jawablah sesuai pengetahuanmu dan jika ada jawaban yang salah silahkan diskusikan dengan AI untuk menunjukkan di mana kesalahanmu dan bagaimana seharusnya penyelesaiannya.",
   "Kerjakan setiap Aktivitas Siswa dan Refleksi Mini dengan sungguh-sungguh karena ini bukan formalitas, melainkan inti dari belajar",
-  "Untuk mengukur ketercapaian tujuan pembelajaran, silahkan kerjakan soal yang ada di fitur asesmen formatif dan lihat pencapaianmu. Jika pencapaianmu masih kurang silahkan pelajari lagi materinya dan cobalah lagi latihan soalnya.",
+  "Untuk mengukur ketercapaian tujuan pembelajaran, silahkan kerjakan soal yang ada di fitur latihan pemahaman dan lihat pencapaianmu. Jika pencapaianmu masih kurang silahkan pelajari lagi materinya dan cobalah lagi latihan soalnya.",
   "Setelah menyelesaikan setiap submateri, isi Asesmen Diri dengan jujur.",
   "Kunci jawaban ada di bagian akhir, gunakan untuk mengecek pemahamanmu, bukan untuk menyalin.",
 ];
@@ -94,7 +95,7 @@ export const PETUNJUK_GURU = [
   "Modul ini dirancang untuk pembelajaran berpusat pada siswa. Peran guru adalah fasilitator dan pemantik berpikir, bukan sumber informasi tunggal.",
   "Aktivitas eksplorasi sebaiknya dilakukan sebelum penjelasan konsep formal.",
   "Pertanyaan \"Mengapa?\" harus didiskusikan, bukan hanya dibaca.",
-  "Latihan Soal dapat digunakan sebagai asesmen formatif maupun tugas mandiri.",
+  "Latihan Soal dapat digunakan sebagai latihan pemahaman maupun tugas mandiri.",
   "Tantangan Deep Thinking cocok untuk pengayaan atau diskusi kelas.",
 ];
 
