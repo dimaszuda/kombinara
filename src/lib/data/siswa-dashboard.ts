@@ -39,16 +39,8 @@ export const MATERI_CARDS = [
     image: "/images/kombinasi.png",
     alt: "Kombinasi",
   },
-  {
-    id: "5",
-    title: "Bagian Penutup Modul",
-    href: "/siswa/materi/penutup",
-    activity: null,
-    description:
-      "Refleksi mendalam, asesmen diri, rangkuman konsep, glosarium, dan soal tantangan untuk memperkuat pemahamanmu terhadap seluruh materi Kaidah Pencacahan.",
-    image: "/images/penutup.png",
-    alt: "Bagian Penutup Modul",
-  },
+  // Catatan: "Bagian Penutup Modul" tidak lagi menjadi kartu Materi —
+  // halaman penutup dipindahkan ke navigasi Sidebar sebagai "Halaman Penutup".
 ];
 
 export const TOC_DATA = [

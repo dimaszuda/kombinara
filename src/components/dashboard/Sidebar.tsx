@@ -35,6 +35,11 @@ const NAV_ITEMS_SISWA: NavItemDef[] = [
     href: "/siswa/ulangan",
     icon: "/icons/test.png",
   },
+  {
+    label: "Halaman Penutup",
+    href: "/siswa/materi/penutup",
+    icon: "/icons/halaman penutup.png",
+  },
 ];
 
 const NAV_ITEMS_GURU: NavItemDef[] = [
@@ -62,6 +67,11 @@ const NAV_ITEMS_GURU: NavItemDef[] = [
     label: "Latihan Pemahaman",
     href: "/siswa/ulangan",
     icon: "/icons/test.png",
+  },
+  {
+    label: "Halaman Penutup",
+    href: "/siswa/materi/penutup",
+    icon: "/icons/halaman penutup.png",
   },
 ];
 
