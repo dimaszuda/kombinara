@@ -6,6 +6,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { RichText } from "@/components/shared/RichText";
 import AktivitasKamuPanel from "@/components/dashboard/AktivitasKamuPanel";
 import AktivitasKelasPanel from "@/components/dashboard/AktivitasKelasPanel";
+import DropdownSection from "@/components/dashboard/DropdownSection";
 import {
   MATERI_CARDS,
   TOC_DATA,
@@ -72,8 +73,6 @@ function KataPengantar() {
 function DaftarIsi() {
   return (
     <article className="kp-wrap">
-      <h2 className="kp-subtitle text-center">Daftar Isi</h2>
-
       {/* header */}
       <div className="kp-toc-header">
         <span className="kp-toc-no">No.</span>
@@ -99,8 +98,6 @@ function DaftarIsi() {
 function PetunjukPenggunaan() {
   return (
     <article className="kp-wrap">
-      <h2 className="kp-subtitle text-center">Petunjuk Penggunaan Modul</h2>
-
       <h3 className="kp-greeting">🎓 Untuk Siswa</h3>
       <ol className="kp-list">
         {PETUNJUK_SISWA.map((item, i) => (
@@ -172,7 +169,6 @@ function PetunjukPenggunaan() {
 function PetaKonsep() {
   return (
     <article className="kp-wrap">
-      <h2 className="kp-subtitle text-center">Peta Konsep</h2>
       <Image
         src="/images/peta-konsep.svg"
         alt="Peta Konsep"
@@ -191,7 +187,6 @@ function PetaKonsep() {
 function TujuanPembelajaran() {
   return (
     <article className="kp-wrap">
-      <h2 className="kp-subtitle text-center">Capaian dan Tujuan Pembelajaran</h2>
       <h3 className="kp-greeting">Capaian Pembelajaran (CP)</h3>
       <p className="kp-body">
         <b>Pada akhir fase F, siswa memiliki kemampuan</b> melakukan proses penyelidikan statistika untuk mengidentifikasi dan menjelaskan asosiasi antara dua variabel kategorikal (kualitatif) dan antara dua variabel numerik (kuantitatif); memperkirakan model linear terbaik (best fit linear) pada data numerik (kuantitatif); membedakan sebab-akibat; hubungan menjelaskan asosiasi peluang dan dan menentukan frekuensi harapan dari kejadian majemuk; menyelidiki konsep dari kejadian saling bebas dan saling lepas, dan menentukan peluangnya; serta memahami konsep peluang bersyarat dan kejadian yang saling bebas <b>menggunakan konsep permutasi dan kombinasi.</b>
@@ -284,19 +279,29 @@ export default function SiswaDashboardPage() {
         {/* === Kolom Kiri: Konten Modul === */}
         <div className="flex flex-col gap-1">
           <ScrollReveal variant="fade-up" delay={0}>
-            <KataPengantar />
+            <DropdownSection title="Kata Pengantar">
+              <KataPengantar />
+            </DropdownSection>
           </ScrollReveal>
           <ScrollReveal variant="fade-up" delay={120}>
-            <DaftarIsi />
+            <DropdownSection title="Daftar Isi">
+              <DaftarIsi />
+            </DropdownSection>
           </ScrollReveal>
           <ScrollReveal variant="fade-up" delay={240}>
-            <PetunjukPenggunaan />
+            <DropdownSection title="Petunjuk Penggunaan Modul">
+              <PetunjukPenggunaan />
+            </DropdownSection>
           </ScrollReveal>
           <ScrollReveal variant="fade-up" delay={360}>
-            <PetaKonsep/>
+            <DropdownSection title="Peta Konsep">
+              <PetaKonsep/>
+            </DropdownSection>
           </ScrollReveal>
           <ScrollReveal variant="fade-up" delay={480}>
-            <TujuanPembelajaran/>
+            <DropdownSection title="Capaian dan Tujuan Pembelajaran">
+              <TujuanPembelajaran/>
+            </DropdownSection>
           </ScrollReveal>
         </div>
 

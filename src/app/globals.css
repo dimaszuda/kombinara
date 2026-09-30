@@ -333,3 +333,58 @@ ul.kp-list {
 .chat-md .katex {
   font-size: 1em;
 }
+
+/* ============================================
+   Dashboard — Dropdown Section (akordeon)
+   ============================================ */
+
+.dd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: calc(100% - 20px);
+  max-width: 720px;
+  margin-left: 20px;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-overlock), sans-serif;
+  color: inherit;
+}
+.dd-header:hover .dd-title {
+  opacity: 0.65;
+}
+.dd-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: opacity 0.15s ease;
+}
+.dd-chevron {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+.dd-chevron.open {
+  transform: rotate(180deg);
+}
+.dd-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease;
+}
+.dd-collapse.open {
+  grid-template-rows: 1fr;
+}
+.dd-collapse > .dd-collapse-inner {
+  overflow: hidden;
+  visibility: hidden;
+  /* tetap terlihat selama animasi menutup, baru disembunyikan setelahnya */
+  transition: visibility 0s linear 0.35s;
+}
+.dd-collapse.open > .dd-collapse-inner {
+  visibility: visible;
+  transition: visibility 0s;
+}
