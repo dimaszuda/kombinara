@@ -86,6 +86,26 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
     return () => window.removeEventListener("resize", closeMobileSidebar);
   }, []);
 
+  // Logout dari header (di samping identitas) — perilaku sama dengan Logout di Sidebar
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (response.ok) {
+        window.location.href = "/login";
+      } else {
+        const data = await response.json();
+        alert(data.error || "Logout gagal");
+        setIsLoggingOut(false);
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Terjadi kesalahan saat logout");
+      setIsLoggingOut(false);
+    }
+  };
+
   // Reusable avatar image (same logic used in both mobile & desktop)
   const avatarSrc = profile?.avatarUrl
     ? profile.avatarUrl
@@ -134,31 +154,48 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
             </span>
           </div>
 
-          {/* Profile — mobile */}
-          <span className="kb-tooltip-wrap" style={{ pointerEvents: isLocked ? "none" : undefined, opacity: isLocked ? 0.4 : 1 }}>
-            <Link
-              href="/siswa/profile"
-              className="flex items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-brand-50"
-              aria-label="Ke halaman profil"
-            >
-              <Image
-                src={avatarSrc}
-                alt="Profile"
-                width={44}
-                height={44}
-                className="h-11 w-11 shrink-0 rounded-full object-cover"
-              />
-              {profile && (
-                <div className="flex flex-col leading-tight">
-                  <span className="whitespace-nowrap text-sm font-semibold text-zinc-900">{profile.name.split(" ").slice(0, 2).join(" ")}</span>
-                  <span className="whitespace-nowrap text-xs text-zinc-600">
-                    {profile.className ? `Kelas ${profile.className}` : "Guru"}
-                  </span>
-                </div>
-              )}
-            </Link>
-            <span className="kb-tooltip">Profil Kamu</span>
-          </span>
+          {/* Profile + Logout — mobile */}
+          <div className="flex items-center gap-2">
+            <span className="kb-tooltip-wrap" style={{ pointerEvents: isLocked ? "none" : undefined, opacity: isLocked ? 0.4 : 1 }}>
+              <Link
+                href="/siswa/profile"
+                className="flex items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-brand-50"
+                aria-label="Ke halaman profil"
+              >
+                <Image
+                  src={avatarSrc}
+                  alt="Profile"
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 shrink-0 rounded-full object-cover"
+                />
+                {profile && (
+                  <div className="flex flex-col leading-tight">
+                    <span className="whitespace-nowrap text-sm font-semibold text-zinc-900">{profile.name.split(" ").slice(0, 2).join(" ")}</span>
+                    <span className="whitespace-nowrap text-xs text-zinc-600">
+                      {profile.className ? `Kelas ${profile.className}` : "Guru"}
+                    </span>
+                  </div>
+                )}
+              </Link>
+              <span className="kb-tooltip">Profil Kamu</span>
+            </span>
+
+            {/* Logout di samping identitas — mobile */}
+            <span className="kb-tooltip-wrap" style={{ pointerEvents: isLocked ? "none" : undefined, opacity: isLocked ? 0.4 : 1 }}>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full"
+                style={{ backgroundColor: "#346739", border: "none", cursor: isLoggingOut ? "not-allowed" : "pointer", opacity: isLoggingOut ? 0.6 : 1 }}
+                aria-label="Logout"
+              >
+                <Image src="/icons/logout.png" alt="Logout" width={20} height={20} style={{ objectFit: "contain" }} />
+              </button>
+              <span className="kb-tooltip">Logout</span>
+            </span>
+          </div>
         </div>
       </header>
 
@@ -218,51 +255,80 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
           />
         </div>
 
-        {/* Profile — desktop */}
-        <span
-          className="kb-tooltip-wrap"
+        {/* Profile + Logout — desktop */}
+        <div
           style={{
             position: "absolute",
             top: 8,
             right: 30,
             zIndex: 20,
-            marginTop: "0px",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
             pointerEvents: isLocked ? "none" : undefined,
             opacity: isLocked ? 0.4 : 1,
             transition: "opacity 0.2s",
           }}
         >
-          <Link
-            href="/siswa/profile"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              textDecoration: "none",
-              cursor: "pointer",
-            }}
-            aria-label="Ke halaman profil"
-          >
-            <Image
-              src={avatarSrc}
-              alt="Profile"
-              width={48}
-              height={48}
-              style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
-            />
-            {profile && (
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1a1a", whiteSpace: "nowrap" }}>
-                  {profile.name}
-                </span>
-                <span style={{ fontSize: 12, color: "#555", whiteSpace: "nowrap" }}>
-                  {profile.className ? `Kelas ${profile.className}` : "Guru"}
-                </span>
-              </div>
-            )}
-          </Link>
-          <span className="kb-tooltip">Profil Kamu</span>
-        </span>
+          <span className="kb-tooltip-wrap">
+            <Link
+              href="/siswa/profile"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
+              aria-label="Ke halaman profil"
+            >
+              <Image
+                src={avatarSrc}
+                alt="Profile"
+                width={48}
+                height={48}
+                style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+              />
+              {profile && (
+                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1a1a", whiteSpace: "nowrap" }}>
+                    {profile.name}
+                  </span>
+                  <span style={{ fontSize: 12, color: "#555", whiteSpace: "nowrap" }}>
+                    {profile.className ? `Kelas ${profile.className}` : "Guru"}
+                  </span>
+                </div>
+              )}
+            </Link>
+            <span className="kb-tooltip">Profil Kamu</span>
+          </span>
+
+          {/* Logout di samping identitas — desktop */}
+          <span className="kb-tooltip-wrap">
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                backgroundColor: "#346739",
+                border: "none",
+                cursor: isLoggingOut ? "not-allowed" : "pointer",
+                opacity: isLoggingOut ? 0.6 : 1,
+                flexShrink: 0,
+              }}
+              aria-label="Logout"
+            >
+              <Image src="/icons/logout.png" alt="Logout" width={20} height={20} style={{ objectFit: "contain" }} />
+            </button>
+            <span className="kb-tooltip">Logout</span>
+          </span>
+        </div>
 
         <main style={{ ...mainStyle, flex: 1, overflowY: "auto", height: "100vh" }}>
           <div
