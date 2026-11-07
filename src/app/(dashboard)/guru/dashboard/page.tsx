@@ -65,7 +65,6 @@ const COLORS = {
   white: "#ffffff",
 } as const;
 
-const KELAS_LIST: string[] = ["X-1", "X-2", "X-3", "XI-1", "XI-2", "XI-3", "XI-4"];
 const MATERI_LIST: string[] = ["Pendahuluan", "Kaidah Penjumlahan", "Kaidah Perkalian", "Faktorial", "Permutasi", "Kombinasi"];
 
 /** Mapping display name → concept_id slug(s) untuk filter API. Array = multi-concept (pakai IN di SQL). */
@@ -88,14 +87,6 @@ const MATERI_ASESMEN_OPTIONS: { label: string; value: string }[] = [
   { label: "Faktorial", value: "faktorial" },
   { label: "Permutasi", value: "permutasi" },
   { label: "Kombinasi", value: "kombinasi" },
-];
-const SECTION_KEYS: { key: SectionKey; label: string }[] = [
-  { key: "apersepsi", label: "Apersepsi" },
-  { key: "eksplorasi", label: "Eksplorasi" },
-  { key: "deepLearning", label: "Deep learning" },
-  { key: "contohSoal", label: "Contoh soal" },
-  { key: "refleksi", label: "Refleksi mini" },
-  { key: "aktivitas", label: "Aktivitas siswa" },
 ];
 
 const getDurationScatterDomain = (data: Array<{ x: number }>) => {
@@ -248,64 +239,14 @@ const INTEGRITY_COLS: Column<Record<string, unknown>>[] = [
   },
 ];
 
-function seededRandom(seed: number): () => number {
-  let s = seed;
-  return function () {
-    s = (s * 9301 + 49297) % 233280;
-    return s / 233280;
-  };
-}
-const rand = seededRandom(42);
-
-function genStudents(): Student[] {
-  const firstNames = ["Ahmad", "Siti", "Budi", "Dewi", "Rizky", "Putri", "Fajar", "Nadia", "Yusuf", "Intan", "Fikri", "Salma", "Dimas", "Aulia", "Reza", "Wulan", "Hafiz", "Citra", "Bayu", "Kirana"];
-  const lastNames = ["Pratama", "Wijaya", "Santoso", "Kusuma", "Ramadhan", "Lestari", "Nugroho", "Putra", "Anggraini", "Setiawan"];
-  const students: Student[] = [];
-  let id = 1;
-  KELAS_LIST.forEach((kelas) => {
-    const count = 30 + Math.floor(rand() * 7);
-    for (let i = 0; i < count; i++) {
-      const fn = firstNames[Math.floor(rand() * firstNames.length)];
-      const ln = lastNames[Math.floor(rand() * lastNames.length)];
-      const diagNilai = Math.round(40 + rand() * 60);
-      const diagDurasi = Math.round(8 + rand() * 35);
-      const diagAttempt = diagNilai >= 70 ? 1 + Math.floor(rand() * 2) : 1 + Math.floor(rand() * 3);
-      const formNilai = Math.round(35 + rand() * 65);
-      const formDurasi = Math.round(10 + rand() * 40);
-      const formAttempt = 1 + Math.floor(rand() * 3);
-      const sections = {} as Record<SectionKey, boolean>;
-      let progressCount = 0;
-      SECTION_KEYS.forEach((s, idx) => {
-        const done = rand() > (0.15 + idx * 0.1);
-        sections[s.key] = done;
-        if (done) progressCount++;
-      });
-      const progressPct = Math.round((progressCount / SECTION_KEYS.length) * 100);
-      const integrityEvents = rand() > 0.82 ? 1 + Math.floor(rand() * 4) : 0;
-      students.push({
-        id: id++,
-        nama: `${fn} ${ln}`,
-        kelas,
-        materi: MATERI_LIST[Math.floor(rand() * MATERI_LIST.length)],
-        tanggalJoin: `${1 + Math.floor(rand() * 28)}/0${1 + Math.floor(rand() * 6)}/2026`,
-        diagNilai,
-        diagPassed: diagNilai >= 70,
-        diagDurasi,
-        diagAttempt,
-        formNilai,
-        formPassed: formNilai >= 70,
-        formDurasi,
-        formAttempt,
-        sections,
-        progressPct,
-        integrityEvents,
-      });
-    }
-  });
-  return students;
-}
-
-const STUDENTS: Student[] = genStudents();
+/**
+ * Data dummy (siswa fiktif) DIHAPUS — dashboard hanya boleh menampilkan data asli.
+ * Sebelumnya grafik & ekspor Excel jatuh ke siswa palsu saat data asli kosong,
+ * yang menyesatkan (terutama untuk guru baru yang kelasnya masih kosong).
+ * Cabang "fallback" di bawah kini menerima daftar kosong → tampil 0 / kosong.
+ * TODO(refactor): hapus cabang fallback & tipe `Student` sekalian.
+ */
+const NO_DUMMY_STUDENTS: Student[] = [];
 
 const DIAG_SOAL: DiagSoal[] = [
   { soal: "Sebuah organisasi punya 5 kandidat ketua dan 4 kandidat wakil ketua. Berapa banyak pasangan ketua dan wakil yang mungkin terbentuk?", jawaban: "20, menggunakan kaidah perkalian 5 x 4" },
@@ -1007,51 +948,9 @@ export default function KombinaraDashboard() {
   // ── Progress data dari API ─────────────────────────────────
   const progressData = dashData?.studentProgress ?? [];
 
-  // ── Dummy data (untuk section yang belum dimigrasi) ────────
-  const filtered = useMemo(() => {
-    let result = STUDENTS;
-    if (filters.kelas !== "all") {
-      // Cari nama kelas dari kelasOptions untuk filter dummy data
-      const selectedOpt = dashData?.kelasOptions.find(
-        (k) => String(k.classId) === filters.kelas
-      );
-      if (selectedOpt) {
-        // Dummy data pakai nama kelas sebagai string — tidak exact match,
-        // jadi skip filter dummy jika tidak cocok
-        result = result.filter((s) => s.kelas === selectedOpt.namaKelas);
-      }
-    }
-    if (filters.materi !== "all") {
-      result = result.filter((s) => s.materi === filters.materi);
-    }
-    return result;
-  }, [filters, dashData]);
-
-  // ── Dummy data untuk section asesmen formatif & integrity ───
-  /** Mapping concept_id asesmen → label dummy STUDENTS */
-  const ASESMEN_TO_LABELS: Record<string, string[]> = {
-    "kaidah-pencacahan": ["Kaidah Penjumlahan", "Kaidah Perkalian"],
-    faktorial: ["Faktorial"],
-    permutasi: ["Permutasi"],
-    kombinasi: ["Kombinasi"],
-  };
-
-  const filteredAsesmen = useMemo(() => {
-    let result = STUDENTS;
-    if (filters.kelas !== "all") {
-      const selectedOpt = dashData?.kelasOptions.find(
-        (k) => String(k.classId) === filters.kelas
-      );
-      if (selectedOpt) {
-        result = result.filter((s) => s.kelas === selectedOpt.namaKelas);
-      }
-    }
-    if (filters.materiAsesmen !== "all") {
-      const labels = ASESMEN_TO_LABELS[filters.materiAsesmen] ?? [];
-      result = result.filter((s) => labels.includes(s.materi));
-    }
-    return result;
-  }, [filters, dashData]);
+  // ── Sumber "fallback" lama — kini selalu kosong (lihat NO_DUMMY_STUDENTS) ──
+  const filtered = NO_DUMMY_STUDENTS;
+  const filteredAsesmen = NO_DUMMY_STUDENTS;
 
   // ── Data real dari API untuk distribusi (donut chart) ──────
   const realDistribusi = useMemo(() => {

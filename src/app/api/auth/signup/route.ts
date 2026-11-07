@@ -1,78 +1,84 @@
-import { createClient } from "@supabase/supabase-js";
-import { prisma } from "@/lib/prisma/client";
-import { logger } from "@/lib/logger";
-import { sendAlert } from "@/lib/alerts";
+/**
+ * Daftar akun SISWA (email + password).
+ *
+ * POST /api/auth/signup
+ * Body: { email, password, nama, nomorAbsen, gender, classCode }
+ * Response: { success: true }
+ *
+ * - `classCode` = kode kelas dari guru (classes.join_code), diverifikasi di server.
+ *   Kelas & sekolah ditentukan oleh kode, bukan diketik siswa.
+ * - Role disimpan di `app_metadata.role` (tidak bisa diubah user dari browser).
+ * - Jika penyimpanan DB gagal, user auth di-rollback.
+ */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma/client";
+import { logger, maskEmail } from "@/lib/logger";
+import { sendAlert } from "@/lib/alerts";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { findClassByJoinCode, isStudentNumberTaken } from "@/lib/data/classes";
 
-function maskEmail(email: string): string {
-  const [local, domain] = email.split("@");
-  if (!domain) return "***";
-  return `${local.slice(0, 2)}***@${domain}`;
-}
-
-function getAcademicYear(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  return month >= 7 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
-}
+const REQUIRED_FIELDS = ["email", "password", "nama", "nomorAbsen", "gender", "classCode"] as const;
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { email, password, nama, nomorAbsen, kelas, groupKelas, gender } = body;
+  const body = await request.json().catch(() => null);
+  if (!body) {
+    return NextResponse.json({ error: "Request tidak valid" }, { status: 400 });
+  }
 
-  if (!email || !password || !nama || !nomorAbsen || !kelas || !groupKelas || !gender) {
-    const missing = ["email", "password", "nama", "nomorAbsen", "kelas", "groupKelas", "gender"]
-      .filter((f) => !body[f as keyof typeof body]);
+  const missing = REQUIRED_FIELDS.filter((f) => typeof body[f] !== "string" || !body[f].trim());
+  if (missing.length > 0) {
     logger.warn("auth:signup", "Validation failed - missing fields", { missingFields: missing });
     return NextResponse.json({ error: "Semua field wajib diisi" }, { status: 400 });
   }
 
-  // Validasi kelas & groupKelas
-  if (!/^(X|XI|XII)$/.test(kelas.trim())) {
-    return NextResponse.json({ error: "Kelas hanya boleh X, XI, atau XII" }, { status: 400 });
+  const email = body.email.trim();
+  const password: string = body.password;
+  const nama = body.nama.trim();
+  const nomorAbsen = body.nomorAbsen.trim();
+  const gender = body.gender.trim();
+
+  if (password.length < 6) {
+    return NextResponse.json({ error: "Password minimal 6 karakter" }, { status: 400 });
   }
-  if (!/^[A-Z]$/.test(groupKelas.trim())) {
-    return NextResponse.json({ error: "Group kelas hanya boleh satu huruf A-Z" }, { status: 400 });
+
+  // ── Verifikasi kode kelas SEBELUM membuat akun ────────────────
+  const cls = await findClassByJoinCode(body.classCode);
+  if (!cls) {
+    logger.warn("auth:signup", "Signup rejected - invalid class code", { email: maskEmail(email) });
+    return NextResponse.json({ error: "Kode kelas tidak ditemukan. Periksa lagi kode dari gurumu." }, { status: 400 });
+  }
+
+  if (await isStudentNumberTaken(cls.id, nomorAbsen)) {
+    return NextResponse.json(
+      { error: `Nomor absen ${nomorAbsen} sudah digunakan siswa lain di kelas ${cls.label}.` },
+      { status: 409 }
+    );
   }
 
   logger.info("auth:signup", "Signup request received", {
     email: maskEmail(email),
-    kelas,
-    groupKelas,
-    gender,
+    classId: cls.id,
+    schoolId: cls.schoolId,
   });
 
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabaseAdmin = createSupabaseAdminClient();
 
-  // Buat user dengan email sudah terkonfirmasi (bypass email confirmation)
+  // Email langsung terkonfirmasi (bypass email confirmation)
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email: email.trim(),
+    email,
     password,
     email_confirm: true,
-    user_metadata: {
-      role: "siswa",
-      nama: nama.trim(),
-      nomorAbsen: nomorAbsen.trim(),
-      kelas: kelas.trim(),
-      groupKelas: groupKelas.trim(),
-      gender,
-    },
+    app_metadata: { role: "siswa" },
+    user_metadata: { nama, nomorAbsen, gender },
   });
 
   if (authError) {
+    const msg = authError.message.toLowerCase();
     const isEmailTaken =
-      authError.message.toLowerCase().includes("already been registered") ||
-      authError.message.toLowerCase().includes("already registered") ||
-      authError.message.toLowerCase().includes("already exists");
+      msg.includes("already been registered") || msg.includes("already registered") || msg.includes("already exists");
     if (isEmailTaken) {
-      logger.warn("auth:signup", "Signup rejected - email already registered", {
-        email: maskEmail(email),
-      });
+      logger.warn("auth:signup", "Signup rejected - email already registered", { email: maskEmail(email) });
     } else {
       logger.error("auth:signup", "Supabase auth error during signup", {
         email: maskEmail(email),
@@ -86,81 +92,39 @@ export async function POST(request: NextRequest) {
       });
     }
     return NextResponse.json(
-      { error: isEmailTaken ? "Email ini sudah terdaftar. Coba login atau gunakan email lain." : authError.message },
+      { error: isEmailTaken ? "Email ini sudah terdaftar. Coba login atau gunakan email lain." : "Gagal membuat akun. Coba lagi." },
       { status: 400 }
     );
   }
 
   const user = authData.user;
-  logger.info("auth:signup", "Supabase user created successfully", {
-    userId: user.id,
-    kelas,
-    groupKelas,
-  });
 
   try {
-    const academicYear = getAcademicYear();
-
-    let dbClass = await prisma.class.findFirst({
-      where: { className: kelas.trim(), group: groupKelas.trim(), academicYear },
-    });
-    if (!dbClass) {
-      dbClass = await prisma.class.create({
-        data: { className: kelas.trim(), group: groupKelas.trim(), academicYear },
-      });
-      logger.info("auth:signup", "New class created in DB", {
-        classId: dbClass.id,
-        className: dbClass.className,
-        group: dbClass.group,
-        academicYear,
-      });
-    }
-
     await prisma.user.upsert({
       where: { id: user.id },
-      update: { name: nama.trim(), role: "siswa" },
-      create: {
-        id: user.id,
-        email: user.email!,
-        name: nama.trim(),
-        role: "siswa",
-      },
+      update: { name: nama, role: "siswa" },
+      create: { id: user.id, email: user.email!, name: nama, role: "siswa" },
     });
 
     await prisma.student.upsert({
       where: { userId: user.id },
-      update: { studentNumber: nomorAbsen.trim(), name: nama.trim(), gender, classId: dbClass.id },
-      create: {
-        userId: user.id,
-        studentNumber: nomorAbsen.trim(),
-        name: nama.trim(),
-        gender,
-        classId: dbClass.id,
-      },
+      update: { studentNumber: nomorAbsen, name: nama, gender, classId: cls.id },
+      create: { userId: user.id, studentNumber: nomorAbsen, name: nama, gender, classId: cls.id },
     });
 
-    logger.info("auth:signup", "Signup completed successfully", {
-      userId: user.id,
-      classId: dbClass.id,
-      studentNumber: nomorAbsen.trim(),
-    });
+    logger.info("auth:signup", "Signup completed successfully", { userId: user.id, classId: cls.id });
     return NextResponse.json({ success: true });
   } catch (err) {
     // Rollback: hapus user auth jika DB gagal
     await supabaseAdmin.auth.admin.deleteUser(user.id);
-    logger.error("auth:signup", "DB error during signup - auth user rolled back", {
-      userId: user.id,
-      error: err instanceof Error ? err.message : String(err),
-    });
+    const error = err instanceof Error ? err.message : String(err);
+    logger.error("auth:signup", "DB error during signup - auth user rolled back", { userId: user.id, error });
     sendAlert({
       title: "Signup DB Error — User Rolled Back",
       route: "POST /api/auth/signup",
-      error: err instanceof Error ? err.message : String(err),
+      error,
       meta: { userId: user.id },
     });
-    return NextResponse.json(
-      { error: "Gagal menyimpan profil", detail: err instanceof Error ? err.message : String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Gagal menyimpan profil. Coba lagi." }, { status: 500 });
   }
 }

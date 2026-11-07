@@ -20,8 +20,9 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  taughtClasses   Class[]           @relation("TeacherClasses")
+  taughtClasses   Class[]           @relation("TeacherClasses") // legacy (classes.teacher_id) — pakai Teacher.classes
   student         Student?
+  teacher         Teacher?
   readingProgress ReadingProgress[]
   aiQuestions     AiQuestion[]
   quizAttempts    QuizAttempt[]
@@ -34,18 +35,68 @@ model User {
 
 model Class {
   id           Int     @id @default(autoincrement()) @map("class_id")
-  teacherId    String? @map("teacher_id") @db.Uuid
-  className    String  @map("class_name")
-  group        String
-  academicYear String  @map("academic_year")
+  schoolId     Int     @map("school_id")
+  teacherId    String? @map("teacher_id") @db.Uuid // legacy, tidak dipakai — relasi guru lewat teacher_classes
+  className    String  @map("class_name") // "X" | "XI" | "XII"
+  group        String // satu huruf "A".."Z"
+  academicYear String  @map("academic_year") // "2025/2026"
+  joinCode     String? @unique @map("join_code") // kode kelas untuk siswa bergabung; NULL = kelas ditutup
 
   // Relations
-  teacher  User?          @relation("TeacherClasses", fields: [teacherId], references: [id])
-  students Student[]
-  settings ClassSettings?
-  ulangan  Ulangan[]
+  school         School         @relation(fields: [schoolId], references: [id])
+  teacher        User?          @relation("TeacherClasses", fields: [teacherId], references: [id])
+  teacherClasses TeacherClass[]
+  students       Student[]
+  settings       ClassSettings?
+  ulangan        Ulangan[]
 
+  @@unique([schoolId, className, group, academicYear])
   @@map("classes")
+}
+
+// ============================================================
+// Multi-sekolah — Sekolah, Guru, dan relasi Guru ↔ Kelas
+// (lihat prisma/migrations/manual/multi_school_*.sql)
+// ============================================================
+
+model School {
+  id          Int      @id @default(autoincrement()) @map("school_id")
+  name        String
+  teacherCode String?  @unique @map("teacher_code") // kode daftar guru; NULL = pendaftaran guru ditutup
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  classes  Class[]
+  teachers Teacher[]
+
+  @@map("schools")
+}
+
+model Teacher {
+  id        Int      @id @default(autoincrement()) @map("teacher_id")
+  userId    String   @unique @map("user_id") @db.Uuid
+  schoolId  Int      @map("school_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school  School         @relation(fields: [schoolId], references: [id])
+  classes TeacherClass[]
+
+  @@index([schoolId])
+  @@map("teachers")
+}
+
+model TeacherClass {
+  teacherId Int      @map("teacher_id")
+  classId   Int      @map("class_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@id([teacherId, classId])
+  @@index([classId])
+  @@map("teacher_classes")
 }
 
 model Student {

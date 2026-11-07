@@ -4,6 +4,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { logger } from "@/lib/logger";
+import { getUserRole, dashboardPathFor } from "@/lib/auth/roles";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -27,7 +28,7 @@ export async function middleware(request: NextRequest) {
   );
 
   // Dapatkan user dengan fallback — handle network error (ECONNRESET, dll)
-  let user: { id: string; user_metadata?: { role?: string } } | null = null;
+  let user: { id: string; app_metadata?: Record<string, unknown> } | null = null;
 
   try {
     const { data } = await supabase.auth.getUser();
@@ -57,15 +58,19 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Unauthenticated — redirect ke login
-  const publicPaths = ["/login", "/join", "/signup", "/auth/callback", "/complete-profil", "/forgot-password", "/reset-password"];
-  if (!user && !publicPaths.some((p) => pathname.startsWith(p))) {
+  // Unauthenticated — redirect ke login.
+  // "/" (landing page) dicocokkan PERSIS — jangan masukkan ke publicPaths karena
+  // pengecekan startsWith("/") akan membuat semua halaman menjadi publik.
+  const isLandingPage = pathname === "/";
+  const publicPaths = ["/login", "/join", "/signup", "/daftar-guru", "/auth/callback", "/complete-profil", "/forgot-password", "/reset-password"];
+  if (!user && !isLandingPage && !publicPaths.some((p) => pathname.startsWith(p))) {
     logger.warn("auth:middleware", "Unauthenticated access attempt", { pathname });
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (user) {
-    const role = user.user_metadata?.role as string;
+    // Role dari app_metadata (hanya bisa ditulis server), BUKAN user_metadata.
+    const role = getUserRole(user);
 
     // Belum lengkap profil (belum punya role) — paksa ke complete-profil
     if (!role && !pathname.startsWith("/complete-profil") && !pathname.startsWith("/auth")) {
@@ -76,11 +81,9 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/complete-profil", request.url));
     }
 
-    // Authenticated — redirect dari login ke dashboard
-    if (pathname === "/login") {
-      return NextResponse.redirect(
-        new URL(role === "guru" ? "/guru" : "/siswa", request.url)
-      );
+    // Authenticated — landing page, login, dan daftar guru langsung ke dashboard
+    if (role && (isLandingPage || pathname === "/login" || pathname.startsWith("/daftar-guru"))) {
+      return NextResponse.redirect(new URL(dashboardPathFor(role), request.url));
     }
 
     // Role guard — siswa tidak bisa akses /guru

@@ -1,12 +1,19 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useClassCodeLookup, savePendingClassCode } from "@/hooks/useClassCodeLookup";
+import ClassInfoCard from "@/components/auth/ClassInfoCard";
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const classCode = (searchParams.get("code") ?? "").trim();
+  const classLookup = useClassCodeLookup();
+  const { check: checkClassCode } = classLookup;
+
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -15,15 +22,22 @@ export default function SignupPage() {
 
   const [namaLengkap, setNamaLengkap] = useState("");
   const [nomorAbsen, setNomorAbsen] = useState("");
-  const [kelas, setKelas] = useState("");
-  const [groupKelas, setGroupKelas] = useState("");
   const [gender, setGender] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // Kode kelas dari /join → tampilkan kelas tujuan
+  useEffect(() => {
+    if (classCode) checkClassCode(classCode);
+  }, [classCode, checkClassCode]);
+
+  const classReady = classLookup.status === "valid";
+
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
+    // Bawa kode kelas melewati redirect Google → dibaca /complete-profil
+    savePendingClassCode(classCode);
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -37,12 +51,11 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
 
+    if (!classReady) { setError("Kode kelas belum valid. Kembali ke halaman Gabung untuk memasukkan kode kelas."); return; }
     if (!namaLengkap.trim()) { setError("Nama lengkap wajib diisi"); return; }
     if (!nomorAbsen.trim()) { setError("Nomor absen wajib diisi"); return; }
     const nomorAbsenNum = parseInt(nomorAbsen.trim(), 10);
     if (isNaN(nomorAbsenNum) || nomorAbsenNum <= 0) { setError("Nomor absen harus berupa angka lebih dari 0"); return; }
-    if (!kelas.trim()) { setError("Kelas wajib diisi"); return; }
-    if (!groupKelas.trim()) { setError("Grup kelas wajib diisi"); return; }
     if (!gender) { setError("Jenis kelamin wajib dipilih"); return; }
     if (!email.trim()) { setError("Email wajib diisi"); return; }
     if (!password) { setError("Password wajib diisi"); return; }
@@ -61,9 +74,8 @@ export default function SignupPage() {
           password,
           nama: namaLengkap.trim(),
           nomorAbsen: nomorAbsen.trim(),
-          kelas: kelas.trim(),
-          groupKelas: groupKelas.trim(),
           gender,
+          classCode,
         }),
       });
 
@@ -85,6 +97,22 @@ export default function SignupPage() {
         <h1 className="text-3xl font-bold">Daftar akun Kombinara</h1>
 
         <form onSubmit={handleSubmit} className="w-full max-w-[450px] mt-8">
+          {/* Kelas tujuan dari kode kelas */}
+          <div className="mb-6">
+            {classLookup.status === "valid" && classLookup.info && <ClassInfoCard info={classLookup.info} />}
+            {(classLookup.status === "idle" || classLookup.status === "checking") && classCode && (
+              <p className="text-sm text-gray-500">Memeriksa kode kelas...</p>
+            )}
+            {(!classCode || classLookup.status === "invalid") && (
+              <div className="rounded-2xl border border-[#C44F4F] bg-[#FFF5F5] px-5 py-3 text-sm text-[#B91C1C]">
+                {classCode ? classLookup.error : "Kamu belum memasukkan kode kelas."}{" "}
+                <Link href="/join" className="font-bold text-brand-600 no-underline">
+                  Masukkan kode kelas
+                </Link>
+              </div>
+            )}
+          </div>
+
           <label className="block text-sm mb-1">Nama Lengkap</label>
           <input
             type="text"
@@ -102,29 +130,6 @@ export default function SignupPage() {
             className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
             placeholder="contoh: 1, 2, dst"
           />
-
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-sm mb-1 mt-5">Kelas</label>
-              <input
-                type="text"
-                value={kelas}
-                onChange={(e) => setKelas(e.target.value)}
-                className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
-                placeholder="contoh: XI"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm mb-1 mt-5">Grup Kelas</label>
-              <input
-                type="text"
-                value={groupKelas}
-                onChange={(e) => setGroupKelas(e.target.value)}
-                className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
-                placeholder="contoh: A"
-              />
-            </div>
-          </div>
 
           <label className="block text-sm mt-5 mb-1">Jenis Kelamin</label>
           <select
@@ -205,7 +210,7 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !classReady}
             className="w-full py-2.5 mt-4 rounded-full bg-brand-600 text-white font-bold border-0 cursor-pointer disabled:opacity-60 mt-8"
           >
             {isLoading ? "Mendaftarkan..." : "Daftar"}
@@ -220,7 +225,7 @@ export default function SignupPage() {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading}
+            disabled={isGoogleLoading || !classReady}
             className="w-full py-2.5 mt-6 rounded-full border border-brand-600 bg-white text-black font-medium cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
           >
             <Image src="/icons/google.png" alt="google icon" width={20} height={20} />
@@ -246,5 +251,13 @@ export default function SignupPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <SignupForm />
+    </Suspense>
   );
 }

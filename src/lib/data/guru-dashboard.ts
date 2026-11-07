@@ -61,39 +61,22 @@ export interface GuruDashboardData {
 // Queries
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * Kelas yang ditampilkan di dashboard guru.
- * Kelas lain disembunyikan dari filter & tile dashboard, TAPI TIDAK dihapus dari DB.
+/*
+ * CATATAN SCOPING: kelas yang boleh dilihat guru ditentukan oleh `teacher_classes`
+ * (lihat `requireGuru()` / `scopeClassIds()` di src/lib/auth/guru.ts). Route WAJIB
+ * mengirim daftar kelas yang tidak kosong — beberapa fungsi di bawah menganggap
+ * `classIds` kosong/undefined = semua kelas (perilaku lama).
  */
-const VISIBLE_CLASSES: Array<{ className: string; group: string }> = [
-  { className: "XII", group: "G" },
-  { className: "XII", group: "J" },
-  { className: "XII", group: "L" },
-];
 
-/** Ambil id kelas yang visible untuk dipakai sebagai filter query. */
-async function getVisibleClassIds(): Promise<number[]> {
-  const classes = await prisma.class.findMany({
-    where: { OR: VISIBLE_CLASSES },
-    select: { id: true },
-  });
-  return classes.map((c) => c.id);
-}
-
-/** Total Kelas — hanya kelas visible (XII G/J/L) yang memiliki siswa, difilter oleh kelas */
-export async function getTotalKelas(classIds?: number[]): Promise<number> {
-  const visibleIds = await getVisibleClassIds();
-  const targetIds = classIds && classIds.length > 0
-    ? classIds.filter((id) => visibleIds.includes(id))
-    : visibleIds;
-
-  if (targetIds.length === 0) return 0;
+/** Total Kelas — kelas (dari daftar) yang memiliki siswa */
+export async function getTotalKelas(classIds: number[]): Promise<number> {
+  if (classIds.length === 0) return 0;
 
   const result = await prisma.student.groupBy({
     by: ["classId"],
     where: {
       user: { role: "siswa" },
-      classId: { in: targetIds },
+      classId: { in: classIds },
     },
   });
 
@@ -129,35 +112,43 @@ export async function getSiswaGenderBreakdown(classIds?: number[]): Promise<Gend
   }));
 }
 
-/** Daftar kelas untuk opsi filter — hanya kelas visible (XII G/J/L) */
-export async function getKelasOptions(): Promise<KelasOption[]> {
+/**
+ * Daftar kelas untuk opsi filter — kelas milik guru.
+ * Tahun ajaran ditambahkan ke label hanya jika ada nama kelas yang kembar.
+ */
+export async function getKelasOptions(classIds: number[]): Promise<KelasOption[]> {
+  if (classIds.length === 0) return [];
+
   const classes = await prisma.class.findMany({
-    where: { OR: VISIBLE_CLASSES },
-    select: { id: true, className: true, group: true },
-    orderBy: [{ className: "asc" }, { group: "asc" }],
+    where: { id: { in: classIds } },
+    select: { id: true, className: true, group: true, academicYear: true },
+    orderBy: [{ academicYear: "desc" }, { className: "asc" }, { group: "asc" }],
   });
-  return classes.map((c) => ({
-    classId: c.id,
-    namaKelas: `${c.className} ${c.group}`,
-  }));
+
+  const labelCount = new Map<string, number>();
+  for (const c of classes) {
+    const label = `${c.className} ${c.group}`;
+    labelCount.set(label, (labelCount.get(label) ?? 0) + 1);
+  }
+
+  return classes.map((c) => {
+    const label = `${c.className} ${c.group}`;
+    return {
+      classId: c.id,
+      namaKelas: (labelCount.get(label) ?? 0) > 1 ? `${label} (${c.academicYear})` : label,
+    };
+  });
 }
 
-/** Distribusi Siswa per Kelas — hanya kelas visible (XII G/J/L) */
-export async function getDistribusiKelas(
-  classIds?: number[]
-): Promise<DistribusiKelasItem[]> {
-  const visibleIds = await getVisibleClassIds();
-  const targetIds = classIds && classIds.length > 0
-    ? classIds.filter((id) => visibleIds.includes(id))
-    : visibleIds;
-
-  if (targetIds.length === 0) return [];
+/** Distribusi Siswa per Kelas */
+export async function getDistribusiKelas(classIds: number[]): Promise<DistribusiKelasItem[]> {
+  if (classIds.length === 0) return [];
 
   const students = await prisma.student.groupBy({
     by: ["classId"],
     where: {
       user: { role: "siswa" },
-      classId: { in: targetIds },
+      classId: { in: classIds },
     },
     _count: { _all: true },
   });
@@ -333,18 +324,41 @@ export async function getStudentProgress(
   }));
 }
 
-/** Gabung semua data dashboard dalam satu parallel fetch */
+/** Payload kosong — guru belum punya kelas / filter tidak mengenai kelasnya. */
+export function emptyGuruDashboardData(kelasOptions: KelasOption[] = []): GuruDashboardData {
+  return {
+    totalKelas: 0,
+    totalSiswa: 0,
+    genderBreakdown: [],
+    kelasOptions,
+    distribusiKelas: [],
+    daftarSiswa: [],
+    studentProgress: [],
+  };
+}
+
+/**
+ * Gabung semua data dashboard dalam satu parallel fetch.
+ *
+ * @param allowedClassIds - semua kelas guru (untuk opsi filter)
+ * @param classIds        - kelas yang sedang dipilih; HARUS subset `allowedClassIds` dan TIDAK kosong
+ */
 export async function getGuruDashboardData(
-  classIds?: number[],
+  allowedClassIds: number[],
+  classIds: number[],
   materis?: string[],
   searchName?: string
 ): Promise<GuruDashboardData> {
+  if (classIds.length === 0) {
+    return emptyGuruDashboardData(await getKelasOptions(allowedClassIds));
+  }
+
   const [totalKelas, totalSiswa, genderBreakdown, kelasOptions, distribusiKelas, daftarSiswa, studentProgress] =
     await Promise.all([
       getTotalKelas(classIds),
       getTotalSiswa(classIds),
       getSiswaGenderBreakdown(classIds),
-      getKelasOptions(),
+      getKelasOptions(allowedClassIds),
       getDistribusiKelas(classIds),
       getDaftarSiswa(classIds),
       getStudentProgress(classIds, materis, searchName),

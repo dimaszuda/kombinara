@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getUserRole, dashboardPathFor } from "@/lib/auth/roles";
 
 function LoginForm() {
   const router = useRouter();
@@ -62,8 +63,8 @@ function LoginForm() {
         return;
       }
 
-      const role = data.user?.user_metadata?.role as string | undefined;
-      router.push(role === "guru" ? "/guru" : "/siswa");
+      const role = getUserRole(data.user);
+      router.push(role ? dashboardPathFor(role) : "/complete-profil");
     } catch {
       setError("Terjadi kesalahan. Coba lagi.");
       setIsLoading(false);

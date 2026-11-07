@@ -1,14 +1,9 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { logger } from "@/lib/logger";
+import { logger, maskEmail } from "@/lib/logger";
 import { sendAlert } from "@/lib/alerts";
-
-function maskEmail(email: string): string {
-  const [local, domain] = email.split("@");
-  if (!domain) return "***";
-  return `${local.slice(0, 2)}***@${domain}`;
-}
+import { getUserRole, dashboardPathFor } from "@/lib/auth/roles";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -79,8 +74,8 @@ export async function GET(request: NextRequest) {
 
   // Jika user sudah punya role (login ulang), langsung ke dashboard
   // Jika belum (pertama kali Google signup), arahkan ke complete-profil
-  const role = data.session?.user?.user_metadata?.role as string | undefined;
-  const redirectPath = role ? (role === "guru" ? "/guru" : "/siswa") : "/complete-profil";
+  const role = getUserRole(data.session?.user);
+  const redirectPath = role ? dashboardPathFor(role) : "/complete-profil";
 
   if (role) {
     logger.info("auth:callback", "OAuth login - redirecting to dashboard", {

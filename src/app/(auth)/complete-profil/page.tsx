@@ -4,15 +4,18 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useClassCodeLookup, takePendingClassCode } from "@/hooks/useClassCodeLookup";
+import ClassInfoCard from "@/components/auth/ClassInfoCard";
 
 export default function CompleteProfilPage() {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
+  const classLookup = useClassCodeLookup();
+  const { check: checkClassCode } = classLookup;
 
   const [namaLengkap, setNamaLengkap] = useState("");
   const [nomorAbsen, setNomorAbsen] = useState("");
-  const [kelas, setKelas] = useState("");
-  const [groupKelas, setGroupKelas] = useState("");
+  const [kodeKelas, setKodeKelas] = useState("");
   const [gender, setGender] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -48,6 +51,15 @@ export default function CompleteProfilPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Kode kelas yang dibawa dari /signup sebelum login Google
+  useEffect(() => {
+    const pending = takePendingClassCode();
+    if (pending) {
+      setKodeKelas(pending);
+      checkClassCode(pending);
+    }
+  }, [checkClassCode]);
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -74,30 +86,30 @@ export default function CompleteProfilPage() {
       return;
     }
 
-    if (!/^(X|XI|XII)$/.test(kelas.trim())) {
-      setError("Kelas hanya boleh X, XI, atau XII");
-      return;
-    }
-
-    if (!/^[A-Z]$/.test(groupKelas.trim())) {
-      setError("Group kelas hanya boleh satu huruf A-Z");
-      return;
-    }
-
     setIsLoading(true);
     setError("");
 
+    // Pastikan kode kelas valid (cek ulang jika belum dicek / sudah diubah)
+    const kelasTujuan =
+      classLookup.info && classLookup.info.code === kodeKelas.trim().toUpperCase()
+        ? classLookup.info
+        : await checkClassCode(kodeKelas);
+    if (!kelasTujuan) {
+      setError(kodeKelas.trim() ? "Kode kelas tidak ditemukan. Periksa lagi kode dari gurumu." : "Kode kelas wajib diisi");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // 1. Insert ke public.users + students via API dulu
+      // 1. Simpan profil + role siswa (role di-set server-side di app_metadata)
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nama: namaLengkap.trim(),
           nomorAbsen: nomorAbsen.trim(),
-          kelas: kelas.trim(),
-          groupKelas: groupKelas.trim(),
           gender: gender,
+          classCode: kelasTujuan.code,
         }),
       });
       if (!res.ok) {
@@ -127,19 +139,19 @@ export default function CompleteProfilPage() {
         // if upload fails, silently keep existing avatar
       }
 
-      // 3. Update user_metadata hanya setelah DB berhasil
+      // 3. Update user_metadata (data tampilan saja — role TIDAK disimpan di sini)
       const { error: authError } = await supabase.auth.updateUser({
         data: {
-          role: "siswa",
           nama: namaLengkap.trim(),
           nomorAbsen: nomorAbsen.trim(),
-          kelas: kelas.trim(),
-          groupKelas: groupKelas.trim(),
           gender: gender,
           ...(finalAvatarUrl !== undefined && { avatar_url: finalAvatarUrl }),
         },
       });
       if (authError) throw authError;
+
+      // 4. Ambil token baru yang sudah memuat role dari server
+      await supabase.auth.refreshSession();
 
       router.push("/siswa");
     } catch (err) {
@@ -231,28 +243,24 @@ export default function CompleteProfilPage() {
             placeholder="Nomor absen kamu"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-            <div>
-              <label className="block text-sm mb-1">Kelas</label>
-              <input
-                type="text"
-                value={kelas}
-                onChange={(e) => setKelas(e.target.value.toUpperCase())}
-                className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
-                placeholder="X / XI / XII"
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Group Kelas</label>
-              <input
-                type="text"
-                value={groupKelas}
-                maxLength={1}
-                onChange={(e) => setGroupKelas(e.target.value.toUpperCase())}
-                className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
-                placeholder="A-Z"
-              />
-            </div>
+          <label htmlFor="kode-kelas" className="block text-sm mt-4 mb-1">Kode Kelas</label>
+          <input
+            id="kode-kelas"
+            type="text"
+            value={kodeKelas}
+            onChange={(e) => {
+              setKodeKelas(e.target.value.toUpperCase());
+              classLookup.reset();
+            }}
+            onBlur={() => checkClassCode(kodeKelas)}
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none uppercase tracking-widest"
+            placeholder="Minta kode kelas ke gurumu"
+            autoComplete="off"
+          />
+          <div className="mt-2">
+            {classLookup.status === "checking" && <p className="text-sm text-gray-500">Memeriksa kode kelas...</p>}
+            {classLookup.status === "invalid" && <p className="text-sm text-red-500">{classLookup.error}</p>}
+            {classLookup.status === "valid" && classLookup.info && <ClassInfoCard info={classLookup.info} />}
           </div>
 
           <label className="block text-sm mt-4 mb-1">Jenis Kelamin</label>

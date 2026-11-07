@@ -11,23 +11,14 @@
  */
 
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireGuru, guruCanAccessStudent } from "@/lib/auth/guru";
 import { getFormatifSubmissionAnswers } from "@/lib/data/formatif-analytics";
 
 export async function GET(req: Request) {
-  // ── 1. Autentikasi ───────────────────────────────────────────
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (user.user_metadata?.role !== "guru") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  // ── 1. Autentikasi + otorisasi guru ──────────────────────────
+  const auth = await requireGuru();
+  if ("error" in auth) return auth.error;
+  const { guru } = auth;
 
   // ── 2. Parse query params ────────────────────────────────────
   const { searchParams } = new URL(req.url);
@@ -56,8 +47,12 @@ export async function GET(req: Request) {
     );
   }
 
-  // ── 3. Fetch submission answers ──────────────────────────────
+  // ── 3. Fetch submission answers (hanya siswa di kelas guru ini) ──
   try {
+    if (!(await guruCanAccessStudent(guru, studentId))) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const result = await getFormatifSubmissionAnswers(
       studentId,
       conceptId,

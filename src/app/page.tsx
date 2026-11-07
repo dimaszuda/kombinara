@@ -1,7 +1,31 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import LandingNavbar from "@/components/landing/LandingNavbar";
+import HeroSection from "@/components/landing/HeroSection";
+import MateriSection from "@/components/landing/MateriSection";
+import AlurSection from "@/components/landing/AlurSection";
+import FiturSection from "@/components/landing/FiturSection";
+import GuruSection from "@/components/landing/GuruSection";
+import LandingFooter from "@/components/landing/LandingFooter";
 
-// Root redirect — middleware will handle role-based routing
-// but this acts as a fallback
-export default function RootPage() {
-  redirect("/login");
+export const metadata: Metadata = {
+  title: "Kombinara — E-Modul Interaktif Kombinatorika SMA",
+  description:
+    "Belajar Kaidah Pencacahan, Faktorial, Permutasi, dan Kombinasi secara bertahap dan interaktif, ditemani Kombi, teman belajar berbasis AI.",
+};
+
+// Landing page publik. User yang sudah login diarahkan ke dashboard oleh middleware.
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-white text-[#2C2C2A]">
+      <LandingNavbar />
+      <main>
+        <HeroSection />
+        <MateriSection />
+        <AlurSection />
+        <FiturSection />
+        <GuruSection />
+      </main>
+      <LandingFooter />
+    </div>
+  );
 }

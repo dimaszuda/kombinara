@@ -4,9 +4,12 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useClassCodeLookup } from "@/hooks/useClassCodeLookup";
+import ClassInfoCard from "@/components/auth/ClassInfoCard";
 
 interface ProfileData {
   name: string;
+  role: string;
   studentNumber: string;
   className: string;
   group: string;
@@ -34,6 +37,10 @@ export default function ProfilePage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Pindah kelas: opsional, lewat kode kelas baru dari guru
+  const [kodeKelasBaru, setKodeKelasBaru] = useState("");
+  const classLookup = useClassCodeLookup();
+
   const displayAvatar = removeAvatar
     ? null
     : avatarPreview ??
@@ -53,6 +60,7 @@ export default function ProfilePage() {
         const data = await res.json();
         setProfile({
           name: data.name ?? "",
+          role: data.role ?? "siswa",
           studentNumber: data.studentNumber ?? "",
           className: data.className ?? "",
           group: data.group ?? "",
@@ -72,6 +80,8 @@ export default function ProfilePage() {
     setAvatarFile(null);
     setAvatarPreview(null);
     setRemoveAvatar(false);
+    setKodeKelasBaru("");
+    classLookup.reset();
     setError("");
     setSuccessMsg("");
     setIsEditing(true);
@@ -83,6 +93,8 @@ export default function ProfilePage() {
     setAvatarFile(null);
     setAvatarPreview(null);
     setRemoveAvatar(false);
+    setKodeKelasBaru("");
+    classLookup.reset();
     setError("");
   };
 
@@ -113,6 +125,16 @@ export default function ProfilePage() {
     setSuccessMsg("");
 
     try {
+      // 0. Pindah kelas (opsional) — kode kelas harus valid dulu
+      let kelasBaru = null;
+      if (kodeKelasBaru.trim()) {
+        kelasBaru =
+          classLookup.info && classLookup.info.code === kodeKelasBaru.trim().toUpperCase()
+            ? classLookup.info
+            : await classLookup.check(kodeKelasBaru);
+        if (!kelasBaru) throw new Error("Kode kelas baru tidak ditemukan. Periksa lagi kode dari gurumu.");
+      }
+
       // 1. Save profile to DB
       const res = await fetch("/api/users", {
         method: "POST",
@@ -120,9 +142,8 @@ export default function ProfilePage() {
         body: JSON.stringify({
           nama: editData.name.trim(),
           nomorAbsen: editData.studentNumber.trim(),
-          kelas: editData.className.trim(),
-          groupKelas: editData.group.trim(),
           gender: editData.gender,
+          ...(kelasBaru && { classCode: kelasBaru.code }),
         }),
       });
 
@@ -169,6 +190,7 @@ export default function ProfilePage() {
       // 4. Commit to local state — no redirect, no reload
       const saved: ProfileData = {
         ...editData,
+        ...(kelasBaru && { className: kelasBaru.className, group: kelasBaru.group }),
         avatarUrl:
           finalAvatarUrl !== undefined ? finalAvatarUrl : editData.avatarUrl,
       };
@@ -178,6 +200,8 @@ export default function ProfilePage() {
       setAvatarFile(null);
       setAvatarPreview(null);
       setRemoveAvatar(false);
+      setKodeKelasBaru("");
+      classLookup.reset();
       setSuccessMsg("Profil berhasil disimpan!");
       // Re-run server components (layout) to refresh the top-right avatar
       router.refresh();
@@ -265,61 +289,79 @@ export default function ProfilePage() {
             placeholder="Nama lengkap kamu"
           />
 
-          <label className="block text-sm mt-4 mb-1">Nomor Absen</label>
-          <input
-            type="text"
-            value={current?.studentNumber ?? ""}
-            onChange={(e) => updateField("studentNumber", e.target.value)}
-            readOnly={!isEditing}
-            className={isEditing ? editableClass : readOnlyClass}
-            placeholder="Nomor absen kamu"
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-            <div>
-              <label className="block text-sm mb-1">Kelas</label>
+          {/* Data khusus siswa — guru hanya punya nama */}
+          {profile?.role !== "guru" && (
+            <>
+              <label className="block text-sm mt-4 mb-1">Nomor Absen</label>
               <input
                 type="text"
-                value={current?.className ?? ""}
-                onChange={(e) => updateField("className", e.target.value)}
+                value={current?.studentNumber ?? ""}
+                onChange={(e) => updateField("studentNumber", e.target.value)}
                 readOnly={!isEditing}
                 className={isEditing ? editableClass : readOnlyClass}
-                placeholder="Contoh: XI"
+                placeholder="Nomor absen kamu"
               />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Group Kelas</label>
+
+              <label className="block text-sm mt-4 mb-1">Kelas</label>
               <input
                 type="text"
-                value={current?.group ?? ""}
-                onChange={(e) => updateField("group", e.target.value)}
-                readOnly={!isEditing}
-                className={isEditing ? editableClass : readOnlyClass}
-                placeholder="Contoh: MIPA 1"
+                value={current?.className ? `${current.className} ${current.group}` : ""}
+                readOnly
+                className={readOnlyClass}
               />
-            </div>
-          </div>
 
-          <label className="block text-sm mt-4 mb-1">Jenis Kelamin</label>
-          {isEditing ? (
-            <select
-              value={editData?.gender ?? ""}
-              onChange={(e) => updateField("gender", e.target.value)}
-              className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none appearance-none"
-            >
-              <option value="" disabled>
-                Pilih jenis kelamin
-              </option>
-              <option value="Laki-laki">Laki-laki</option>
-              <option value="Perempuan">Perempuan</option>
-            </select>
-          ) : (
-            <input
-              type="text"
-              value={profile?.gender ?? ""}
-              readOnly
-              className={readOnlyClass}
-            />
+              {isEditing && (
+                <>
+                  <label htmlFor="kode-kelas-baru" className="block text-sm mt-4 mb-1">
+                    Pindah kelas <span className="text-gray-400">(opsional)</span>
+                  </label>
+                  <input
+                    id="kode-kelas-baru"
+                    type="text"
+                    value={kodeKelasBaru}
+                    onChange={(e) => {
+                      setKodeKelasBaru(e.target.value.toUpperCase());
+                      classLookup.reset();
+                    }}
+                    onBlur={() => classLookup.check(kodeKelasBaru)}
+                    className={`${editableClass} uppercase tracking-widest`}
+                    placeholder="Masukkan kode kelas baru dari guru"
+                    autoComplete="off"
+                  />
+                  <div className="mt-2">
+                    {classLookup.status === "checking" && (
+                      <p className="text-sm text-gray-500">Memeriksa kode kelas...</p>
+                    )}
+                    {classLookup.status === "invalid" && <p className="text-sm text-red-500">{classLookup.error}</p>}
+                    {classLookup.status === "valid" && classLookup.info && (
+                      <ClassInfoCard info={classLookup.info} title="Kamu akan pindah ke" />
+                    )}
+                  </div>
+                </>
+              )}
+
+              <label className="block text-sm mt-4 mb-1">Jenis Kelamin</label>
+              {isEditing ? (
+                <select
+                  value={editData?.gender ?? ""}
+                  onChange={(e) => updateField("gender", e.target.value)}
+                  className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none appearance-none"
+                >
+                  <option value="" disabled>
+                    Pilih jenis kelamin
+                  </option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={profile?.gender ?? ""}
+                  readOnly
+                  className={readOnlyClass}
+                />
+              )}
+            </>
           )}
 
           {error && (

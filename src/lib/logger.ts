@@ -54,3 +54,10 @@ export const logger = {
   error: (module: string, message: string, meta?: LogMeta) =>
     log("error", module, message, meta),
 };
+
+/** Samarkan email untuk log/alert: "budi.santoso@x.id" → "bu***@x.id". */
+export function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return "***";
+  return `${local.slice(0, 2)}***@${domain}`;
+}

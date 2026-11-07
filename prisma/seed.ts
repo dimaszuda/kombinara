@@ -21,12 +21,20 @@ async function main() {
     },
   });
 
+  // Sekolah
+  await prisma.school.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, name: "Sekolah Dev" },
+  });
+
   // Kelas
   const kelas = await prisma.class.upsert({
     where: { id: 1 },
     update: {},
     create: {
       id: 1,
+      schoolId: 1,
       className: "Kelas XII IPA 1",
       group: "IPA 1",
       academicYear: "2024/2025",

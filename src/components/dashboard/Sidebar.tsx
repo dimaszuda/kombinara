@@ -54,6 +54,11 @@ const NAV_ITEMS_GURU: NavItemDef[] = [
     icon: "/icons/data-analytics.png",
   },
   {
+    label: "Kelas Saya",
+    href: "/guru/kelas",
+    icon: "/icons/kelas saya.svg",
+  },
+  {
     label: "Materi",
     href: "/siswa/materi",
     icon: "/icons/materi.png",

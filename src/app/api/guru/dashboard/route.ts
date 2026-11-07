@@ -16,7 +16,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireGuru, scopeClassIds } from "@/lib/auth/guru";
 import { getGuruDashboardData } from "@/lib/data/guru-dashboard";
 import { getDiagnosticAnalyticsData } from "@/lib/data/diagnostic-analytics";
 import { getJourneyAnalyticsData } from "@/lib/data/journey-analytics";
@@ -24,20 +24,10 @@ import { getFormatifAnalyticsData } from "@/lib/data/formatif-analytics";
 import { getIntegrityEvents } from "@/lib/data/integrity-analytics";
 
 export async function GET(req: Request) {
-  // ── 1. Autentikasi ───────────────────────────────────────────
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // ── 2. Role check — hanya guru ───────────────────────────────
-  if (user.user_metadata?.role !== "guru") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  // ── 1–2. Autentikasi + otorisasi guru (role terverifikasi + baris teachers) ──
+  const auth = await requireGuru();
+  if ("error" in auth) return auth.error;
+  const { guru } = auth;
 
   // ── 3. Parse query params ────────────────────────────────────
   const { searchParams } = new URL(req.url);
@@ -52,12 +42,20 @@ export async function GET(req: Request) {
   const includeFormatif = searchParams.get("includeFormatif") === "true";
   const includeIntegrity = searchParams.get("includeIntegrity") === "true";
 
-  const classIds = classIdsRaw
+  const requestedClassIds = classIdsRaw
     ? classIdsRaw
         .split(",")
         .map((id) => parseInt(id.trim(), 10))
         .filter((id) => !isNaN(id))
     : undefined;
+
+  // Batasi ke kelas milik guru. Kosong = guru tidak boleh melihat data apa pun —
+  // JANGAN diteruskan ke fungsi analytics (bagi mereka kosong = semua kelas).
+  const classIds = scopeClassIds(requestedClassIds, guru.classIds);
+  if (classIds.length === 0) {
+    const overview = await getGuruDashboardData(guru.classIds, []);
+    return NextResponse.json({ ...overview, diagnostic: null, journey: null, formatif: null, integrity: null });
+  }
 
   // Parse materi: comma-separated concept_id slugs (untuk overview & journey)
   const materis = materi
@@ -91,7 +89,7 @@ export async function GET(req: Request) {
   try {
     // Parallel: overview + diagnostic + journey + formatif + integrity
     const [overview, diagnostic, journey, formatif, integrity] = await Promise.all([
-      getGuruDashboardData(classIds, materis, searchName),
+      getGuruDashboardData(guru.classIds, classIds, materis, searchName),
       includeDiagnostic
         ? getDiagnosticAnalyticsData({
             classIds,
