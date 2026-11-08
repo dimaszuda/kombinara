@@ -97,7 +97,7 @@ function formatTime(secs: number) {
 
 function timerColor(secs: number) {
   if (secs > 10 * 60) return "#346739";
-  if (secs > 3 * 60) return "#d97706";
+  if (secs > 3 * 60) return "#b45309";
   return "#b91c1c";
 }
 
@@ -511,14 +511,14 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
   );
   if (!evaluationResult) return null;
   const { total_score, per_question, ai_feedback } = evaluationResult;
-  const scoreColor = total_score >= 75 ? "#346739" : total_score >= 50 ? "#d97706" : "#b91c1c";
+  const scoreColor = total_score >= 75 ? "#346739" : total_score >= 50 ? "#b45309" : "#b91c1c";
   const scoreBg = total_score >= 75 ? "#DBFFD5" : total_score >= 50 ? "#FFF3CD" : "#fff5f5";
   const scoreBorder = total_score >= 75 ? "#d4e8d4" : total_score >= 50 ? "#fde68a" : "#fecaca";
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 24px 48px" }}>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div style={{ width: 120, height: 120, borderRadius: "50%", backgroundColor: scoreBg, border: `3px solid ${scoreBorder}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-          <span style={{ fontSize: 36, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>{total_score}</span><span style={{ fontSize: 11, fontWeight: 600, color: scoreColor, opacity: 0.7 }}>dari 100</span>
+          <span style={{ fontSize: 36, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>{total_score}</span><span style={{ fontSize: 12, fontWeight: 600, color: scoreColor }}>dari 100</span>
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1a3d1c", margin: "0 0 6px" }}>{total_score >= 90 ? "Luar Biasa!" : total_score >= 75 ? "Kerja Bagus!" : total_score >= 50 ? "Lumayan!" : "Tetap Semangat!"}</h1>
         <p style={{ fontSize: 13, color: "#5d7c5f", margin: 0, lineHeight: 1.6, maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>{ai_feedback}</p>
@@ -528,7 +528,7 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
         {per_question.map((pq) => {
           const soalRef = SOAL_DATA.find((s) => s.question_number === pq.question_number); const answerIdx = _remainingQuestions.indexOf(pq.question_number); const userAnswer = answerIdx >= 0 ? answers[answerIdx] : null;
           const isUnanswered = pq.mistake_category === "tidak_diisi" || pq.mistake_category === "tidak_memadai"; const hasMistake = pq.mistake_category !== null && pq.mistake_category !== "tidak_diisi" && pq.mistake_category !== "tidak_memadai";
-          const itemColor = isUnanswered ? "#d97706" : hasMistake ? "#b91c1c" : "#346739";
+          const itemColor = isUnanswered ? "#b45309" : hasMistake ? "#b91c1c" : "#346739";
           const itemBg = isUnanswered ? "#fff5f0" : hasMistake ? "#fff5f5" : "#f3fff1";
           const itemBorder = isUnanswered ? "#fde68a" : hasMistake ? "#fecaca" : "#d4e8d4";
           return (

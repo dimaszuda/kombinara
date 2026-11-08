@@ -414,3 +414,16 @@ ul.kp-list {
   visibility: visible;
   transition: visibility 0s;
 }
+
+/* Kontrol di dalam SVG (kursi simulasi Permutasi, <g role="button">): ring fokus sama dengan kontrol lain */
+/* ring fokus kursi di tepi meja tidak terpotong batas SVG */
+svg:has([role="button"]) {
+  overflow: visible;
+}
+svg [role="button"]:focus {
+  outline: none;
+}
+svg [role="button"]:focus-visible {
+  outline: 2px solid #663362;
+  outline-offset: 2px;
+}

@@ -189,7 +189,7 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full"
                 style={{ backgroundColor: "#346739", border: "none", cursor: isLoggingOut ? "not-allowed" : "pointer", opacity: isLoggingOut ? 0.6 : 1 }}
                 aria-label="Logout"
               >
@@ -315,8 +315,8 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 borderRadius: "50%",
                 backgroundColor: "#346739",
                 border: "none",

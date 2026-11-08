@@ -4047,6 +4047,8 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
                 onKeyDown={onActivateKey(act)}
                 style={{ cursor: "pointer" }}
               >
+                {/* area sentuh 44px+; lingkaran kursi sendiri lebih kecil */}
+                <circle cx={p.x} cy={p.y} r="26" fill="transparent" />
                 <circle
                   cx={p.x}
                   cy={p.y}
@@ -4417,6 +4419,8 @@ function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
                   onKeyDown={onActivateKey(act)}
                   style={{ cursor: "pointer" }}
                 >
+                  {/* area sentuh 44px+; lingkaran kursi sendiri lebih kecil */}
+                  <circle cx={pos.x} cy={pos.y} r="26" fill="transparent" />
                   <rect
                     x={pos.x - 22}
                     y={pos.y - 14}
@@ -4633,7 +4637,7 @@ function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
       title="Delapan siswa akan duduk mengelilingi meja bundar. Di antara mereka, Ari dan Budi berseteru dan tidak mau duduk berdekatan. Berapa banyak susunan tempat duduk yang mungkin?"
     >
       <SimShell title="Klik dua kursi untuk menukar posisi, lalu cek apakah Ari &amp; Budi berdekatan">
-        <svg viewBox="0 0 200 200" className="w-48 h-48 mx-auto">
+        <svg viewBox="0 0 200 200" className="w-56 h-56 mx-auto">
           <circle cx="100" cy="100" r="50" fill="#DBFFD5" stroke="#34673955" strokeWidth="1" />
           {isAdjacent && (
             <line
@@ -4653,9 +4657,16 @@ function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
             return (
               <g
                 key={i}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                aria-label={`Kursi ${i + 1}: ${name}`}
                 onClick={() => handleSeatClick(i)}
+                onKeyDown={onActivateKey(() => handleSeatClick(i))}
                 style={{ cursor: "pointer" }}
               >
+                {/* area sentuh 44px+; lingkaran kursi sendiri lebih kecil */}
+                <circle cx={p.x} cy={p.y} r="22" fill="transparent" />
                 {/* Ring seleksi */}
                 {isSelected && (
                   <circle
@@ -4686,10 +4697,10 @@ function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
         </svg>
 
         {/* Hint interaksi */}
-        <p className="text-[11px] text-[#6b6b66] mt-2 text-center">
+        <p className="text-[11px] text-[#6b6b66] mt-2 text-center" aria-live="polite">
           {selectedIdx === null
             ? "Klik satu kursi untuk memilih, lalu klik kursi lain untuk menukar posisi."
-            : `Kursi terpilih: **${seats[selectedIdx]}**. Klik kursi lain untuk menukar, atau klik lagi untuk batal.`}
+            : <>Kursi terpilih: <b>{seats[selectedIdx]}</b>. Klik kursi lain untuk menukar, atau klik lagi untuk batal.</>}
         </p>
 
         <div

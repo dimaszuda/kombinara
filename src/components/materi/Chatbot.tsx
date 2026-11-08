@@ -391,6 +391,7 @@ function ChatInput({
         <button
           type="button"
           onClick={onSend}
+          className="relative after:absolute after:-inset-1.5 after:content-['']"
           disabled={isLoading || !value.trim()}
           style={{
             width: 32,
@@ -544,7 +545,12 @@ function PanelHeader({
             style={{
               background: "none",
               border: "none",
-              padding: 4,
+              padding: 0,
+              width: 44,
+              height: 44,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               lineHeight: 1,
               cursor: "pointer",
               flexShrink: 0,
@@ -572,7 +578,12 @@ function PanelHeader({
           style={{
             background: "none",
             border: "none",
-            padding: 4,
+            padding: 0,
+            width: 44,
+            height: 44,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             lineHeight: 1,
             cursor: "pointer",
             flexShrink: 0,
@@ -724,13 +735,17 @@ function AnnouncementBanner() {
           onClick={handleDismiss}
           aria-label="Tutup pemberitahuan"
           style={{
-            background: "rgba(0,0,0,0.12)",
+            background: "none",
             border: "none",
             cursor: "pointer",
-            padding: "3px 6px",
-            borderRadius: 4,
-            fontSize: 11,
-            color: "rgba(255,255,255,0.7)",
+            padding: 0,
+            width: 44,
+            height: 44,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 14,
+            color: "rgba(255,255,255,0.85)",
             flexShrink: 0,
             lineHeight: 1,
           }}
@@ -1224,7 +1239,12 @@ export default function Chatbot({
             style={{
               background: "none",
               border: "none",
-              padding: 4,
+              padding: 0,
+              width: 44,
+              height: 44,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               lineHeight: 1,
               cursor: "pointer",
               flexShrink: 0,
@@ -1251,7 +1271,12 @@ export default function Chatbot({
             style={{
               background: "none",
               border: "none",
-              padding: 4,
+              padding: 0,
+              width: 44,
+              height: 44,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               lineHeight: 1,
               cursor: "pointer",
               flexShrink: 0,

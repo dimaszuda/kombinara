@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { IconClock, IconUserGroup } from "@/components/activity/ActivityIcons";
+import ActivityLoadError, { SAVE_FAILED_TEXT } from "@/components/activity/ActivityLoadError";
 
 // ── Color palette ──
 const C = {
@@ -515,6 +516,8 @@ export default function AktivitasKombinasi3() {
 
   // ── Review mode (existing submissions) ──
   const [isLoadingExisting, setIsLoadingExisting] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [revealFailed, setRevealFailed] = useState<Record<string, boolean>>({});
   const [hasExistingSubmissions, setHasExistingSubmissions] = useState(false);
   const [revealedSteps, setRevealedSteps] = useState<Record<string, boolean>>({});
   const [loadingAnswer, setLoadingAnswer] = useState<Record<string, boolean>>({});
@@ -525,7 +528,9 @@ export default function AktivitasKombinasi3() {
     async function load() {
       try {
         const res = await fetch("/api/aktivitas-siswa?concept_id=kombinasi&activity_key=aktivitas_3");
-        if (!res.ok || cancelled) return;
+        if (cancelled) return;
+        if (res.status >= 500) throw new Error(String(res.status));
+        if (!res.ok) return;
         const data = await res.json();
         if (data.hasSubmissions && data.submissions) {
           const allCorrect = QUESTION_KEYS.every((key) => data.submissions[key]?.isCorrect === true);
@@ -554,7 +559,7 @@ export default function AktivitasKombinasi3() {
             setCurrentStep(firstUnanswered);
           }
         }
-      } catch { /* silent */ }
+      } catch { if (!cancelled) setLoadFailed(true); }
       finally { if (!cancelled) setIsLoadingExisting(false); }
     }
     load();
@@ -644,10 +649,7 @@ export default function AktivitasKombinasi3() {
               setFeedbackMap((p) => ({ ...p, [key]: { text: "⚠️ Gagal menyimpan. Coba lagi nanti.", isCorrect: false } }));
             }
           } catch {
-            setFeedbackMap((p) => ({ ...p, [key]: { text: "Jawabanmu sudah tercatat. Feedback AI akan muncul setelah guru memeriksa.", isCorrect: true } }));
-            showToast("Jawaban tersimpan! ✅");
-            const idx = getQuestionIndex(key);
-            if (idx >= 0) setCurrentStep((prev) => Math.max(prev, idx + 1));
+            setFeedbackMap((p) => ({ ...p, [key]: { text: SAVE_FAILED_TEXT, isCorrect: false } }));
           }
         }
       } else {
@@ -658,7 +660,7 @@ export default function AktivitasKombinasi3() {
         // Save to DB
         const soalText = "Kombinasi Aktivitas 3: Hitung banyak cara memilih tim olimpiade lengkap";
         const jawaban = `Mat:C(${q2_mat_n},${q2_mat_r})=${q2_mat_hasil} Fis:C(${q2_fis_n},${q2_fis_r})=${q2_fis_hasil} Kim:C(${q2_kim_n},${q2_kim_r})=${q2_kim_hasil} Total:${q2_total}`;
-        fetch("/api/aktivitas-siswa", {
+        const saved = await fetch("/api/aktivitas-siswa", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -670,8 +672,12 @@ export default function AktivitasKombinasi3() {
             jawaban,
             rule_based: { isCorrect: result.isCorrect, feedback: result.feedback },
           }),
-        }).catch(() => {/* silent */});
+        }).then((r) => r.ok).catch(() => false);
 
+        if (!saved) {
+          setFeedbackMap((p) => ({ ...p, [key]: { text: SAVE_FAILED_TEXT, isCorrect: false } }));
+          return;
+        }
         setFeedbackMap((p) => ({ ...p, [key]: { text: result.feedback, isCorrect: result.isCorrect } }));
         if (result.isCorrect) {
           showToast("Jawaban benar! ✅");
@@ -713,7 +719,7 @@ export default function AktivitasKombinasi3() {
       const res = await fetch(
         `/api/aktivitas-siswa?concept_id=kombinasi&activity_key=aktivitas_3&question_key=${encodeURIComponent(key)}`
       );
-      if (!res.ok) return;
+      if (!res.ok) throw new Error(String(res.status));
       const data = await res.json();
       if (data.submission) {
         applyAnswerToState(key, data.submission.answer);
@@ -726,7 +732,7 @@ export default function AktivitasKombinasi3() {
         }));
         setRevealedSteps((p) => ({ ...p, [key]: true }));
       }
-    } catch { /* silent */ }
+    } catch { setRevealFailed((p) => ({ ...p, [key]: true })); }
     finally { setLoadingAnswer((p) => ({ ...p, [key]: false })); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealedSteps]);
@@ -773,7 +779,7 @@ export default function AktivitasKombinasi3() {
       return (
         <div className="flex justify-end mt-3">
           <button type="button" onClick={() => setRevealedSteps(p => ({ ...p, [qKey]: true }))}
-            className="rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
+            className="min-h-11 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
             style={{ backgroundColor: C.green }}>
             Lihat jawabanku
           </button>
@@ -844,7 +850,8 @@ export default function AktivitasKombinasi3() {
         )}
 
         {/* ── REVIEW MODE ── */}
-        {!isLoadingExisting && hasExistingSubmissions && (
+        {loadFailed && <ActivityLoadError />}
+        {!isLoadingExisting && !loadFailed && hasExistingSubmissions && (
           <>
             <div className="rounded-xl p-4 text-center mb-6" style={{ backgroundColor: C.greenLight }}>
               <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
@@ -854,6 +861,7 @@ export default function AktivitasKombinasi3() {
               {QUESTION_KEYS.map((key, idx) => {
                 const isRevealed = revealedSteps[key] === true;
                 const isLoading = loadingAnswer[key] === true;
+                const revealErr = revealFailed[key] === true;
                 const fb = feedbackMap[key];
                 const soalText = QUESTION_SOAL[key] ?? "";
                 return (
@@ -878,10 +886,10 @@ export default function AktivitasKombinasi3() {
                             type="button"
                             onClick={() => handleRevealAnswer(key)}
                             disabled={isLoading}
-                            className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-50 flex-shrink-0"
+                            className="flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-50 flex-shrink-0"
                             style={{ backgroundColor: C.green }}
                           >
-                            {isLoading ? <><Spinner /> Memuat...</> : "Lihat jawabanku"}
+                            {isLoading ? <><Spinner /> Memuat...</> : revealErr ? "Gagal memuat, coba lagi" : "Lihat jawabanku"}
                           </button>
                         )}
                       </div>
@@ -1002,7 +1010,7 @@ export default function AktivitasKombinasi3() {
         )}
 
         {/* ── FRESH MODE ── */}
-        {!isLoadingExisting && !hasExistingSubmissions && (
+        {!isLoadingExisting && !loadFailed && !hasExistingSubmissions && (
         <>
         {/* ── Outer border ── */}
         <div
@@ -1262,7 +1270,7 @@ export default function AktivitasKombinasi3() {
         )}
 
         {/* ── Completion Banner ── */}
-        {!isLoadingExisting && !hasExistingSubmissions && allComplete && (
+        {!isLoadingExisting && !loadFailed && !hasExistingSubmissions && allComplete && (
           <div
             className="mt-8 rounded-2xl border-2 p-6 text-center space-y-3"
             style={{ borderColor: C.green, backgroundColor: C.greenLight }}

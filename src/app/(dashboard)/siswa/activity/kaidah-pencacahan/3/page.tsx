@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { IconClock, IconUserGroup } from "@/components/activity/ActivityIcons";
 import { RichText } from "@/components/shared/RichText";
+import ActivityLoadError from "@/components/activity/ActivityLoadError";
 
 // ── Color palette ──
 const C = {
@@ -307,6 +308,8 @@ export default function AktivitasKP3() {
 
   // ── Loading existing submissions — lightweight check only ──────
   const [isLoadingExisting, setIsLoadingExisting] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [revealFailed, setRevealFailed] = useState<Record<string, boolean>>({});
   const [hasExistingSubmissions, setHasExistingSubmissions] = useState(false);
   const [revealedSteps, setRevealedSteps] = useState<Record<number, boolean>>({});
   const [loadingAnswer, setLoadingAnswer] = useState<Record<number, boolean>>({});
@@ -318,7 +321,9 @@ export default function AktivitasKP3() {
         const res = await fetch(
           "/api/aktivitas-siswa?concept_id=kaidah_penjumlahan&activity_key=aktivitas_3"
         );
-        if (!res.ok || cancelled) return;
+        if (cancelled) return;
+        if (res.status >= 500) throw new Error(String(res.status));
+        if (!res.ok) return;
         const data = await res.json();
         if (data.hasSubmissions && data.submissions) {
           // Only full review mode if ALL questions have correct answers
@@ -351,7 +356,7 @@ export default function AktivitasKP3() {
           }
         }
       } catch {
-        // Silently ignore
+        if (!cancelled) setLoadFailed(true);
       } finally {
         if (!cancelled) setIsLoadingExisting(false);
       }
@@ -370,7 +375,7 @@ export default function AktivitasKP3() {
       const res = await fetch(
         `/api/aktivitas-siswa?concept_id=kaidah_penjumlahan&activity_key=aktivitas_3&question_key=${encodeURIComponent(step.questionKey)}`
       );
-      if (!res.ok) return;
+      if (!res.ok) throw new Error(String(res.status));
       const data = await res.json();
       if (data.submission) {
         setFeedbackMap((p) => ({
@@ -382,7 +387,7 @@ export default function AktivitasKP3() {
         }));
         setRevealedSteps((p) => ({ ...p, [idx]: true }));
       }
-    } catch { /* silent */ }
+    } catch { setRevealFailed((p) => ({ ...p, [idx]: true })); }
     finally { setLoadingAnswer((p) => ({ ...p, [idx]: false })); }
   }, [revealedSteps]);
 
@@ -909,7 +914,8 @@ export default function AktivitasKP3() {
           )}
 
           {/* ── Already Completed — Review Mode ── */}
-          {!isLoadingExisting && hasExistingSubmissions && (
+          {loadFailed && <ActivityLoadError />}
+          {!isLoadingExisting && !loadFailed && hasExistingSubmissions && (
             <>
               <div
                 className="rounded-xl p-4 text-center"
@@ -927,6 +933,7 @@ export default function AktivitasKP3() {
                 {STEPS.map((step) => {
                   const isRevealed = revealedSteps[step.index] === true;
                   const isLoading = loadingAnswer[step.index] === true;
+                  const revealErr = revealFailed[step.index] === true;
                   return (
                     <div key={step.index} className="rounded-xl border p-4" style={{ borderColor: isRevealed ? C.green : C.border, background: isRevealed ? C.white : C.bg }}>
                       <div className="flex items-center justify-between gap-3">
@@ -944,10 +951,10 @@ export default function AktivitasKP3() {
                             type="button"
                             onClick={() => handleRevealAnswer(step.index)}
                             disabled={isLoading}
-                            className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-50 flex-shrink-0"
+                            className="flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-50 flex-shrink-0"
                             style={{ backgroundColor: C.green }}
                           >
-                            {isLoading ? <><Spinner /> Memuat...</> : "Lihat jawabanku"}
+                            {isLoading ? <><Spinner /> Memuat...</> : revealErr ? "Gagal memuat, coba lagi" : "Lihat jawabanku"}
                           </button>
                         )}
                       </div>
@@ -964,7 +971,7 @@ export default function AktivitasKP3() {
           )}
 
           {/* ── All Complete Banner ── */}
-          {!isLoadingExisting && !hasExistingSubmissions && allComplete && (
+          {!isLoadingExisting && !loadFailed && !hasExistingSubmissions && allComplete && (
             <div
               className="rounded-xl p-4 text-center"
               style={{ backgroundColor: C.greenLight }}
@@ -979,7 +986,7 @@ export default function AktivitasKP3() {
           )}
 
           {/* ── Sequential Steps — for fresh attempts ── */}
-          {!isLoadingExisting && !hasExistingSubmissions && renderVisibleSteps()}
+          {!isLoadingExisting && !loadFailed && !hasExistingSubmissions && renderVisibleSteps()}
         </div>
       </div>
     </div>

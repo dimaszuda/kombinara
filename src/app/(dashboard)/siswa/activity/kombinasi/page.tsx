@@ -165,7 +165,7 @@ export default function AktivitasSiswa() {
           <div className="mb-8 text-center">
             <p
               className="text-xs font-semibold mb-2"
-              style={{ color: C.green, opacity: 0.7 }}
+              style={{ color: C.green }}
             >
               Aktivitas Materi Kombinasi
             </p>

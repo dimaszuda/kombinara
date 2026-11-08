@@ -62,10 +62,11 @@ export function InputBlank({
         className="border-2 rounded-md px-2 py-0.5 text-center font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:opacity-50 disabled:cursor-not-allowed"
       />
       <button
+        type="button"
         onClick={handleCheck}
         disabled={disabled}
         style={{ backgroundColor: C.green }}
-        className="rounded-md p-1 hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="relative rounded-md p-1 after:absolute after:-inset-y-3 after:-left-1.5 after:-right-[18px] after:content-[''] hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Cek jawaban"
       >
         <IconCheck />

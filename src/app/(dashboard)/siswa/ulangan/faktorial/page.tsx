@@ -99,7 +99,7 @@ function formatTime(secs: number) {
 
 function timerColor(secs: number) {
   if (secs > 10 * 60) return "#346739";
-  if (secs > 3 * 60) return "#d97706";
+  if (secs > 3 * 60) return "#b45309";
   return "#b91c1c";
 }
 
@@ -1954,7 +1954,7 @@ function ResultsScreen({
     total_score >= 75
       ? "#346739"
       : total_score >= 50
-        ? "#d97706"
+        ? "#b45309"
         : "#b91c1c";
   const scoreBg =
     total_score >= 75
@@ -1999,10 +1999,9 @@ function ResultsScreen({
           </span>
           <span
             style={{
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 600,
               color: scoreColor,
-              opacity: 0.7,
             }}
           >
             dari 100
@@ -2070,7 +2069,7 @@ function ResultsScreen({
             pq.mistake_category !== "tidak_diisi" &&
             pq.mistake_category !== "tidak_memadai";
           const itemColor = isUnanswered
-            ? "#d97706"
+            ? "#b45309"
             : hasMistake
               ? "#b91c1c"
               : "#346739";

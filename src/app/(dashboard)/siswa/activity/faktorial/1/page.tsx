@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { IconClock, IconUserSolo } from "@/components/activity/ActivityIcons";
 import { RichText } from "@/components/shared/RichText";
+import ActivityLoadError from "@/components/activity/ActivityLoadError";
 
 // ── Color palette ──
 const C = {
@@ -206,6 +207,8 @@ export default function AktivitasFaktorial1() {
 
   // Load existing — lightweight check only
   const [isLoadingExisting, setIsLoadingExisting] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [revealFailed, setRevealFailed] = useState<Record<string, boolean>>({});
   const [hasExistingSubmissions, setHasExistingSubmissions] = useState(false);
   const [revealedSteps, setRevealedSteps] = useState<Record<number, boolean>>({});
   const [loadingAnswer, setLoadingAnswer] = useState<Record<number, boolean>>({});
@@ -215,7 +218,9 @@ export default function AktivitasFaktorial1() {
     async function load() {
       try {
         const res = await fetch("/api/aktivitas-siswa?concept_id=faktorial&activity_key=aktivitas_1");
-        if (!res.ok || cancelled) return;
+        if (cancelled) return;
+        if (res.status >= 500) throw new Error(String(res.status));
+        if (!res.ok) return;
         const data = await res.json();
         if (data.hasSubmissions && data.submissions) {
           // Only full review mode if ALL questions have correct answers
@@ -247,7 +252,7 @@ export default function AktivitasFaktorial1() {
             setCurrentStep(firstUnanswered);
           }
         }
-      } catch { /* silent */ }
+      } catch { if (!cancelled) setLoadFailed(true); }
       finally { if (!cancelled) setIsLoadingExisting(false); }
     }
     load();
@@ -296,7 +301,7 @@ export default function AktivitasFaktorial1() {
       const res = await fetch(
         `/api/aktivitas-siswa?concept_id=faktorial&activity_key=aktivitas_1&question_key=${encodeURIComponent(step.questionKey)}`
       );
-      if (!res.ok) return;
+      if (!res.ok) throw new Error(String(res.status));
       const data = await res.json();
       if (data.submission) {
         // Populate form fields with stored answer
@@ -311,7 +316,7 @@ export default function AktivitasFaktorial1() {
         }));
         setRevealedSteps((p) => ({ ...p, [idx]: true }));
       }
-    } catch { /* silent */ }
+    } catch { setRevealFailed((p) => ({ ...p, [idx]: true })); }
     finally { setLoadingAnswer((p) => ({ ...p, [idx]: false })); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealedSteps]);
@@ -571,7 +576,8 @@ export default function AktivitasFaktorial1() {
           {isLoadingExisting && <div className="flex items-center justify-center py-12"><Spinner /><span className="ml-3 text-sm text-muted">Memuat aktivitas...</span></div>}
 
           {/* ALREADY COMPLETED — Review Mode */}
-          {!isLoadingExisting && hasExistingSubmissions && (
+          {loadFailed && <ActivityLoadError />}
+          {!isLoadingExisting && !loadFailed && hasExistingSubmissions && (
             <>
               <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
                 <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
@@ -582,6 +588,7 @@ export default function AktivitasFaktorial1() {
                 {STEPS.map((step) => {
                   const isRevealed = revealedSteps[step.index] === true;
                   const isLoading = loadingAnswer[step.index] === true;
+                  const revealErr = revealFailed[step.index] === true;
                   const fb = feedbackMap[step.index];
                   return (
                     <div key={step.index} className="rounded-xl border p-4" style={{ borderColor: isRevealed ? C.green : C.border, background: isRevealed ? C.white : C.bg }}>
@@ -602,10 +609,10 @@ export default function AktivitasFaktorial1() {
                             type="button"
                             onClick={() => handleRevealAnswer(step.index)}
                             disabled={isLoading}
-                            className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-50 flex-shrink-0"
+                            className="flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-50 flex-shrink-0"
                             style={{ backgroundColor: C.green }}
                           >
-                            {isLoading ? <><Spinner /> Memuat...</> : "Lihat jawabanku"}
+                            {isLoading ? <><Spinner /> Memuat...</> : revealErr ? "Gagal memuat, coba lagi" : "Lihat jawabanku"}
                           </button>
                         )}
                       </div>
@@ -623,7 +630,7 @@ export default function AktivitasFaktorial1() {
           )}
 
           {/* ALL COMPLETE */}
-          {!isLoadingExisting && !hasExistingSubmissions && allComplete && (
+          {!isLoadingExisting && !loadFailed && !hasExistingSubmissions && allComplete && (
             <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
               <p className="font-bold text-base" style={{ color: C.green }}>Semua langkah selesai!</p>
               <p className="text-sm text-muted mt-1">Semua jawabanmu sudah tersimpan. Lanjutkan ke materi berikutnya ya!</p>
@@ -631,7 +638,7 @@ export default function AktivitasFaktorial1() {
           )}
 
           {/* SEQUENTIAL STEPS — for fresh attempts */}
-          {!isLoadingExisting && !hasExistingSubmissions && renderVisibleSteps()}
+          {!isLoadingExisting && !loadFailed && !hasExistingSubmissions && renderVisibleSteps()}
 
         </div>
       </div>
