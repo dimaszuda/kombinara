@@ -6,7 +6,7 @@ import { useAsesmenDiagnostik } from "@/hooks/useAsesmenDiagnostik";
 import type { GradingResult } from "@/lib/data/asesmen-diagnostik";
 
 const inputBase =
-    "border-b-2 border-line-strong focus:border-blue-500 outline-none bg-transparent px-1 py-0.5 transition-colors placeholder:text-[#6B6B66] text-sm";
+    "border-b-2 border-line-strong focus:border-[#663362] outline-none bg-transparent px-1 py-0.5 transition-colors placeholder:text-[#6B6B66] text-sm";
 
 function BlockHeader({
     label,
@@ -102,7 +102,7 @@ function AnswerTextarea({
             placeholder={placeholder}
             value={value ?? ""}
             onChange={(e) => onChange?.(e.target.value)}
-            className="w-full h-20 border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none transition-colors placeholder:text-[#6B6B66]"
+            className="w-full h-20 border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#663362] focus:ring-2 focus:ring-[#663362] resize-none transition-colors placeholder:text-[#6B6B66]"
         />
     );
 }

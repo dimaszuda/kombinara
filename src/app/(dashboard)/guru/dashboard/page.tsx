@@ -1399,6 +1399,7 @@ export default function KombinaraDashboard() {
 
   return (
     <div style={{ maxWidth: 1240, margin: "0 auto", paddingBottom: 60 }}>
+      <h1 className="sr-only">Learning Dashboard</h1>
       {/* ── Error banner ─────────────────────────────────── */}
       {dashError && (
         <div

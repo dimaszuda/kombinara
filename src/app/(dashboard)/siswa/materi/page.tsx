@@ -5,6 +5,7 @@ import { MATERI_CARDS } from "@/lib/data/siswa-dashboard"
 export default function MateriListPage() {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <h1 className="sr-only">Materi</h1>
       {MATERI_CARDS.map((materi) => (
         <Link
           key={materi.id}
@@ -14,7 +15,7 @@ export default function MateriListPage() {
           {/* Header: icon + Materi X */}
           <div className="flex items-center gap-3">
             <Image src="/icons/green materi.png" alt="Materi" width={20} height={20} />
-            <h3 className="m-0 text-base font-semibold text-brand-600 sm:text-lg">Materi {materi.id}</h3>
+            <h2 className="m-0 text-base font-semibold text-brand-600 sm:text-lg">Materi {materi.id}</h2>
           </div>
 
           {/* Title */}

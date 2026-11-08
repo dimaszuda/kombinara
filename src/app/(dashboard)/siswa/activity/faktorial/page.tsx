@@ -143,6 +143,7 @@ export default function AktivitasSiswa() {
     <AktivitasSiswaAccessGate conceptId="faktorial" materialSlug="faktorial">
       <div className="min-h-screen py-8 px-4" style={{ backgroundColor: C.white }}>
         <div className="max-w-[1400px] mx-auto">
+          <h1 className="sr-only">Aktivitas Materi Faktorial</h1>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3 pb-4">
             {aktivitas.map((a) => (
               <ActivityCard key={a.nomor} data={a} />

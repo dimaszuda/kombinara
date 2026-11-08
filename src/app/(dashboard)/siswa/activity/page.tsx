@@ -32,6 +32,7 @@ export default function ActivityPage() {
     <div className="p-6 space-y-8">
       {/* Activity Cards */}
       <section>
+        <h1 className="sr-only">Aktivitas Siswa</h1>
         <h2 className="text-xl font-bold text-ink mb-4">Pilih Aktivitas</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {ACTIVITY_CARDS.map((card, index) => (

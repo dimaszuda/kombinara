@@ -26,13 +26,27 @@ export function useDialog(
   closeRef.current = onClose;
   const panelsRef = useRef(panels);
   panelsRef.current = panels;
+  const mounted = useRef(true);
+  // Pemicu bisa sudah dilepas dari DOM saat efek berjalan (tombol pembuka panel), jadi activeElement = body.
+  // Elemen terakhir yang difokus dicatat lebih awal lewat focusin.
+  const lastFocus = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    mounted.current = true; // StrictMode memasang ulang efek setelah cleanup pertama
+    const onFocusIn = (e: FocusEvent) => { lastFocus.current = e.target as HTMLElement; };
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      mounted.current = false;
+      document.removeEventListener("focusin", onFocusIn);
+    };
+  }, []);
 
   useEffect(() => {
     const all = [modal, ...panelsRef.current].map((r) => r.current);
     all.forEach((el) => el?.toggleAttribute("inert", !open));
     if (!open) return;
 
-    const trigger = document.activeElement as HTMLElement | null;
+    const active = document.activeElement as HTMLElement | null;
+    const trigger = active && active !== document.body ? active : lastFocus.current;
     const shown = all.find(isShown);
     if (shown && !shown.contains(trigger)) focusables(shown)[0]?.focus();
 
@@ -53,7 +67,13 @@ export function useDialog(
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      if (trigger?.isConnected) trigger.focus();
+      if (trigger?.isConnected) return trigger.focus();
+      // Tombol pembuka panel dilepas dari DOM selama panel terbuka; tombol penggantinya sudah dirender di commit yang
+      // sama, jadi fokuskan tombol terlihat dengan nama yang sama. Tidak saat unmount (pindah halaman).
+      const label = trigger?.getAttribute("aria-label");
+      if (!label || !mounted.current) return;
+      const same = document.querySelectorAll<HTMLElement>(`[aria-label="${CSS.escape(label)}"]`);
+      Array.from(same).find(isShown)?.focus();
     };
   }, [open, modal]);
 }

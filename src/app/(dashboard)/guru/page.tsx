@@ -271,6 +271,7 @@ function TujuanPembelajaran() {
 export default function SiswaDashboardPage() {
   return (
     <>
+      <h1 className="sr-only">Beranda Guru</h1>
 
       <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
 

@@ -221,6 +221,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col lg:flex-row w-full min-h-screen">
+      <h1 className="sr-only">Profil</h1>
       <div className="w-full lg:flex-1 flex flex-col items-center justify-center px-4 md:px-8 lg:px-16 py-8 mt-4">
         {/* Avatar row */}
         <div className="w-full max-w-[450px] flex items-center gap-4 mt-8">
