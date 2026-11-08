@@ -5,6 +5,7 @@ const FOOTER_LINKS = [
   { href: "/login", label: "Masuk" },
   { href: "/join", label: "Gabung dengan Kode Kelas" },
   { href: "/daftar-guru", label: "Daftar sebagai Guru" },
+  { href: "/privasi", label: "Kebijakan Privasi" },
 ];
 
 export default function LandingFooter() {
@@ -16,15 +17,19 @@ export default function LandingFooter() {
           <p className="mt-2 text-sm text-[#6B6B66]">E-Modul Interaktif Kombinatorika SMA</p>
         </div>
 
-        <nav aria-label="Tautan footer" className="flex flex-wrap gap-x-6 gap-y-2">
+        <nav aria-label="Tautan footer" className="flex flex-wrap gap-x-6">
           {FOOTER_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="text-sm text-[#2C2C2A] hover:text-[#346739]">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="inline-flex min-h-11 items-center text-sm text-[#2C2C2A] hover:text-[#346739]"
+            >
               {link.label}
             </Link>
           ))}
         </nav>
       </div>
-      <p className="border-t border-[#34673914] py-4 text-center text-xs text-[#8A8A8A]">
+      <p className="border-t border-[#34673914] py-4 text-center text-xs text-[#6B6B66]">
         © {new Date().getFullYear()} Kombinara
       </p>
     </footer>

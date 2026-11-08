@@ -282,6 +282,32 @@ ul.kp-list {
   transition-delay: calc(var(--sr-index, 0) * 100ms);
 }
 
+/* Tanpa JavaScript, IntersectionObserver tidak pernah jalan: tampilkan isinya langsung. */
+@media (scripting: none) {
+  .sr-wrapper {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Pengguna yang meminta gerak dikurangi: konten langsung tampil, animasi dan transisi praktis dimatikan.
+   !important perlu karena ScrollReveal menulis durasi/delay lewat inline style. */
+@media (prefers-reduced-motion: reduce) {
+  .sr-wrapper {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ============================================
    Chatbot Panel — rendered markdown content
    ============================================ */

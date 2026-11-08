@@ -62,7 +62,7 @@ export async function middleware(request: NextRequest) {
   // "/" (landing page) dicocokkan PERSIS — jangan masukkan ke publicPaths karena
   // pengecekan startsWith("/") akan membuat semua halaman menjadi publik.
   const isLandingPage = pathname === "/";
-  const publicPaths = ["/login", "/join", "/signup", "/daftar-guru", "/auth/callback", "/complete-profil", "/forgot-password", "/reset-password"];
+  const publicPaths = ["/login", "/join", "/signup", "/daftar-guru", "/auth/callback", "/complete-profil", "/forgot-password", "/reset-password", "/privasi"];
   if (!user && !isLandingPage && !publicPaths.some((p) => pathname.startsWith(p))) {
     logger.warn("auth:middleware", "Unauthenticated access attempt", { pathname });
     return NextResponse.redirect(new URL("/login", request.url));

@@ -8,9 +8,9 @@ import GuruSection from "@/components/landing/GuruSection";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 export const metadata: Metadata = {
-  title: "Kombinara — E-Modul Interaktif Kombinatorika SMA",
+  title: "Kombinara: E-Modul Interaktif Kombinatorika SMA",
   description:
-    "Belajar Kaidah Pencacahan, Faktorial, Permutasi, dan Kombinasi secara bertahap dan interaktif, ditemani Kombi, teman belajar berbasis AI.",
+    "Belajar Kaidah Pencacahan, Faktorial, Permutasi, dan Kombinasi secara bertahap lewat soal dari situasi sehari-hari, ditemani Kombi, asisten AI di setiap materi.",
 };
 
 // Landing page publik. User yang sudah login diarahkan ke dashboard oleh middleware.
