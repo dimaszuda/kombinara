@@ -115,8 +115,8 @@ function InputBlank({
     borderColor = "border-[#346739]";
     bgColor = "bg-[#DBFFD5]/40";
   } else if (grade === "incorrect") {
-    borderColor = "border-[#C44F4F]";
-    bgColor = "bg-[#C44F4F]/5";
+    borderColor = "border-[#C24949]";
+    bgColor = "bg-[#C24949]/5";
   }
 
   if (disabled) {
@@ -126,11 +126,13 @@ function InputBlank({
   return (
     <input
       type="text"
+      aria-label="Isian jawaban"
+      aria-invalid={grade === "incorrect" || undefined}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className={`inline-block rounded-md border-2 ${borderColor} ${bgColor} px-2 py-0.5 text-center text-sm font-medium text-[#663362] placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:text-[#6B6B66] ${className}`}
+      className={`inline-block rounded-md border-2 ${borderColor} ${bgColor} px-2 py-0.5 text-center text-sm font-medium text-[#663362] placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:text-[#6B6B66] ${className}`}
       style={{ minWidth: "44px", maxWidth: "80px" }}
     />
   );
@@ -155,12 +157,12 @@ function FeedbackBox({
       className={`mt-3 rounded-lg border p-3 ${
         allCorrect
           ? "border-[#34673933] bg-[#DBFFD5]/20"
-          : "border-[#C44F4F33] bg-[#C44F4F08]"
+          : "border-[#C2494933] bg-[#C2494908]"
       }`}
     >
       <p
         className={`text-sm font-medium ${
-          allCorrect ? "text-[#346739]" : "text-[#C44F4F]"
+          allCorrect ? "text-[#346739]" : "text-[#C24949]"
         }`}
       >
         {allCorrect
@@ -187,16 +189,16 @@ function AiFeedbackBox({
     <div
       className={`mt-3 rounded-lg border p-3 ${
         isCorrect === false
-          ? "border-[#C44F4F33] bg-[#C44F4F08]"
+          ? "border-[#C2494933] bg-[#C2494908]"
           : "border-[#66336233] bg-[#66336208]"
       }`}
     >
       <p
         className={`mb-1 text-xs font-medium ${
-          isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"
+          isCorrect === false ? "text-[#C24949]" : "text-[#663362]"
         }`}
       >
-        {isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+        {isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
       </p>
       <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">
         {feedback}
@@ -291,7 +293,7 @@ function SectionProgress({
             <React.Fragment key={i}>
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${
-                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"
+                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"
                 }`}
                 title={SECTION_LABELS[i]}
               >
@@ -430,7 +432,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
         <div className="overflow-x-auto rounded-xl border border-[#34673926] mb-4">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-[#B8E6BC]">
+              <tr className="bg-[#D4E8D4]">
                 <th className="px-4 py-3 text-left font-semibold text-[#2C2C2A]">Tahap</th>
                 <th className="px-4 py-3 text-left font-semibold text-[#2C2C2A]">Pertanyaan</th>
                 <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A] w-36">Banyak Pilihan</th>
@@ -501,8 +503,8 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
         <SaveButton onClick={handleSave} loading={saving} disabled={saving} saved={saved && allCorrect} hidden={readOnly} />
 
         {saveError && (
-          <div className="mt-2 rounded-lg border border-[#EF444433] bg-[#FEF2F2]/50 p-3">
-            <p className="text-sm leading-relaxed text-[#EF4444]">⚠️ {saveError}</p>
+          <div className="mt-2 rounded-lg border border-[#EF444433] bg-[#FFF5F5]/50 p-3">
+            <p className="text-sm leading-relaxed text-[#B91C1C]">⚠️ {saveError}</p>
           </div>
         )}
       </div>
@@ -647,11 +649,11 @@ function DeepLearningTable({ readOnly = false, onSave, savedAnswers }: { readOnl
                       onChange={(e) => set(`calc${row.n}`)(e.target.value)}
                       placeholder="…"
                       disabled={readOnly || grades[`calc${row.n}`] === "correct"}
-                      className={`w-full rounded-md border-2 px-2 py-1 text-sm font-mono placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+                      className={`w-full rounded-md border-2 px-2 py-1 text-sm font-mono placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
                         grades[`calc${row.n}`] === "correct"
                           ? "border-[#346739] bg-[#DBFFD5]/40"
                           : grades[`calc${row.n}`] === "incorrect"
-                            ? "border-[#C44F4F] bg-[#C44F4F]/5"
+                            ? "border-[#C24949] bg-[#C24949]/5"
                             : "border-[#34673933] bg-white"
                       } text-[#2C2C2A] disabled:cursor-default disabled:text-[#6B6B66]`}
                     />
@@ -667,11 +669,11 @@ function DeepLearningTable({ readOnly = false, onSave, savedAnswers }: { readOnl
                       onChange={(e) => set(`sym${row.n}`)(e.target.value)}
                       placeholder="…"
                       disabled={readOnly || grades[`sym${row.n}`] === "correct"}
-                      className={`w-16 rounded-md border-2 px-2 py-1 text-center text-sm font-bold placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+                      className={`w-16 rounded-md border-2 px-2 py-1 text-center text-sm font-bold placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
                         grades[`sym${row.n}`] === "correct"
                           ? "border-[#346739] bg-[#DBFFD5]/40"
                           : grades[`sym${row.n}`] === "incorrect"
-                            ? "border-[#C44F4F] bg-[#C44F4F]/5"
+                            ? "border-[#C24949] bg-[#C24949]/5"
                             : "border-[#34673933] bg-white"
                       } text-[#663362] disabled:cursor-default disabled:text-[#6B6B66]`}
                     />
@@ -687,11 +689,11 @@ function DeepLearningTable({ readOnly = false, onSave, savedAnswers }: { readOnl
                       onChange={(e) => set(`val${row.n}`)(e.target.value)}
                       placeholder="…"
                       disabled={readOnly || grades[`val${row.n}`] === "correct"}
-                      className={`w-24 rounded-md border-2 px-2 py-1 text-center text-sm font-semibold placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+                      className={`w-24 rounded-md border-2 px-2 py-1 text-center text-sm font-semibold placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
                         grades[`val${row.n}`] === "correct"
                           ? "border-[#346739] bg-[#DBFFD5]/40"
                           : grades[`val${row.n}`] === "incorrect"
-                            ? "border-[#C44F4F] bg-[#C44F4F]/5"
+                            ? "border-[#C24949] bg-[#C24949]/5"
                             : "border-[#34673933] bg-white"
                       } text-[#2C2C2A] disabled:cursor-default disabled:text-[#6B6B66]`}
                     />
@@ -765,7 +767,7 @@ function DeepLearningQuestions({
     if (!answer.trim()) {
       setAiFeedbacks((p) => ({
         ...p,
-        [qKey]: { feedback: "Tulis jawabanmu dulu ya! 📝", isCorrect: false },
+        [qKey]: { feedback: "Tulis jawabanmu dulu ya!", isCorrect: false },
       }));
       return;
     }
@@ -834,7 +836,7 @@ function DeepLearningQuestions({
           placeholder="Tulis jawabanmu..."
           rows={3}
           disabled={readOnly || (saved["eks1"] && aiFeedbacks["eks1"]?.isCorrect === true)}
-          className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+          className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
             readOnly || (saved["eks1"] && aiFeedbacks["eks1"]?.isCorrect === true)
               ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
               : "border-[#34673933]"
@@ -864,7 +866,7 @@ function DeepLearningQuestions({
           onChange={(e) => set("eks2")(e.target.value)}
           placeholder="Tulis jawabanmu..."
           disabled={readOnly || (saved["eks2"] && aiFeedbacks["eks2"]?.isCorrect === true)}
-          className={`w-full rounded-lg border px-4 py-2.5 text-sm placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+          className={`w-full rounded-lg border px-4 py-2.5 text-sm placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
             readOnly || (saved["eks2"] && aiFeedbacks["eks2"]?.isCorrect === true)
               ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default border-[#34673933]"
               : "border-[#34673933] bg-white"
@@ -917,7 +919,7 @@ function DeepLearningQuestions({
           placeholder="Ceritakan alasanmu..."
           rows={2}
           disabled={readOnly || (saved["eks3"] && aiFeedbacks["eks3"]?.isCorrect === true)}
-          className={`w-full rounded-xl border px-4 py-2.5 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+          className={`w-full rounded-xl border px-4 py-2.5 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
             readOnly || (saved["eks3"] && aiFeedbacks["eks3"]?.isCorrect === true)
               ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
               : "border-[#34673933]"
@@ -1058,7 +1060,7 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
       <SectionBadge>Penjelasan Konsep</SectionBadge>
 
       <div className="rounded-xl bg-white p-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">📖 Definisi Faktorial</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Definisi Faktorial</h3>
         <p className="mb-3 leading-relaxed text-[#2C2C2A]">
           Faktorial dari bilangan bulat positif <b>n</b> (ditulis <b>n!</b>) adalah hasil
           perkalian semua bilangan bulat positif dari 1 sampai n:
@@ -1071,7 +1073,7 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
       </div>
 
       <div className="mt-5 rounded-xl bg-white p-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">🔄 Sifat Rekursif</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Sifat Rekursif</h3>
         <div className="rounded-lg bg-[#DBFFD5]/50 px-4 py-3 text-center mb-3">
           <RichText>{"$n! = n \\times (n-1)!$"}</RichText>
         </div>
@@ -1086,10 +1088,10 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
       </div>
 
       <div className="mt-5 rounded-xl bg-white p-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">❓ Mengapa 0! = 1?</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Mengapa 0! = 1?</h3>
 
-        <div className="mb-4 rounded-lg border-2 border-[#C44F4F33] bg-[#C44F4F08] p-3">
-          <p className="text-sm font-semibold text-[#C44F4F] mb-1">⚠ Miskonsepsi Umum</p>
+        <div className="mb-4 rounded-lg border-2 border-[#C2494933] bg-[#C2494908] p-3">
+          <p className="text-sm font-semibold text-[#C24949] mb-1">⚠ Miskonsepsi Umum</p>
           <p className="text-sm leading-relaxed text-[#2C2C2A]">
             Banyak siswa mengira <b>0! = 0</b>. Ini salah! 0! = 1 karena ada tepat satu cara
             menyusun nol objek (yaitu, tidak ada yang disusun dan &ldquo;tidak ada susunan&rdquo;
@@ -1120,7 +1122,7 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
 
       {onNext && <NextButton onClick={handleNext} loading={loading} />}
       {error && (
-        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+        <p className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-3 text-sm text-[#C24949]">
           ⚠️ {error}
         </p>
       )}
@@ -1287,9 +1289,9 @@ function Contoh1({ readOnly = false, onCorrect, savedAnswers }: { readOnly?: boo
         </div>
       </div>
 
-      <div className="rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-        <p className="text-xs text-[#C44F4F]">
-          ⚠ Jangan langsung hitung 7! dan 5! secara penuh — sederhanakan dulu!
+      <div className="rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+        <p className="text-xs text-[#C24949]">
+          ⚠ Jangan langsung hitung 7! dan 5! secara penuh. Sederhanakan dulu!
         </p>
       </div>
 
@@ -1487,7 +1489,7 @@ function Contoh3({ readOnly = false, onCorrect, savedAnswers }: { readOnly?: boo
 
       {/* Ilustrasi visual */}
       <div className="mb-4 rounded-xl border border-[#34673926] bg-white p-4">
-        <p className="text-xs font-medium text-[#346739] mb-3">🎨 Visualisasi Posisi Antrian:</p>
+        <p className="text-xs font-medium text-[#346739] mb-3">Visualisasi Posisi Antrian:</p>
         <div className="flex items-center gap-2 justify-center flex-wrap">
           <div className="flex flex-col items-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#663362] text-white font-bold text-sm shadow-sm ring-2 ring-[#66336233]">
@@ -1572,8 +1574,8 @@ function ContohSoalCard({
 }) {
   const levelColors: Record<string, { bg: string; text: string; border: string }> = {
     mudah: { bg: "bg-[#DBFFD5]/60", text: "text-[#346739]", border: "border-[#34673926]" },
-    sedang: { bg: "bg-[#FFF3E6]/60", text: "text-[#B86E2D]", border: "border-[#B86E2D26]" },
-    hots: { bg: "bg-[#FFE6E6]/60", text: "text-[#C44F4F]", border: "border-[#C44F4F26]" },
+    sedang: { bg: "bg-[#FFF3E6]/60", text: "text-[#A46228]", border: "border-[#A4622826]" },
+    hots: { bg: "bg-[#FFF5F5]/60", text: "text-[#C24949]", border: "border-[#C2494926]" },
   };
 
   const c = levelColors[level] ?? levelColors.mudah;
@@ -1626,7 +1628,7 @@ function MengapaCorner({ readOnly = false, onNext, savedData }: { readOnly?: boo
   const handleSave = async () => {
     // Validate
     if (!answer.trim()) {
-      setValidationError("Tulis jawabanmu dulu ya! 📝");
+      setValidationError("Tulis jawabanmu dulu ya!");
       return;
     }
     setValidationError(null);
@@ -1719,13 +1721,13 @@ function MengapaCorner({ readOnly = false, onNext, savedData }: { readOnly?: boo
         <div className="rounded-lg bg-[#DBFFD5]/50 px-4 py-3 mb-4">
           <p className="text-sm leading-relaxed text-[#2C2C2A]">
             Faktorial bertumbuh <b>lebih cepat dari fungsi eksponensial</b>. Ini menjelaskan
-            mengapa masalah penjadwalan atau pengurutan dalam jumlah besar sangat kompleks —
+            mengapa masalah penjadwalan atau pengurutan dalam jumlah besar sangat kompleks,
             bahkan komputer super pun butuh waktu lama untuk mencobanya satu per satu!
           </p>
         </div>
 
         <div className="rounded-lg border-2 border-[#34673926] bg-[#DBFFD5]/20 px-4 py-3 mb-4">
-          <p className="text-sm font-semibold text-[#346739] mb-1">🌟 Fakta Menarik</p>
+          <p className="text-sm font-semibold text-[#346739] mb-1">Fakta Menarik</p>
           <p className="text-sm leading-relaxed text-[#2C2C2A]">
             Jika ada 20 orang dalam sebuah ruangan dan mereka bisa duduk dalam urutan berapa pun,
             jumlah kemungkinan susunannya <b>lebih banyak dari jumlah bintang di seluruh galaksi
@@ -1744,7 +1746,7 @@ function MengapaCorner({ readOnly = false, onNext, savedData }: { readOnly?: boo
             placeholder="Tulis jawabanmu..."
             rows={3}
             disabled={readOnly || saved}
-            className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+            className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
               readOnly || saved
                 ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
                 : "border-[#34673933]"
@@ -1753,8 +1755,8 @@ function MengapaCorner({ readOnly = false, onNext, savedData }: { readOnly?: boo
         </div>
 
         {validationError && (
-          <div className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3">
-            <p className="text-sm text-[#C44F4F]">{validationError}</p>
+          <div className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-3">
+            <p className="text-sm text-[#C24949]">{validationError}</p>
           </div>
         )}
 
@@ -1846,7 +1848,7 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
     if (!answer.trim()) {
       setAiFeedbacks((p) => ({
         ...p,
-        [q.key]: { feedback: "Tulis jawabanmu dulu ya! 📝", isCorrect: false },
+        [q.key]: { feedback: "Tulis jawabanmu dulu ya!", isCorrect: false },
       }));
       return;
     }
@@ -1938,7 +1940,7 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
                     placeholder="Tulis jawabanmu..."
                     rows={3}
                     disabled={readOnly || isSaved}
-                    className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+                    className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
                       readOnly || isSaved
                         ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
                         : "border-[#34673933]"
@@ -2183,7 +2185,7 @@ function CollapsibleJawabanSection({
 
   // Pre-completed but jawaban not yet loaded — show collapsed view
   return (
-    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F5F5F0] p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
@@ -2330,12 +2332,12 @@ export default function FaktorialContent({
     <div className="flex flex-col gap-2">
       {/* Header */}
       <div className="mb-2">
-        <p className="text-xs font-semibold tracking-[0.12em] uppercase text-[#346739] opacity-70">
+        <p className="text-xs font-semibold text-[#346739]">
           Materi 3
         </p>
         <h1 className="text-2xl font-bold text-[#1a3d1c]">Faktorial</h1>
-        <p className="mt-1 text-sm leading-relaxed text-[#5a7d5c]">
-          Alat matematis penunjang permutasi & kombinasi — pelajari notasi ringkas perkalian
+        <p className="mt-1 text-sm leading-relaxed text-[#5d7c5f]">
+          Alat matematis penunjang permutasi & kombinasi. Pelajari notasi ringkas perkalian
           berurutan sebelum merakit mesin yang lebih besar.
         </p>
       </div>
@@ -2343,7 +2345,7 @@ export default function FaktorialContent({
       {/* Catatan Penting */}
       <div className="mb-4 rounded-xl border border-[#34673926] bg-[#DBFFD5]/30 px-4 py-3">
         <p className="text-sm leading-relaxed text-[#2C2C2A]">
-          📌 <b>Perhatikan:</b> Faktorial bukan bagian dari kaidah pencacahan — ia tidak
+          <b>Perhatikan:</b> Faktorial bukan bagian dari kaidah pencacahan. Ia tidak
           menjawab &ldquo;berapa banyak cara?&rdquo; secara langsung. Faktorial adalah notasi
           matematika yang mempersingkat penulisan perkalian berurutan. Kita mempelajarinya di
           sini karena tanpa faktorial, rumus permutasi dan kombinasi tidak bisa dituliskan secara
@@ -2467,7 +2469,7 @@ export default function FaktorialContent({
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">
-              🎉 Semua bagian Faktorial selesai!
+              Semua bagian Faktorial selesai!
             </p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
               Kamu sudah menyelesaikan Eksplorasi, Deep Learning, Penjelasan Konsep, Contoh Soal, Mengapa Corner, dan Refleksi. Lanjutkan mengerjakan Asesmen Formatif Materi Faktorial!

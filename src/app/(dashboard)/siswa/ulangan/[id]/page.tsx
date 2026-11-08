@@ -30,11 +30,8 @@ export default function UlanganSessionPage({
           style={{
             fontSize: "11px",
             fontWeight: "600",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
             color: "#346739",
             margin: "0 0 12px 0",
-            opacity: 0.7,
           }}
         >
           Asesmen Formatif
@@ -79,7 +76,7 @@ export default function UlanganSessionPage({
           <p
             style={{
               fontSize: "15px",
-              color: "#5a7d5c",
+              color: "#5d7c5f",
               margin: "0",
               lineHeight: "1.6",
             }}

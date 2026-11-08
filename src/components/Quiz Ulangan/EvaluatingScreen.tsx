@@ -80,7 +80,7 @@ export default function EvaluatingScreen({
       <p
         style={{
           fontSize: 14,
-          color: "#5a7d5c",
+          color: "#5d7c5f",
           margin: 0,
           lineHeight: 1.7,
         }}
@@ -92,7 +92,7 @@ export default function EvaluatingScreen({
       <div
         style={{
           marginTop: 24,
-          backgroundColor: "#f8fdf8",
+          backgroundColor: "#f3fff1",
           borderRadius: 10,
           border: "1px solid #d4e8d4",
           padding: "14px 18px",
@@ -127,7 +127,7 @@ export default function EvaluatingScreen({
             <p
               style={{
                 fontSize: 11,
-                color: "#6b8f6d",
+                color: "#5D7C5F",
                 margin: 0,
                 lineHeight: 1.6,
               }}

@@ -12,6 +12,9 @@
 
 "use client";
 
+import { useRef } from "react";
+import { useDialog } from "@/hooks/useDialog";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface IntegrityBlockingModalData {
@@ -30,8 +33,12 @@ export default function IntegrityBlockingModal({
   modal,
   onDismiss,
 }: IntegrityBlockingModalProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  useDialog(true, onDismiss, ref);
+
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-modal="true"
       aria-label="Peringatan Aktivitas"
@@ -103,7 +110,7 @@ export default function IntegrityBlockingModal({
         <p
           style={{
             fontSize: 14,
-            color: "#5a7d5c",
+            color: "#5d7c5f",
             lineHeight: 1.7,
             margin: "0 0 20px",
           }}
@@ -113,7 +120,7 @@ export default function IntegrityBlockingModal({
 
         <div
           style={{
-            backgroundColor: "#f8fdf8",
+            backgroundColor: "#f3fff1",
             borderRadius: 10,
             border: "1px solid #d4e8d4",
             padding: "12px 14px",
@@ -124,7 +131,7 @@ export default function IntegrityBlockingModal({
           <p
             style={{
               fontSize: 12,
-              color: "#6b8f6d",
+              color: "#5D7C5F",
               margin: 0,
               lineHeight: 1.6,
             }}
@@ -137,6 +144,7 @@ export default function IntegrityBlockingModal({
         </div>
 
         <button
+          type="button"
           onClick={onDismiss}
           style={{
             display: "inline-flex",

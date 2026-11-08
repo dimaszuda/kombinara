@@ -238,7 +238,7 @@ export function SoalKepahaman({
       style={{
         backgroundColor: "#fff",
         borderRadius: 14,
-        border: `2px solid ${checked ? (isCorrect ? "#346739" : "#b91c1c") : "#e2ede2"}`,
+        border: `2px solid ${checked ? (isCorrect ? "#346739" : "#b91c1c") : "#d4e8d4"}`,
         overflow: "hidden",
       }}
     >
@@ -249,7 +249,7 @@ export function SoalKepahaman({
             ? isCorrect
               ? "#346739"
               : "#b91c1c"
-            : "#e2ede2",
+            : "#d4e8d4",
         }}
       />
       <div style={{ padding: "18px 20px" }}>
@@ -320,11 +320,10 @@ export function SoalKepahaman({
                 flex: 1,
                 padding: "8px 12px",
                 borderRadius: 8,
-                border: `1.5px solid ${checked ? (isCorrect ? "#c3e6c3" : "#fecaca") : "#e8d4e8"}`,
-                backgroundColor: checked ? (isCorrect ? "#f0faf0" : "#fff5f5") : "#fdf8fd",
+                border: `1.5px solid ${checked ? (isCorrect ? "#d4e8d4" : "#fecaca") : "#e8d4e8"}`,
+                backgroundColor: checked ? (isCorrect ? "#f3fff1" : "#fff5f5") : "#fdf8fd",
                 fontSize: 14,
                 color: "#2C2C2A",
-                outline: "none",
                 fontFamily: "inherit",
               }}
             />

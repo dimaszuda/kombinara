@@ -137,7 +137,7 @@ export default function KelasSayaPage() {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-2xl border border-[#C44F4F] bg-[#FFF5F5] px-5 py-3 text-sm text-[#B91C1C]">
+        <p role="alert" className="rounded-2xl border border-[#C24949] bg-[#FFF5F5] px-5 py-3 text-sm text-[#B91C1C]">
           {error}
         </p>
       )}
@@ -169,7 +169,7 @@ export default function KelasSayaPage() {
                     type="button"
                     onClick={() => handleUnlink(cls)}
                     disabled={busy}
-                    className="rounded-full px-3 py-1 text-xs font-medium text-[#C44F4F] transition-colors hover:bg-[#C44F4F]/10 disabled:opacity-50"
+                    className="rounded-full px-3 py-1 text-xs font-medium text-[#C24949] transition-colors hover:bg-[#C24949]/10 disabled:opacity-50"
                   >
                     Lepas
                   </button>
@@ -178,7 +178,7 @@ export default function KelasSayaPage() {
                 <p className="mt-4 text-xs font-medium text-[#663362]">Kode kelas</p>
                 <div className="mt-1 flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
                   <span className="font-mono text-lg font-bold tracking-widest text-[#2C2C2A]">
-                    {cls.joinCode ?? "—"}
+                    {cls.joinCode ?? "Belum ada"}
                   </span>
                   <button
                     type="button"

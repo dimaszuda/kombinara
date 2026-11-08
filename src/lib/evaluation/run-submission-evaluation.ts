@@ -164,7 +164,7 @@ function gradeFaktorialSoal4(jawabanAkhir: string): Record<string, unknown> {
       ? "Tidak ada kesalahan ditemukan"
       : `${marks.length - correct} dari ${marks.length} penilaian benar/salah masih keliru.`,
     feedback: allCorrect
-      ? "Keren! Kamu menilai semua pernyataan benar/salah dengan tepat. Kamu paham sifat-sifat faktorial, termasuk definisi 0! dan hubungan n! = n × (n-1)! 👏"
+      ? "Keren! Kamu menilai semua pernyataan benar/salah dengan tepat. Kamu paham sifat-sifat faktorial, termasuk definisi 0! dan hubungan n! = n × (n-1)!"
       : `Kamu menjawab ${correct} dari ${marks.length} pernyataan dengan tepat. Pelajari lagi sifat-sifat faktorial: definisi 0!, sifat rekursif n! = n × (n-1)!, dan cara menyederhanakan pembagian faktorial.`,
   };
 }
@@ -345,7 +345,7 @@ export async function evaluateAnswers(
           guardrail_applied: null,
           mistake_category: null,
           mistake_detail: "Jawaban akhir benar, tetapi cara hitung terlalu singkat untuk dinilai prosesnya.",
-          feedback: "Jawaban akhirmu benar, tapi cara hitungnya terlalu singkat. Lain kali tuliskan langkah-langkah pengerjaan yang lengkap ya biar Kombi bisa nilai proses berpikirmu juga! 😊",
+          feedback: "Jawaban akhirmu benar, tapi cara hitungnya terlalu singkat. Lain kali tuliskan langkah-langkah pengerjaan yang lengkap ya biar Kombi bisa nilai proses berpikirmu juga!",
         });
         totalScoreSum += 7;
       } else {

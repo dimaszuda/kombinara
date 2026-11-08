@@ -294,11 +294,12 @@ function InputBlank({
   return (
     <input
       type="text"
+      aria-label="Isian jawaban"
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className={`inline-block rounded-md border-2 border-[#34673933] bg-white px-2 py-0.5 text-center text-sm font-medium text-[#663362] placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66] ${className}`}
+      className={`inline-block rounded-md border-2 border-[#34673933] bg-white px-2 py-0.5 text-center text-sm font-medium text-[#663362] placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66] ${className}`}
       style={{ minWidth: "44px", maxWidth: "80px" }}
     />
   );
@@ -324,9 +325,9 @@ function SavedBadge({ text = "Jawaban tersimpan!" }: { text?: string }) {
 
 function ImagePlaceholder({ label }: { label: string }) {
   return (
-    <div className="mb-4 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#9E9D99] bg-[#F5F5F0] px-4 py-8 text-center">
+    <div className="mb-4 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#6B6B66] bg-[#F5F5F0] px-4 py-8 text-center">
       <svg
-        className="h-10 w-10 text-[#9E9D99]"
+        className="h-10 w-10 text-[#6B6B66]"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -358,8 +359,8 @@ function ContohSoalCard({
 }) {
   const levelColors: Record<string, { bg: string; text: string; border: string }> = {
     mudah: { bg: "bg-[#DBFFD5]/60", text: "text-[#346739]", border: "border-[#34673926]" },
-    sedang: { bg: "bg-[#FFF3E6]/60", text: "text-[#B86E2D]", border: "border-[#B86E2D26]" },
-    hots: { bg: "bg-[#FFE6E6]/60", text: "text-[#C44F4F]", border: "border-[#C44F4F26]" },
+    sedang: { bg: "bg-[#FFF3E6]/60", text: "text-[#A46228]", border: "border-[#A4622826]" },
+    hots: { bg: "bg-[#FFF5F5]/60", text: "text-[#C24949]", border: "border-[#C2494926]" },
   };
 
   const c = levelColors[level] ?? levelColors.mudah;
@@ -426,7 +427,7 @@ function SectionProgress({
             <React.Fragment key={i}>
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${
-                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"
+                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"
                 }`}
                 title={SECTION_LABELS[i]}
               >
@@ -510,12 +511,14 @@ function EksplorasiKontekstual({
 
         <img
           src="/images/basketball members.jpg"
-          alt="Ilustrasi: Tim Basket — Memilih 5 Pemain dari 10 Kandidat"
+          width={1000}
+          height={667}
+          alt="Ilustrasi tim basket: memilih 5 pemain dari 10 kandidat"
           className="mb-4 max-w-md w-full mx-auto rounded-xl object-cover max-h-60"
         />
 
         <p className="mb-4 text-justify leading-relaxed text-[#2C2C2A]">
-          Tim basket membutuhkan 5 pemain dari 10 kandidat yang ada. Tidak ada perbedaan posisi — semua pemain memiliki peran setara. Berapa banyak tim berbeda yang bisa dibentuk?
+          Tim basket membutuhkan 5 pemain dari 10 kandidat yang ada. Tidak ada perbedaan posisi: semua pemain memiliki peran setara. Berapa banyak tim berbeda yang bisa dibentuk?
         </p>
 
         <div className="rounded-lg border border-[#34673926] bg-[#DBFFD5]/20 p-4">
@@ -548,8 +551,8 @@ function EksplorasiKontekstual({
         {/* Feedback setelah simpan — hanya muncul setelah klik Simpan */}
         {showFeedback && feedbackText && (
           <div className="mt-4 space-y-3">
-            <div className={`rounded-lg border p-4 ${savedCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-              <p className={`text-sm font-semibold mb-1 ${savedCorrect ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+            <div className={`rounded-lg border p-4 ${savedCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+              <p className={`text-sm font-semibold mb-1 ${savedCorrect ? "text-[#346739]" : "text-[#C24949]"}`}>
                 {savedCorrect ? "✅ Benar!" : "❌ Belum tepat"}
               </p>
               <p className="text-sm leading-relaxed text-[#2C2C2A]">{feedbackText}</p>
@@ -561,7 +564,7 @@ function EksplorasiKontekstual({
         {!savedCorrect && !readOnly && (
           <div className="mt-4 flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
             {showFeedback && !savedCorrect && (
-              <p className="text-sm text-[#C44F4F] font-medium">
+              <p className="text-sm text-[#C24949] font-medium">
                 Jawabanmu belum tepat. Silakan ubah pilihan dan coba lagi.
               </p>
             )}
@@ -662,7 +665,7 @@ function GeserTempelSimulator() {
   return (
     <div className="rounded-lg border border-[#34673926] bg-[#DBFFD5]/10 p-4">
       <p className="mb-3 text-sm leading-relaxed text-[#2C2C2A]">
-        🎮 <b>Simulasi:</b> klik dua kartu susunan yang menurutmu memiliki anggota yang sama, lalu
+        <b>Simulasi:</b> klik dua kartu susunan yang menurutmu memiliki anggota yang sama, lalu
         tekan &ldquo;Tempelkan&rdquo;.
       </p>
 
@@ -705,7 +708,7 @@ function GeserTempelSimulator() {
       </div>
 
       {feedback === "incorrect" && (
-        <p className="mt-2 text-sm font-medium text-[#C44F4F]">
+        <p className="mt-2 text-sm font-medium text-[#C24949]">
           Belum tepat, coba periksa lagi anggotanya lalu pilih ulang.
         </p>
       )}
@@ -874,7 +877,7 @@ function AktivitasDeepLearning({
           <div className="overflow-x-auto rounded-xl border border-[#34673926] mb-3">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="bg-[#B8E6BC]">
+                <tr className="bg-[#D4E8D4]">
                   <th className="px-3 py-3 text-center font-semibold text-[#2C2C2A] w-20">Susunan Ke-</th>
                   <th className="px-3 py-3 text-center font-semibold text-[#2C2C2A]">Anggota 1</th>
                   <th className="px-3 py-3 text-center font-semibold text-[#2C2C2A]">Anggota 2</th>
@@ -974,8 +977,8 @@ function AktivitasDeepLearning({
 
           <SaveButton onClick={handleSaveStep1} disabled={!allStep1Filled || saving} saved={savedStep1} hidden={readOnly} />
           {feedbackStep1 && (
-            <div className={`mt-2 rounded-lg border p-3 ${step1Correct ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-              <p className={`text-sm font-semibold mb-1 ${step1Correct ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+            <div className={`mt-2 rounded-lg border p-3 ${step1Correct ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+              <p className={`text-sm font-semibold mb-1 ${step1Correct ? "text-[#346739]" : "text-[#C24949]"}`}>
                 {step1Correct ? "✅ Benar!" : "❌ Belum tepat"}
               </p>
               <p className="text-sm text-[#2C2C2A]">{feedbackStep1}</p>
@@ -1025,8 +1028,8 @@ function AktivitasDeepLearning({
 
             <SaveButton onClick={handleSaveStep2} disabled={!allStep2Filled || saving} saved={savedStep2} hidden={readOnly} />
             {feedbackStep2 && (
-              <div className={`mt-2 rounded-lg border p-3 ${step2Correct ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-                <p className={`text-sm font-semibold mb-1 ${step2Correct ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+              <div className={`mt-2 rounded-lg border p-3 ${step2Correct ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+                <p className={`text-sm font-semibold mb-1 ${step2Correct ? "text-[#346739]" : "text-[#C24949]"}`}>
                   {step2Correct ? "✅ Benar!" : "❌ Belum tepat"}
                 </p>
                 <p className="text-sm text-[#2C2C2A]">{feedbackStep2}</p>
@@ -1069,8 +1072,8 @@ function AktivitasDeepLearning({
               hidden={readOnly}
             />
             {feedbackStep3 && (
-              <div className={`mt-2 rounded-lg border p-3 ${step3Correct ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-                <p className={`text-sm font-semibold mb-1 ${step3Correct ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+              <div className={`mt-2 rounded-lg border p-3 ${step3Correct ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+                <p className={`text-sm font-semibold mb-1 ${step3Correct ? "text-[#346739]" : "text-[#C24949]"}`}>
                   {step3Correct ? "✅ Benar!" : "❌ Belum tepat"}
                 </p>
                 <p className="text-sm text-[#2C2C2A]">{feedbackStep3}</p>
@@ -1132,7 +1135,7 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
 
       {/* Definisi */}
       <div className="rounded-xl bg-white p-5 mb-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">📖 Definisi Kombinasi</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Definisi Kombinasi</h3>
         <p className="mb-3 leading-relaxed text-[#2C2C2A]">
           <b>Kombinasi</b> adalah pemilihan objek-objek dari sekelompok objek <b>tanpa memperhatikan urutan</b>.
         </p>
@@ -1148,7 +1151,7 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
 
       {/* Intuisi Rumus */}
       <div className="rounded-xl bg-white p-5 mb-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">🧠 Intuisi Rumus</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Intuisi Rumus</h3>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#663362] text-xs font-bold text-white shrink-0 mt-0.5">1</span>
@@ -1173,7 +1176,7 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
 
       {/* Sifat-sifat */}
       <div className="rounded-xl bg-white p-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">📋 Sifat – Sifat Kombinasi</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Sifat – Sifat Kombinasi</h3>
         <div className="overflow-x-auto rounded-xl border border-[#34673926]">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -1213,7 +1216,7 @@ function PenjelasanKonsep({ onNext }: { onNext?: () => void }) {
       <div className="border-b-2 border-[#34673966] mt-4" />
       {onNext && <NextButton onClick={handleNext} loading={completing} />}
       {error && (
-        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+        <p className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-3 text-sm text-[#C24949]">
           ⚠️ {error}
         </p>
       )}
@@ -1326,6 +1329,8 @@ function Contoh1({ saved, onSave, readOnly = false, savedData }: { saved: boolea
     <ContohSoalCard level="mudah" number={1} title="Memilih Perwakilan Kelas">
       <img
         src="/images/pengurus kelas.svg"
+        width={900}
+        height={900}
         alt="Ilustrasi: Memilih 3 Perwakilan dari 8 Siswa"
         className="mb-4 max-w-lg w-full mx-auto rounded-xl object-contain max-h-80"
       />
@@ -1357,8 +1362,8 @@ function Contoh1({ saved, onSave, readOnly = false, savedData }: { saved: boolea
       </div>
 
       {feedback && (
-        <div className={`mt-2 rounded-lg border p-3 ${isCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-          <p className={`text-sm font-semibold mb-1 ${isCorrect ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+        <div className={`mt-2 rounded-lg border p-3 ${isCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+          <p className={`text-sm font-semibold mb-1 ${isCorrect ? "text-[#346739]" : "text-[#C24949]"}`}>
             {isCorrect ? "✅ Benar!" : "❌ Belum tepat"}
           </p>
           <p className="text-sm text-[#2C2C2A]">{feedback}</p>
@@ -1411,6 +1416,8 @@ function Contoh2({ saved, onSave, readOnly = false, savedData }: { saved: boolea
     <ContohSoalCard level="sedang" number={2} title="Jabat Tangan dalam Rapat">
       <img
         src="/images/shake hand.jpg"
+        width={1000}
+        height={667}
         alt="Ilustrasi: Jabat Tangan Antar 10 Orang dalam Rapat"
         className="mb-4 max-w-md w-full mx-auto rounded-xl object-cover max-h-60"
       />
@@ -1438,8 +1445,8 @@ function Contoh2({ saved, onSave, readOnly = false, savedData }: { saved: boolea
       </div>
 
       {feedback && (
-        <div className={`mt-2 rounded-lg border p-3 ${isCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-          <p className={`text-sm font-semibold mb-1 ${isCorrect ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+        <div className={`mt-2 rounded-lg border p-3 ${isCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+          <p className={`text-sm font-semibold mb-1 ${isCorrect ? "text-[#346739]" : "text-[#C24949]"}`}>
             {isCorrect ? "✅ Benar!" : "❌ Belum tepat"}
           </p>
           <p className="text-sm text-[#2C2C2A]">{feedback}</p>
@@ -1545,13 +1552,13 @@ function TimSimulator() {
             <div
               key={i}
               className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${
-                p.valid ? "border-[#34673933] bg-[#DBFFD5]/30" : "border-[#C44F4F33] bg-[#C44F4F08]"
+                p.valid ? "border-[#34673933] bg-[#DBFFD5]/30" : "border-[#C2494933] bg-[#C2494908]"
               }`}
             >
               <span className="text-[#2C2C2A]">
                 Percobaan {i + 1}: {p.jumlahP} perempuan, {4 - p.jumlahP} laki-laki
               </span>
-              <span className={`font-semibold ${p.valid ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+              <span className={`font-semibold ${p.valid ? "text-[#346739]" : "text-[#C24949]"}`}>
                 {p.valid ? "✅ Memenuhi syarat" : "❌ Belum memenuhi syarat"}
               </span>
             </div>
@@ -1563,7 +1570,7 @@ function TimSimulator() {
         <div className="mt-4 rounded-lg border border-[#34673933] bg-[#DBFFD5]/20 p-4">
           <p className="text-sm font-medium text-[#346739]">
             Dari 3 percobaanmu, terlihat bahwa tim yang valid selalu punya susunan perempuan dan
-            laki-laki yang berbeda-beda — ada beberapa <b>kasus</b> yang sama-sama memenuhi
+            laki-laki yang berbeda-beda. Ada beberapa <b>kasus</b> yang sama-sama memenuhi
             &ldquo;minimal 2 perempuan&rdquo;. Untuk menghitung total semua tim yang mungkin, setiap
             kasus itu perlu dihitung terpisah lalu dijumlahkan.
           </p>
@@ -1647,7 +1654,9 @@ function Contoh3({ saved, onSave, readOnly = false, onReasonDone, savedData, rea
     <ContohSoalCard level="hots" number={3} title="Tim dengan Syarat Minimal Perempuan">
       <img
         src="/images/team 4 members.jpg"
-        alt="5 Laki-laki & 4 Perempuan — Bentuk Tim Minimal 2 Perempuan"
+        width={1987}
+        height={1733}
+        alt="5 Laki-laki & 4 Perempuan: Bentuk Tim Minimal 2 Perempuan"
         className="mb-4 max-w-md w-full mx-auto rounded-xl object-cover max-h-60"
       />
 
@@ -1663,7 +1672,7 @@ function Contoh3({ saved, onSave, readOnly = false, onReasonDone, savedData, rea
       {/* Perhitungan formal */}
       <div className="rounded-lg bg-[#DBFFD5]/30 px-4 py-3 mb-3">
         <p className="text-sm font-semibold text-[#346739] mb-2">
-          💡 Langkah Berpikir — Kasus yang memenuhi &ldquo;minimal 2 perempuan&rdquo;:
+          💡 Langkah Berpikir: Kasus yang memenuhi &ldquo;minimal 2 perempuan&rdquo;:
         </p>
         <div className="overflow-x-auto rounded-lg border border-[#34673926]">
           <table className="w-full border-collapse text-sm">
@@ -1740,8 +1749,8 @@ function Contoh3({ saved, onSave, readOnly = false, onReasonDone, savedData, rea
       />
 
       {feedback && (
-        <div className={`mt-2 rounded-lg border p-3 ${isCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-          <p className={`text-sm font-semibold mb-1 ${isCorrect ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+        <div className={`mt-2 rounded-lg border p-3 ${isCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+          <p className={`text-sm font-semibold mb-1 ${isCorrect ? "text-[#346739]" : "text-[#C24949]"}`}>
             {isCorrect ? "✅ Benar!" : "❌ Belum tepat"}
           </p>
           <p className="text-sm text-[#2C2C2A]">{feedback}</p>
@@ -1760,15 +1769,15 @@ function Contoh3({ saved, onSave, readOnly = false, onReasonDone, savedData, rea
             placeholder="Tulis pendapatmu..."
             rows={3}
             disabled={reasonSaved || readOnly}
-            className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+            className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
               reasonSaved
                 ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
                 : "border-[#34673933]"
             }`}
           />
           {reasonFeedback && (
-            <div className={`mt-2 rounded-lg border p-3 ${reasonIsCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-              <p className={`text-sm font-semibold mb-1 ${reasonIsCorrect ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+            <div className={`mt-2 rounded-lg border p-3 ${reasonIsCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+              <p className={`text-sm font-semibold mb-1 ${reasonIsCorrect ? "text-[#346739]" : "text-[#C24949]"}`}>
                 {reasonIsCorrect ? "✅ Feedback Kombi:" : "❌ Feedback Kombi:"}
               </p>
               <p className="text-sm leading-relaxed text-[#2C2C2A]">{reasonFeedback}</p>
@@ -1849,7 +1858,7 @@ function MengapaCorner({
         </div>
 
         <div className="rounded-lg border-2 border-[#34673926] bg-[#DBFFD5]/20 px-4 py-3 mb-4">
-          <p className="text-sm font-semibold text-[#346739] mb-1">📸 Analogi:</p>
+          <p className="text-sm font-semibold text-[#346739] mb-1">Analogi:</p>
           <p className="text-sm leading-relaxed text-[#2C2C2A]">
             Jika kamu punya 6 foto yang semuanya adalah foto yang sama tapi dari sudut berbeda, jumlah foto <b>unik</b>-nya adalah 6 : 6 = 1. Kombinasi bekerja persis seperti ini!
           </p>
@@ -1865,7 +1874,7 @@ function MengapaCorner({
             placeholder="Tulis pendapatmu..."
             rows={4}
             disabled={saved || readOnly}
-            className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+            className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
               saved || readOnly
                 ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
                 : "border-[#34673933]"
@@ -1874,8 +1883,8 @@ function MengapaCorner({
         </div>
 
         {feedback && (
-          <div className={`mt-2 rounded-lg border p-3 ${isCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-            <p className={`text-sm font-semibold mb-1 ${isCorrect ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+          <div className={`mt-2 rounded-lg border p-3 ${isCorrect ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+            <p className={`text-sm font-semibold mb-1 ${isCorrect ? "text-[#346739]" : "text-[#C24949]"}`}>
               {isCorrect ? "✅ Feedback Kombi:" : "❌ Feedback Kombi:"}
             </p>
             <p className="text-sm leading-relaxed text-[#2C2C2A]">{feedback}</p>
@@ -1900,7 +1909,7 @@ function PermutasiVsKombinasi({ onNext }: { onNext?: () => void }) {
       <SectionBadge>Permutasi vs Kombinasi</SectionBadge>
 
       <div className="rounded-xl bg-white p-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">📊 Panduan Definitif</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Panduan Definitif</h3>
 
         <div className="overflow-x-auto rounded-xl border border-[#34673926] mb-4">
           <table className="w-full border-collapse text-sm">
@@ -1929,8 +1938,8 @@ function PermutasiVsKombinasi({ onNext }: { onNext?: () => void }) {
           </table>
         </div>
 
-        <div className="rounded-lg border-2 border-[#C44F4F33] bg-[#C44F4F08] p-3">
-          <p className="text-sm font-semibold text-[#C44F4F] mb-1">⚠ Miskonsepsi Terbesar</p>
+        <div className="rounded-lg border-2 border-[#C2494933] bg-[#C2494908] p-3">
+          <p className="text-sm font-semibold text-[#C24949] mb-1">⚠ Miskonsepsi Terbesar</p>
           <p className="text-sm leading-relaxed text-[#2C2C2A]">
             Banyak siswa menggunakan kombinasi untuk semua soal &ldquo;memilih&rdquo;. Ingat: kalau ada jabatan/posisi/urutan, itu <b>permutasi</b>!
           </p>
@@ -2123,15 +2132,15 @@ function RefleksiMini({
                     placeholder="Tulis jawabanmu..."
                     rows={4}
                     disabled={isSaved || readOnly}
-                    className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] ${
+                    className={`w-full rounded-xl border px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] ${
                       isSaved || readOnly
                         ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none border-[#34673933]"
                         : "border-[#34673933]"
                     }`}
                   />
                   {feedbacks[item.key] && (
-                    <div className={`mt-2 rounded-lg border p-3 ${isCorrectMap[item.key] ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C44F4F33] bg-[#C44F4F08]"}`}>
-                      <p className={`text-sm font-semibold mb-1 ${isCorrectMap[item.key] ? "text-[#346739]" : "text-[#C44F4F]"}`}>
+                    <div className={`mt-2 rounded-lg border p-3 ${isCorrectMap[item.key] ? "border-[#34673933] bg-[#DBFFD5]/20" : "border-[#C2494933] bg-[#C2494908]"}`}>
+                      <p className={`text-sm font-semibold mb-1 ${isCorrectMap[item.key] ? "text-[#346739]" : "text-[#C24949]"}`}>
                         {isCorrectMap[item.key] ? "✅ Feedback Kombi:" : "❌ Feedback Kombi:"}
                       </p>
                       <p className="text-sm leading-relaxed text-[#2C2C2A]">{feedbacks[item.key]}</p>
@@ -2206,7 +2215,7 @@ function CollapsibleJawabanSection({
 
   // Pre-completed but jawaban not yet loaded — show collapsed view
   return (
-    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F5F5F0] p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
@@ -2363,12 +2372,12 @@ export default function KombinasiContent({
     <div className="flex flex-col gap-2">
       {/* Header */}
       <div className="mb-2">
-        <p className="text-xs font-semibold tracking-[0.12em] uppercase text-[#346739] opacity-70">
+        <p className="text-xs font-semibold text-[#346739]">
           Materi 5
         </p>
         <h1 className="text-2xl font-bold text-[#1a3d1c]">Kombinasi</h1>
-        <p className="mt-1 text-sm leading-relaxed text-[#5a7d5c]">
-          Pemilihan objek tanpa memperhatikan urutan — pelajari cara menghitung banyaknya
+        <p className="mt-1 text-sm leading-relaxed text-[#5d7c5f]">
+          Pemilihan objek tanpa memperhatikan urutan. Pelajari cara menghitung banyaknya
           kelompok, tim, dan komite dengan rumus kombinasi.
         </p>
       </div>
@@ -2495,7 +2504,7 @@ export default function KombinasiContent({
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">
-              🎉 Semua bagian Kombinasi selesai!
+              Semua bagian Kombinasi selesai!
             </p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
               Kamu sudah menyelesaikan Eksplorasi, Deep Learning, Penjelasan Konsep, Contoh Soal, Mengapa Corner, Permutasi vs Kombinasi, dan Refleksi. Lanjutkan mengerjakan Asesmen Formatif Materi Kombinasi!

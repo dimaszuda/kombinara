@@ -101,10 +101,10 @@ function SignupForm() {
           <div className="mb-6">
             {classLookup.status === "valid" && classLookup.info && <ClassInfoCard info={classLookup.info} />}
             {(classLookup.status === "idle" || classLookup.status === "checking") && classCode && (
-              <p className="text-sm text-gray-500">Memeriksa kode kelas...</p>
+              <p className="text-sm text-muted">Memeriksa kode kelas...</p>
             )}
             {(!classCode || classLookup.status === "invalid") && (
-              <div className="rounded-2xl border border-[#C44F4F] bg-[#FFF5F5] px-5 py-3 text-sm text-[#B91C1C]">
+              <div className="rounded-2xl border border-[#C24949] bg-[#FFF5F5] px-5 py-3 text-sm text-[#B91C1C]">
                 {classCode ? classLookup.error : "Kamu belum memasukkan kode kelas."}{" "}
                 <Link href="/join" className="font-bold text-brand-600 no-underline">
                   Masukkan kode kelas
@@ -113,99 +113,107 @@ function SignupForm() {
             )}
           </div>
 
-          <label className="block text-sm mb-1">Nama Lengkap</label>
+          <label htmlFor="nama-lengkap" className="block text-sm mb-1">Nama Lengkap</label>
           <input
+            id="nama-lengkap"
             type="text"
             value={namaLengkap}
             onChange={(e) => setNamaLengkap(e.target.value)}
-            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
             placeholder="Masukkan nama lengkap"
           />
 
-          <label className="block text-sm mb-1 mt-5">Nomor Absen</label>
+          <label htmlFor="nomor-absen" className="block text-sm mb-1 mt-5">Nomor Absen</label>
           <input
+            id="nomor-absen"
             type="text"
             value={nomorAbsen}
             onChange={(e) => setNomorAbsen(e.target.value)}
-            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
             placeholder="contoh: 1, 2, dst"
           />
 
-          <label className="block text-sm mt-5 mb-1">Jenis Kelamin</label>
+          <label htmlFor="jenis-kelamin" className="block text-sm mt-5 mb-1">Jenis Kelamin</label>
           <select
+            id="jenis-kelamin"
             value={gender}
             onChange={(e) => setGender(e.target.value)}
-            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none appearance-none"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362] appearance-none"
           >
             <option value="" disabled>Pilih jenis kelamin</option>
             <option value="Laki-laki">Laki-laki</option>
             <option value="Perempuan">Perempuan</option>
           </select>
 
-          <label className="block text-sm mb-1 mt-5">Email</label>
+          <label htmlFor="email" className="block text-sm mb-1 mt-5">Email</label>
           <input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
             placeholder="Alamat email aktif"
           />
 
-          <label className="block text-sm mb-1 mt-5">Password</label>
+          <label htmlFor="password" className="block text-sm mb-1 mt-5">Password</label>
           <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full py-2.5 pl-5 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
+              placeholder="Masukkan password"
+            />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
               className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center bg-transparent border-0 p-0 cursor-pointer"
             >
               <Image
                 src={showPassword ? "/icons/open-eye.png" : "/icons/closed-eye.png"}
-                alt="toggle password visibility"
+                alt=""
                 width={20}
                 height={20}
               />
             </button>
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full py-2.5 pl-5 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none"
-              placeholder="Masukkan password"
-            />
           </div>
 
-          <label className="block text-sm mb-1 mt-5">Konfirmasi Password</label>
+          <label htmlFor="konfirmasi-password" className="block text-sm mb-1 mt-5">Konfirmasi Password</label>
           <div className="relative">
             <Image
               src="/icons/password-icon.png"
-              alt="password icon"
+              alt=""
               width={20}
               height={20}
               className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
             />
+            <input
+              id="konfirmasi-password"
+              type={showConfirm ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full py-2.5 pl-11 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
+              placeholder="Ulangi password baru"
+            />
             <button
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
+              aria-label={showConfirm ? "Sembunyikan password" : "Tampilkan password"}
               className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center bg-transparent border-0 p-0 cursor-pointer"
             >
               <Image
                 src={showConfirm ? "/icons/open-eye.png" : "/icons/closed-eye.png"}
-                alt="toggle confirm visibility"
+                alt=""
                 width={20}
                 height={20}
               />
             </button>
-            <input
-              type={showConfirm ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full py-2.5 pl-11 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none"
-              placeholder="Ulangi password baru"
-            />
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm mt-3">{error}</p>
+            <p role="alert" className="text-[#B91C1C] text-sm mt-3">{error}</p>
           )}
 
           <button
@@ -217,9 +225,9 @@ function SignupForm() {
           </button>
 
           <div className="flex items-center gap-3 mt-6">
-            <div className="flex-1 h-px bg-gray-300" />
-            <span className="text-sm text-gray-400 whitespace-nowrap">atau daftar dengan</span>
-            <div className="flex-1 h-px bg-gray-300" />
+            <div className="flex-1 h-px bg-line-strong" />
+            <span className="text-sm text-muted whitespace-nowrap">atau daftar dengan</span>
+            <div className="flex-1 h-px bg-line-strong" />
           </div>
 
           <button
@@ -228,7 +236,7 @@ function SignupForm() {
             disabled={isGoogleLoading || !classReady}
             className="w-full py-2.5 mt-6 rounded-full border border-brand-600 bg-white text-black font-medium cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            <Image src="/icons/google.png" alt="google icon" width={20} height={20} />
+            <Image src="/icons/google.png" alt="" width={20} height={20} />
             {isGoogleLoading ? "Menghubungkan..." : "Google"}
           </button>
 

@@ -59,7 +59,7 @@ export const SOAL_KAIDAH_PENCACAHAN: SoalItem[] = [
     question_number: 7, level: "menengah",
     question: "Terdapat angka 3, 4, 5, 6, dan 7. Berapa banyak bilangan 3 angka berbeda yang dapat dibuat, jika bilangan tersebut lebih dari 540?",
     answer: "33",
-    cara: "Kaidah Perkalian (kasus): Kasus 1 — ratusan = 5, puluhan ∈ {4, 6, 7} → 3 pilihan, satuan sisa 3 → 3 × 3 = 9. Kasus 2 — ratusan ∈ {6, 7} → 2 pilihan, puluhan 4 sisa, satuan 3 sisa → 2 × 4 × 3 = 24. Total = 9 + 24 = 33 bilangan.",
+    cara: "Kaidah Perkalian (kasus): Kasus 1: ratusan = 5, puluhan ∈ {4, 6, 7} → 3 pilihan, satuan sisa 3 → 3 × 3 = 9. Kasus 2: ratusan ∈ {6, 7} → 2 pilihan, puluhan 4 sisa, satuan 3 sisa → 2 × 4 × 3 = 24. Total = 9 + 24 = 33 bilangan.",
   },
   {
     question_number: 8, level: "hots",
@@ -71,7 +71,7 @@ export const SOAL_KAIDAH_PENCACAHAN: SoalItem[] = [
     question_number: 9, level: "hots",
     question: "Disediakan angka 1, 2, 3, 4, dan 5. Berapa banyak bilangan genap terdiri dari 3 angka yang dapat dibuat, jika bilangan tersebut lebih dari 300 dan tidak ada angka yang berulang?",
     answer: "15",
-    cara: "Kaidah Perkalian (kasus): satuan genap → {2, 4}. Kasus 1 — ratusan = 4, satuan {2} (1 pilihan), puluhan sisa 3 → 1 × 3 = 3. Kasus 2 — ratusan ∈ {3, 5} → 2 pilihan, satuan {2, 4} (2 pilihan), puluhan sisa 3 → 2 × 2 × 3 = 12. Total = 3 + 12 = 15 bilangan.",
+    cara: "Kaidah Perkalian (kasus): satuan genap → {2, 4}. Kasus 1: ratusan = 4, satuan {2} (1 pilihan), puluhan sisa 3 → 1 × 3 = 3. Kasus 2: ratusan ∈ {3, 5} → 2 pilihan, satuan {2, 4} (2 pilihan), puluhan sisa 3 → 2 × 2 × 3 = 12. Total = 3 + 12 = 15 bilangan.",
   },
   {
     question_number: 10, level: "hots",
@@ -104,7 +104,7 @@ export const SOAL_FAKTORIAL: SoalItem[] = [
   {
     question_number: 4, level: "menengah",
     question: "Manakah pernyataan berikut yang benar? Pilih ✅ jika pernyataan benar atau ❌ jika salah!\na. 0! = 0\nb. 5! / 3! = 2!\nc. 5! = 5 × 4!\nd. n! / (n-1)! = n",
-    answer: "a) Salah — 0! = 1, bukan 0\nb) Salah — 5!/3! = 20, bukan 2! (=2)\nc) Benar — sesuai sifat rekursif n!=n×(n-1)!\nd) Benar — n!/(n-1)! = n",
+    answer: "a) Salah: 0! = 1, bukan 0\nb) Salah: 5!/3! = 20, bukan 2! (=2)\nc) Benar: sesuai sifat rekursif n!=n×(n-1)!\nd) Benar: n!/(n-1)! = n",
     cara: "a) Salah. Berdasarkan definisi, 0! = 1.\nb) Salah. 5!/3! = (5×4×3!)/3! = 20, bukan 2! (= 2).\nc) Benar. 5! = 5×4×3×2×1 = 5×(4×3×2×1) = 5×4!.\nd) Benar. n!/(n-1)! = n×(n-1)!/(n-1)! = n, untuk n ≥ 1.",
   },
   {
@@ -122,7 +122,7 @@ export const SOAL_FAKTORIAL: SoalItem[] = [
   {
     question_number: 7, level: "menengah",
     question: "Lima siswa (Aldi, Bella, Citra, Dani, Eka) akan berfoto berjajar untuk kenang-kenangan.\n\na. Berapa banyak cara mereka bisa berjajar? Tuliskan dalam bentuk faktorial dan hitung nilainya.\n\nb. Jika Aldi sudah pasti berada di posisi paling kiri, berapa banyak cara tersisa untuk menyusun keempat orang lainnya?\n\nc. Berapakah perbandingan antara jawaban a. dan b.? Apa artinya?",
-    answer: "a) 5! = 120 cara\nb) 4! = 24 cara (Aldi tetap di kiri)\nc) Perbandingan a:b = 120:24 = 5:1. Artinya hanya 1/5 dari seluruh kemungkinan yang memenuhi syarat Aldi di posisi kiri — masuk akal karena Aldi hanya menempati 1 dari 5 posisi yang mungkin.",
+    answer: "a) 5! = 120 cara\nb) 4! = 24 cara (Aldi tetap di kiri)\nc) Perbandingan a:b = 120:24 = 5:1. Artinya hanya 1/5 dari seluruh kemungkinan yang memenuhi syarat Aldi di posisi kiri. Ini masuk akal karena Aldi hanya menempati 1 dari 5 posisi yang mungkin.",
     cara: "a) Menyusun 5 orang berjajar = permutasi 5 objek = 5!\n5! = 5 × 4 × 3 × 2 × 1 = 120\nJadi, ada 120 cara mereka bisa berjajar.\n\nb) Aldi tetap di posisi paling kiri, maka 4 orang tersisa disusun bebas.\nBanyak cara = 4! = 4 × 3 × 2 × 1 = 24\nJadi, ada 24 cara menyusun keempat orang lainnya.\n\nc) Perbandingan = 120 : 24 = 5 : 1\nArtinya: Dari 120 kemungkinan susunan, hanya 24 di antaranya Aldi berada di posisi paling kiri.\nAtau: Peluang Aldi di posisi paling kiri = 24/120 = 1/5.\nSecara intuitif, karena ada 5 posisi yang equally likely untuk Aldi, peluangnya memang 1/5.",
   },
 ];

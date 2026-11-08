@@ -215,16 +215,16 @@ export default function ProfilePage() {
   const current = isEditing ? editData : profile;
 
   const readOnlyClass =
-    "w-full py-2.5 pl-5 pr-4 rounded-full border border-gray-200 bg-gray-50 text-gray-700 cursor-default outline-none";
+    "w-full py-2.5 pl-5 pr-4 rounded-full border border-line bg-surface text-ink cursor-default outline-none focus:ring-2 focus:ring-[#663362]";
   const editableClass =
-    "w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none";
+    "w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]";
 
   return (
     <div className="flex flex-col lg:flex-row w-full min-h-screen">
       <div className="w-full lg:flex-1 flex flex-col items-center justify-center px-4 md:px-8 lg:px-16 py-8 mt-4">
         {/* Avatar row */}
         <div className="w-full max-w-[450px] flex items-center gap-4 mt-8">
-          <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex-shrink-0">
+          <div className="w-16 h-16 rounded-full overflow-hidden border border-line bg-surface flex-shrink-0">
             {displayAvatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -237,7 +237,7 @@ export default function ProfilePage() {
               <div className="w-full h-full flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-8 h-8 text-gray-400"
+                  className="w-8 h-8 text-muted"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -269,7 +269,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={handleRemoveAvatar}
-                className="px-4 py-2 rounded-full bg-gray-200 text-red-500 text-sm font-medium"
+                className="px-4 py-2 rounded-full bg-line text-[#B91C1C] text-sm font-medium"
               >
                 Hapus Foto
               </button>
@@ -279,8 +279,9 @@ export default function ProfilePage() {
 
         {/* Profile fields */}
         <div className="w-full max-w-[450px] mt-1">
-          <label className="block text-sm mb-1 mt-4">Nama Lengkap</label>
+          <label htmlFor="nama-lengkap" className="block text-sm mb-1 mt-4">Nama Lengkap</label>
           <input
+            id="nama-lengkap"
             type="text"
             value={current?.name ?? ""}
             onChange={(e) => updateField("name", e.target.value)}
@@ -292,8 +293,9 @@ export default function ProfilePage() {
           {/* Data khusus siswa — guru hanya punya nama */}
           {profile?.role !== "guru" && (
             <>
-              <label className="block text-sm mt-4 mb-1">Nomor Absen</label>
+              <label htmlFor="nomor-absen" className="block text-sm mt-4 mb-1">Nomor Absen</label>
               <input
+                id="nomor-absen"
                 type="text"
                 value={current?.studentNumber ?? ""}
                 onChange={(e) => updateField("studentNumber", e.target.value)}
@@ -302,8 +304,9 @@ export default function ProfilePage() {
                 placeholder="Nomor absen kamu"
               />
 
-              <label className="block text-sm mt-4 mb-1">Kelas</label>
+              <label htmlFor="kelas" className="block text-sm mt-4 mb-1">Kelas</label>
               <input
+                id="kelas"
                 type="text"
                 value={current?.className ? `${current.className} ${current.group}` : ""}
                 readOnly
@@ -313,7 +316,7 @@ export default function ProfilePage() {
               {isEditing && (
                 <>
                   <label htmlFor="kode-kelas-baru" className="block text-sm mt-4 mb-1">
-                    Pindah kelas <span className="text-gray-400">(opsional)</span>
+                    Pindah kelas <span className="text-muted">(opsional)</span>
                   </label>
                   <input
                     id="kode-kelas-baru"
@@ -330,9 +333,9 @@ export default function ProfilePage() {
                   />
                   <div className="mt-2">
                     {classLookup.status === "checking" && (
-                      <p className="text-sm text-gray-500">Memeriksa kode kelas...</p>
+                      <p className="text-sm text-muted">Memeriksa kode kelas...</p>
                     )}
-                    {classLookup.status === "invalid" && <p className="text-sm text-red-500">{classLookup.error}</p>}
+                    {classLookup.status === "invalid" && <p role="alert" className="text-sm text-[#B91C1C]">{classLookup.error}</p>}
                     {classLookup.status === "valid" && classLookup.info && (
                       <ClassInfoCard info={classLookup.info} title="Kamu akan pindah ke" />
                     )}
@@ -340,12 +343,13 @@ export default function ProfilePage() {
                 </>
               )}
 
-              <label className="block text-sm mt-4 mb-1">Jenis Kelamin</label>
+              <label htmlFor="jenis-kelamin" className="block text-sm mt-4 mb-1">Jenis Kelamin</label>
               {isEditing ? (
                 <select
+                  id="jenis-kelamin"
                   value={editData?.gender ?? ""}
                   onChange={(e) => updateField("gender", e.target.value)}
-                  className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none appearance-none"
+                  className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362] appearance-none"
                 >
                   <option value="" disabled>
                     Pilih jenis kelamin
@@ -355,6 +359,7 @@ export default function ProfilePage() {
                 </select>
               ) : (
                 <input
+                  id="jenis-kelamin"
                   type="text"
                   value={profile?.gender ?? ""}
                   readOnly
@@ -365,10 +370,10 @@ export default function ProfilePage() {
           )}
 
           {error && (
-            <p className="text-red-500 text-sm mt-3 text-center">{error}</p>
+            <p role="alert" className="text-[#B91C1C] text-sm mt-3 text-center">{error}</p>
           )}
           {successMsg && (
-            <p className="text-green-600 text-sm mt-3 text-center">
+            <p className="text-brand-600 text-sm mt-3 text-center">
               {successMsg}
             </p>
           )}

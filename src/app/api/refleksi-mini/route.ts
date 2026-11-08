@@ -87,7 +87,7 @@ export async function POST(req: Request) {
         !row.soal.trim() ||
         typeof row.answer !== "string"
       ) {
-        return NextResponse.json({ error: "Invalid row structure — required: question_key, soal, answer" }, { status: 400 });
+        return NextResponse.json({ error: "Invalid row structure: required: question_key, soal, answer" }, { status: 400 });
       }
     }
 

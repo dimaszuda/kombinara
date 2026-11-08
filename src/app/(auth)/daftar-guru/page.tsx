@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-const inputClass = "w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none";
+const inputClass = "w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]";
 
 export default function DaftarGuruPage() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export default function DaftarGuruPage() {
     <div className="flex flex-col lg:flex-row w-full min-h-screen">
       <div className="w-full lg:flex-1 flex flex-col items-center justify-start px-4 md:px-8 lg:px-16 py-8 lg:pt-24 lg:pb-16">
         <h1 className="text-3xl font-bold text-center">Daftar sebagai Guru</h1>
-        <p className="text-gray-500 mt-2 text-center max-w-[450px]">
+        <p className="text-muted mt-2 text-center max-w-[450px]">
           Gunakan kode guru dari sekolahmu. Setelah mendaftar, kamu bisa memilih kelas yang kamu ajar dan
           membagikan kode kelas ke siswa.
         </p>
@@ -90,6 +90,15 @@ export default function DaftarGuruPage() {
 
           <label htmlFor="password" className="block text-sm mb-1 mt-5">Password</label>
           <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`${inputClass} pr-10`}
+              placeholder="Minimal 6 karakter"
+              autoComplete="new-password"
+            />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -103,15 +112,6 @@ export default function DaftarGuruPage() {
                 height={20}
               />
             </button>
-            <input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`${inputClass} pr-10`}
-              placeholder="Minimal 6 karakter"
-              autoComplete="new-password"
-            />
           </div>
 
           <label htmlFor="confirm-password" className="block text-sm mb-1 mt-5">Konfirmasi Password</label>
@@ -136,7 +136,7 @@ export default function DaftarGuruPage() {
             autoComplete="off"
           />
 
-          {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
+          {error && <p role="alert" className="text-[#B91C1C] text-sm mt-3">{error}</p>}
 
           <button
             type="submit"
@@ -152,7 +152,7 @@ export default function DaftarGuruPage() {
               Masuk
             </Link>
           </p>
-          <p className="text-center mt-1 text-sm text-gray-500">
+          <p className="text-center mt-1 text-sm text-muted">
             Kamu siswa?{" "}
             <Link href="/join" className="text-brand-600 font-bold no-underline">
               Gabung dengan kode kelas

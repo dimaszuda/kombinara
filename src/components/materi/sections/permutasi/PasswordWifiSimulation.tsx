@@ -138,7 +138,7 @@ export default function PasswordWifiSimulation() {
       const newFoundCount = uniqueValid.length + 1;
       if (newFoundCount >= TARGET_VALID) {
         setMessage({
-          text: `🎉 Keren! Kamu menemukan ${TARGET_VALID} password valid!`,
+          text: `Keren! Kamu menemukan ${TARGET_VALID} password valid!`,
           type: "success",
         });
       } else {
@@ -174,11 +174,11 @@ export default function PasswordWifiSimulation() {
   // ── Render ───────────────────────────────────────────────────────
 
   return (
-    <div className="rounded-xl border border-[#34673933] bg-[#F7FAF6] p-4 md:p-5">
+    <div className="rounded-xl border border-[#34673933] bg-[#F3FFF1] p-4 md:p-5">
       {/* Header */}
       <div className="flex flex-col gap-2 border-b border-[#34673926] pb-4">
         <span className="text-xs font-medium text-[#663362]">
-          🔐 Simulasi Password WiFi
+          Simulasi Password WiFi
         </span>
         <h4 className="text-lg font-semibold text-[#346739]">
           Yuk, coba masukkan password WiFi sekolah!
@@ -213,15 +213,15 @@ export default function PasswordWifiSimulation() {
                       onKeyDown={(e) => handleSlotKeyDown(index, e)}
                       disabled={isFixed || allFound}
                       placeholder={isFixed ? "#" : "?"}
-                      className={`h-20 w-full rounded-xl border-2 text-center text-2xl font-bold tracking-[0.15em] outline-none transition-all placeholder:text-[#34673966] ${
+                      className={`h-20 w-full rounded-xl border-2 text-center text-2xl font-bold tracking-[0.15em] outline-none focus:ring-2 focus:ring-[#663362] transition-all placeholder:text-[#6B6B66] ${
                         isFixed
                           ? "cursor-default border-[#663362] bg-[#66336208] text-[#663362]"
                           : isFilled
-                            ? "border-[#34673966] bg-[#F8FBF7] text-[#346739]"
+                            ? "border-[#34673966] bg-[#F3FFF1] text-[#346739]"
                             : "border-[#34673933] border-dashed bg-white text-[#346739]"
                       } ${allFound && !isFixed ? "cursor-default opacity-60" : ""}`}
                       aria-label={
-                        isFixed ? "Slot 4 — pagar (tetap)" : `Slot ${index + 1}`
+                        isFixed ? "Slot 4: pagar (tetap)" : `Slot ${index + 1}`
                       }
                     />
                     <div className="mt-1.5 flex items-center justify-between gap-1 px-0.5">
@@ -289,7 +289,7 @@ export default function PasswordWifiSimulation() {
                   message.type === "success"
                     ? "border-[#34673933] bg-[#DBFFD5]/20"
                     : message.type === "error"
-                      ? "border-[#C44F4F33] bg-[#C44F4F08]"
+                      ? "border-[#C2494933] bg-[#C2494908]"
                       : message.type === "warning"
                         ? "border-[#E5A83E33] bg-[#E5A83E08]"
                         : "border-[#66336233] bg-[#66336208]"
@@ -300,9 +300,9 @@ export default function PasswordWifiSimulation() {
                     message.type === "success"
                       ? "text-[#346739]"
                       : message.type === "error"
-                        ? "text-[#C44F4F]"
+                        ? "text-[#C24949]"
                         : message.type === "warning"
-                          ? "text-[#B07D20]"
+                          ? "text-[#90661A]"
                           : "text-[#663362]"
                   }`}
                 >
@@ -337,7 +337,6 @@ export default function PasswordWifiSimulation() {
           {allFound && (
             <div className="rounded-xl border-2 border-[#346739] bg-[#DBFFD5]/20 p-5">
               <div className="mb-3 flex items-center gap-2">
-                <span className="text-2xl">🎉</span>
                 <h4 className="text-lg font-bold text-[#346739]">
                   Selamat! Kamu menemukan semua password!
                 </h4>
@@ -366,7 +365,7 @@ export default function PasswordWifiSimulation() {
                     {VALID_PASSWORDS.map((pw, i) => (
                       <tr
                         key={pw}
-                        className={`border-t border-[#34673915] ${i % 2 === 0 ? "bg-white" : "bg-[#F8FBF7]"}`}
+                        className={`border-t border-[#34673915] ${i % 2 === 0 ? "bg-white" : "bg-[#F3FFF1]"}`}
                       >
                         <td className="px-4 py-2.5 font-mono font-bold tracking-[0.15em] text-[#346739]">
                           {pw}
@@ -397,7 +396,7 @@ export default function PasswordWifiSimulation() {
                   <p>
                     <b>Gian benar!</b> Ada dua huruf <b>A yang identik</b>.
                     Susunan A₁A₂D# dan A₂A₁D# itu{" "}
-                    <b>sebenarnya sama</b> — tidak bisa dibedakan!
+                    <b>sebenarnya sama</b>, tidak bisa dibedakan!
                   </p>
                   <p>
                     Jadi, banyak susunan berbeda dari kata &quot;ADA&quot; + #
@@ -417,7 +416,7 @@ export default function PasswordWifiSimulation() {
               {/* Daftar percobaan */}
               <div className="mt-4">
                 <p className="mb-2 text-xs font-medium text-[#2C2C2A]">
-                  📋 Riwayat Percobaan Kamu:
+                  Riwayat Percobaan Kamu:
                 </p>
                 <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-[#34673926] bg-white p-3">
                   {attempts.length === 0 ? (
@@ -441,8 +440,8 @@ export default function PasswordWifiSimulation() {
                             a.status === "valid"
                               ? "bg-[#DBFFD5] text-[#346739]"
                               : a.status === "duplicate"
-                                ? "bg-[#FFF3D6] text-[#B07D20]"
-                                : "bg-[#FFE5E5] text-[#C44F4F]"
+                                ? "bg-[#FFF3D6] text-[#90661A]"
+                                : "bg-[#FFF5F5] text-[#C24949]"
                           }`}
                         >
                           {a.status === "valid"
@@ -463,7 +462,7 @@ export default function PasswordWifiSimulation() {
                 onClick={handleReset}
                 className="mt-4 rounded-full border border-[#34673933] bg-white px-6 py-3 text-sm font-medium text-[#346739] transition-colors hover:bg-[#34673908] active:scale-95"
               >
-                🔄 Coba Lagi dari Awal
+                Coba Lagi dari Awal
               </button>
             </div>
           )}
@@ -473,7 +472,7 @@ export default function PasswordWifiSimulation() {
         <aside className="rounded-xl border border-[#66336233] bg-white p-4">
           <div>
             <p className="text-xs font-medium text-[#663362]">
-              📋 Riwayat Percobaan
+              Riwayat Percobaan
             </p>
             <h5 className="mt-1 text-sm font-semibold text-[#346739]">
               Password yang sudah dicoba
@@ -493,7 +492,7 @@ export default function PasswordWifiSimulation() {
                   className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
                     a.status === "valid"
                       ? "border-[#34673933] bg-[#DBFFD5]/10"
-                      : "border-[#C44F4F15] bg-[#C44F4F05]"
+                      : "border-[#C2494915] bg-[#C2494905]"
                   }`}
                 >
                   <span className="text-[#34673966]">{i + 1}.</span>
@@ -504,7 +503,7 @@ export default function PasswordWifiSimulation() {
                     className={`ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
                       a.status === "valid"
                         ? "bg-[#DBFFD5] text-[#346739]"
-                        : "bg-[#FFE5E5] text-[#C44F4F]"
+                        : "bg-[#FFF5F5] text-[#C24949]"
                     }`}
                   >
                     {a.status === "valid" ? "✓" : "✗"}

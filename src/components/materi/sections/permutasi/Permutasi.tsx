@@ -306,7 +306,7 @@ function SectionProgress({
             <React.Fragment key={i}>
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${
-                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"
+                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"
                 }`}
                 title={PERMUTASI_SECTION_LABELS[i]}
               >
@@ -354,8 +354,8 @@ function InputBlank({
     borderColor = "border-[#346739]";
     bgColor = "bg-[#DBFFD5]/40";
   } else if (grade === "incorrect") {
-    borderColor = "border-[#C44F4F]";
-    bgColor = "bg-[#C44F4F]/5";
+    borderColor = "border-[#C24949]";
+    bgColor = "bg-[#C24949]/5";
   }
   if (disabled) {
     bgColor = "bg-[#F5F5F0]";
@@ -364,11 +364,13 @@ function InputBlank({
   return (
     <input
       type="text"
+      aria-label="Isian jawaban"
+      aria-invalid={grade === "incorrect" || undefined}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className={`inline-block rounded-md border-2 ${borderColor} ${bgColor} px-2 py-0.5 text-center text-sm font-medium text-[#663362] placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:text-[#6B6B66] ${className}`}
+      className={`inline-block rounded-md border-2 ${borderColor} ${bgColor} px-2 py-0.5 text-center text-sm font-medium text-[#663362] placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:text-[#6B6B66] ${className}`}
       style={{ minWidth: "44px", maxWidth }}
     />
   );
@@ -398,7 +400,7 @@ function AnswerTextArea({
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
-      className="w-full rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66] disabled:resize-none"
+      className="w-full rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66] disabled:resize-none"
     />
   );
 }
@@ -669,7 +671,7 @@ function EksplorasiKontekstual1({ onComplete, readOnly = false, savedData }: { o
             else if (isActive) { dotBg = "bg-white"; dotBorder = "border-[#346739]"; }
             return (
               <React.Fragment key={i}>
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"}`}>
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"}`}>
                   {isCompleted ? "✓" : i + 1}
                 </div>
                 {i < 1 && <div className={`h-0.5 flex-1 rounded transition-colors ${subStepFeedback[i]?.isCorrect ? "bg-[#346739]" : "bg-[#E5E5E0]"}`} />}
@@ -720,9 +722,9 @@ function EksplorasiKontekstual1({ onComplete, readOnly = false, savedData }: { o
             </div>
 
             {fb0 && (
-              <div className={`mt-3 rounded-lg border p-3 ${fb0.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${fb0.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {fb0.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${fb0.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${fb0.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {fb0.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb0.text}</RichText>
               </div>
@@ -760,9 +762,9 @@ function EksplorasiKontekstual1({ onComplete, readOnly = false, savedData }: { o
               />
 
               {fb1 && (
-                <div className={`mt-3 rounded-lg border p-3 ${fb1.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                  <p className={`mb-1 text-xs font-medium ${fb1.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                    {fb1.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+                <div className={`mt-3 rounded-lg border p-3 ${fb1.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                  <p className={`mb-1 text-xs font-medium ${fb1.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                    {fb1.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                   </p>
                   <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb1.text}</RichText>
                 </div>
@@ -1337,7 +1339,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
         {/* Aktivitas 1: Tabel ADI */}
         <div className="space-y-4">
           <h4 className="text-base font-semibold text-[#346739]">
-            Aktivitas 1 — Dari 3 huruf {"{A, D, I}"}, buat semua susunan 2 huruf yang mungkin (tanpa pengulangan):
+            Aktivitas 1: Dari 3 huruf {"{A, D, I}"}, buat semua susunan 2 huruf yang mungkin (tanpa pengulangan):
           </h4>
 
           {/* Tabel */}
@@ -1347,14 +1349,14 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
             saved={a1TableAllCorrect}
           >
             {a1TableFeedback && !a1TableAllCorrect && (
-              <div className="mb-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-                <p className="text-xs font-medium text-[#C44F4F]">❌ {a1TableFeedback}</p>
+              <div className="mb-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+                <p className="text-xs font-medium text-[#C24949]">❌ {a1TableFeedback}</p>
               </div>
             )}
             <div className="overflow-x-auto rounded-xl border border-[#34673926]">
               <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="bg-[#B8E6BC]">
+                  <tr className="bg-[#D4E8D4]">
                     <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Susunan Ke-</th>
                     <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Huruf 1</th>
                     <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Huruf 2</th>
@@ -1408,7 +1410,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
               <InputBlank value={totalSusunan} onChange={setTotalSusunan} grade={totalSusunanGrade} disabled={totalSusunanGrade === "correct"} />
               <CheckButton isCorrect={totalSusunanGrade === "correct"} onClick={() => setTotalSusunanGrade(checkAnswer(totalSusunan, "6"))} />
               {totalSusunanGrade === "correct" && <span className="text-xs text-[#346739] font-medium">✅ Benar!</span>}
-              {totalSusunanGrade === "incorrect" && <span className="text-xs text-[#C44F4F] font-medium">❌ Coba lagi</span>}
+              {totalSusunanGrade === "incorrect" && <span className="text-xs text-[#C24949] font-medium">❌ Coba lagi</span>}
             </div>
           </SoalCard>
 
@@ -1417,7 +1419,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
               <InputBlank value={kaidahPerkalian} onChange={setKaidahPerkalian} grade={kaidahPerkalianGrade} disabled={kaidahPerkalianGrade === "correct"} className="w-14" />
               <CheckButton isCorrect={kaidahPerkalianGrade === "correct"} onClick={() => setKaidahPerkalianGrade(checkAnswer(kaidahPerkalian, "2"))} />
               {kaidahPerkalianGrade === "correct" && <span className="text-xs text-[#346739] font-medium">✅ Benar!</span>}
-              {kaidahPerkalianGrade === "incorrect" && <span className="text-xs text-[#C44F4F] font-medium">❌ Coba lagi</span>}
+              {kaidahPerkalianGrade === "incorrect" && <span className="text-xs text-[#C24949] font-medium">❌ Coba lagi</span>}
             </div>
           </SoalCard>
 
@@ -1458,7 +1460,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
                 <InputBlank value={kedudukan} onChange={setKedudukan} grade={kedudukanGrade} disabled={kedudukanGrade === "correct"} />
                 <CheckButton isCorrect={kedudukanGrade === "correct"} onClick={() => setKedudukanGrade(checkAnswer(kedudukan, "2"))} />
                 {kedudukanGrade === "correct" && <span className="text-xs text-[#346739] font-medium">✅ Benar!</span>}
-                {kedudukanGrade === "incorrect" && <span className="text-xs text-[#C44F4F] font-medium">❌ Coba lagi</span>}
+                {kedudukanGrade === "incorrect" && <span className="text-xs text-[#C24949] font-medium">❌ Coba lagi</span>}
               </div>
               <div className="flex items-center flex-wrap gap-2">
                 <span className="text-sm text-[#2C2C2A]">Sebutkan:</span>
@@ -1483,7 +1485,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
                   }
                 />
                 {namaKedudukanGrade === "correct" && <span className="text-xs text-[#346739] font-medium">✅ Benar!</span>}
-                {namaKedudukanGrade === "incorrect" && <span className="text-xs text-[#C44F4F] font-medium">❌ Coba lagi</span>}
+                {namaKedudukanGrade === "incorrect" && <span className="text-xs text-[#C24949] font-medium">❌ Coba lagi</span>}
               </div>
             </div>
           </SoalCard>
@@ -1493,7 +1495,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
               <InputBlank value={jumlahKotak} onChange={setJumlahKotak} grade={jumlahKotakGrade} disabled={jumlahKotakGrade === "correct"} />
               <CheckButton isCorrect={jumlahKotakGrade === "correct"} onClick={() => setJumlahKotakGrade(checkAnswer(jumlahKotak, "2"))} />
               {jumlahKotakGrade === "correct" && <span className="text-xs text-[#346739] font-medium">✅ Benar!</span>}
-              {jumlahKotakGrade === "incorrect" && <span className="text-xs text-[#C44F4F] font-medium">❌ Coba lagi</span>}
+              {jumlahKotakGrade === "incorrect" && <span className="text-xs text-[#C24949] font-medium">❌ Coba lagi</span>}
             </div>
           </SoalCard>
 
@@ -1502,7 +1504,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
               <InputBlank value={kemungkinan1} onChange={setKemungkinan1} grade={kemungkinan1Grade} disabled={kemungkinan1Grade === "correct"} />
               <CheckButton isCorrect={kemungkinan1Grade === "correct"} onClick={() => setKemungkinan1Grade(checkAnswer(kemungkinan1, "3"))} />
               {kemungkinan1Grade === "correct" && <span className="text-xs text-[#346739] font-medium">✅ Benar!</span>}
-              {kemungkinan1Grade === "incorrect" && <span className="text-xs text-[#C44F4F] font-medium">❌ Coba lagi</span>}
+              {kemungkinan1Grade === "incorrect" && <span className="text-xs text-[#C24949] font-medium">❌ Coba lagi</span>}
             </div>
           </SoalCard>
 
@@ -1511,7 +1513,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
               <InputBlank value={kemungkinan2} onChange={setKemungkinan2} grade={kemungkinan2Grade} disabled={kemungkinan2Grade === "correct"} />
               <CheckButton isCorrect={kemungkinan2Grade === "correct"} onClick={() => setKemungkinan2Grade(checkAnswer(kemungkinan2, "2"))} />
               {kemungkinan2Grade === "correct" && <span className="text-xs text-[#346739] font-medium">✅ Benar!</span>}
-              {kemungkinan2Grade === "incorrect" && <span className="text-xs text-[#C44F4F] font-medium">❌ Coba lagi</span>}
+              {kemungkinan2Grade === "incorrect" && <span className="text-xs text-[#C24949] font-medium">❌ Coba lagi</span>}
             </div>
           </SoalCard>
 
@@ -1521,9 +1523,9 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
             <AnswerTextArea value={alasanHuruf2} onChange={setAlasanHuruf2} rows={2} disabled={alasanFB?.isCorrect === true} />
 
             {alasanFB && (
-              <div className={`mt-3 rounded-lg border p-3 ${alasanFB.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${alasanFB.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {alasanFB.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${alasanFB.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${alasanFB.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {alasanFB.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{alasanFB.text}</RichText>
               </div>
@@ -1548,7 +1550,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
               <InputBlank value={totalCara} onChange={setTotalCara} grade={totalCaraGrade} disabled={totalCaraGrade === "correct"} />
               <CheckButton isCorrect={totalCaraGrade === "correct"} onClick={() => setTotalCaraGrade(checkAnswer(totalCara, "6"))} />
               {totalCaraGrade === "correct" && <span className="text-xs text-[#346739] font-medium">✅ Benar!</span>}
-              {totalCaraGrade === "incorrect" && <span className="text-xs text-[#C44F4F] font-medium">❌ Coba lagi</span>}
+              {totalCaraGrade === "incorrect" && <span className="text-xs text-[#C24949] font-medium">❌ Coba lagi</span>}
             </div>
           </SoalCard>
 
@@ -1556,9 +1558,9 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
             <AnswerTextArea value={hubunganFaktorial} onChange={setHubunganFaktorial} rows={2} disabled={hubunganFaktorialFB?.isCorrect === true} />
 
             {hubunganFaktorialFB && (
-              <div className={`mt-3 rounded-lg border p-3 ${hubunganFaktorialFB.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${hubunganFaktorialFB.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {hubunganFaktorialFB.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${hubunganFaktorialFB.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${hubunganFaktorialFB.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {hubunganFaktorialFB.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{hubunganFaktorialFB.text}</RichText>
               </div>
@@ -1584,9 +1586,9 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
             <AnswerTextArea value={kesimpulan1} onChange={setKesimpulan1} rows={2} disabled={kesimpulanFB?.isCorrect === true} />
 
             {kesimpulanFB && (
-              <div className={`mt-3 rounded-lg border p-3 ${kesimpulanFB.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${kesimpulanFB.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {kesimpulanFB.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${kesimpulanFB.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${kesimpulanFB.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {kesimpulanFB.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{kesimpulanFB.text}</RichText>
               </div>
@@ -1611,14 +1613,14 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
         {/* Aktivitas 2: Nalar - Temukan Pola */}
         {deepStep >= 2 && (<>
         <SoalCard
-          number="Aktivitas 2 — Nalar"
+          number="Aktivitas 2: Nalar"
           title="Temukan Polanya: Lengkapi tabel berikut menggunakan cara yang sama:"
           onSave={handleSaveA2Table}
           saved={a2TableAllCorrect}
         >
           {a2TableFeedback && !a2TableAllCorrect && (
-            <div className="mb-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-              <p className="text-xs font-medium text-[#C44F4F]">❌ {a2TableFeedback}</p>
+            <div className="mb-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+              <p className="text-xs font-medium text-[#C24949]">❌ {a2TableFeedback}</p>
             </div>
           )}
           <div className="overflow-x-auto rounded-xl border border-[#34673926] mb-4">
@@ -1659,7 +1661,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
                           }}
                           placeholder="…"
                           disabled={a2TableAllCorrect}
-                          className="w-28 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-mono placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-28 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-mono placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -1678,7 +1680,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
                           }}
                           placeholder="…"
                           disabled={a2TableAllCorrect}
-                          className="w-28 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-mono placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-28 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-mono placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -1697,7 +1699,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
                           }}
                           placeholder="…"
                           disabled={a2TableAllCorrect}
-                          className="w-20 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-semibold placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-20 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-semibold placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -1717,7 +1719,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
               onChange={(e) => setRumusUmum(e.target.value)}
               placeholder="..."
               disabled={a2TableAllCorrect}
-              className="inline-block rounded-md border-2 border-[#34673933] bg-white px-3 py-1 text-sm font-mono placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+              className="inline-block rounded-md border-2 border-[#34673933] bg-white px-3 py-1 text-sm font-mono placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
               style={{ minWidth: "160px" }}
             />
           </p>
@@ -1727,16 +1729,16 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
         {/* Aktivitas 3: Diskusikan */}
         {deepStep >= 3 && (<>
         <div className="space-y-4">
-          <h4 className="text-base font-semibold text-[#346739]">Aktivitas 3 — Diskusikan: Uji Pemahamanmu (diskusi dengan teman sebangku)</h4>
+          <h4 className="text-base font-semibold text-[#346739]">Aktivitas 3: Diskusikan: Uji Pemahamanmu (diskusi dengan teman sebangku)</h4>
 
           <SoalCard
             title="(a) Mengapa penyebut rumusmu adalah (n-r)! dan bukan r!?"
           >
             <AnswerTextArea value={diskusiA} onChange={setDiskusiA} rows={3} disabled={a3aFB?.isCorrect === true} />
             {a3aFB && (
-              <div className={`mt-3 rounded-lg border p-3 ${a3aFB.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${a3aFB.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {a3aFB.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${a3aFB.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${a3aFB.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {a3aFB.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{a3aFB.text}</RichText>
               </div>
@@ -1766,9 +1768,9 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
           >
             <AnswerTextArea value={diskusiB} onChange={setDiskusiB} rows={3} disabled={a3bFB?.isCorrect === true} />
             {a3bFB && (
-              <div className={`mt-3 rounded-lg border p-3 ${a3bFB.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${a3bFB.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {a3bFB.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${a3bFB.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${a3bFB.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {a3bFB.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{a3bFB.text}</RichText>
               </div>
@@ -1795,13 +1797,13 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
 
           {diskusiStep >= 2 && (
           <SoalCard
-            title="(c) Kembali ke soal podium awal — 8 pelari, 3 posisi. Hitung dengan rumus yang kamu temukan!"
+            title="(c) Kembali ke soal podium awal: 8 pelari, 3 posisi. Hitung dengan rumus yang kamu temukan!"
           >
             <AnswerTextArea value={podiumCalc} onChange={setPodiumCalc} rows={3} disabled={a3cFB?.isCorrect === true} />
             {a3cFB && (
-              <div className={`mt-3 rounded-lg border p-3 ${a3cFB.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${a3cFB.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {a3cFB.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${a3cFB.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${a3cFB.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {a3cFB.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{a3cFB.text}</RichText>
               </div>
@@ -1811,7 +1813,7 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
                 <button
                   type="button"
                   onClick={() => handleAISave(
-                    "Kembali ke soal podium awal — 8 pelari, 3 posisi. Hitung dengan rumus permutasi P(8,3).",
+                    "Kembali ke soal podium awal: 8 pelari, 3 posisi. Hitung dengan rumus permutasi P(8,3).",
                     podiumCalc,
                     "P(8,3)=8!/(8-3)!=8!/5!=8×7×6=336",
                     setA3cFB, () => {}, setCheckingA3c, "adl1_a3c"
@@ -1830,16 +1832,16 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
         {/* Aktivitas 4: Simpulkan */}
         {aktivitas4Visible && (<>
         <div className="space-y-4">
-          <h4 className="text-base font-semibold text-[#346739]">Aktivitas 4 — Simpulkan: Tuliskan dengan kalimatmu sendiri</h4>
+          <h4 className="text-base font-semibold text-[#346739]">Aktivitas 4: Simpulkan: Tuliskan dengan kalimatmu sendiri</h4>
 
           <SoalCard
             title='"Permutasi P(n,r) digunakan ketika..."'
           >
             <AnswerTextArea value={simpulan1} onChange={setSimpulan1} rows={3} disabled={a4aFB?.isCorrect === true} />
             {a4aFB && (
-              <div className={`mt-3 rounded-lg border p-3 ${a4aFB.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${a4aFB.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {a4aFB.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${a4aFB.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${a4aFB.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {a4aFB.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{a4aFB.text}</RichText>
               </div>
@@ -1869,9 +1871,9 @@ function AktivitasDeepLearning1({ onComplete, readOnly = false, savedData }: { o
           >
             <AnswerTextArea value={simpulan2} onChange={setSimpulan2} rows={3} disabled={a4bFB?.isCorrect === true} />
             {a4bFB && (
-              <div className={`mt-3 rounded-lg border p-3 ${a4bFB.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                <p className={`mb-1 text-xs font-medium ${a4bFB.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                  {a4bFB.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+              <div className={`mt-3 rounded-lg border p-3 ${a4bFB.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                <p className={`mb-1 text-xs font-medium ${a4bFB.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                  {a4bFB.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{a4bFB.text}</RichText>
               </div>
@@ -1945,7 +1947,7 @@ function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
       <SectionBadge>Penjelasan Konsep</SectionBadge>
 
       <div className="rounded-xl bg-white p-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">📖 Permutasi</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Permutasi</h3>
         <p className="mb-3 leading-relaxed text-[#2C2C2A]">
           <b>Definisi</b>: Permutasi adalah susunan objek-objek yang diambil dari sekelompok objek
           dengan <b>memperhatikan urutan</b>.
@@ -1966,8 +1968,8 @@ function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
           </ul>
         </div>
 
-        <div className="mt-4 rounded-lg border-2 border-[#C44F4F33] bg-[#C44F4F08] p-3">
-          <p className="text-sm font-semibold text-[#C44F4F] mb-1">🤔 Apa yang terjadi jika r &gt; n?</p>
+        <div className="mt-4 rounded-lg border-2 border-[#C2494933] bg-[#C2494908] p-3">
+          <p className="text-sm font-semibold text-[#C24949] mb-1">🤔 Apa yang terjadi jika r &gt; n?</p>
           <p className="text-sm leading-relaxed text-[#2C2C2A]">
             Coba jelaskan pendapatmu! Tidak mungkin mengambil lebih banyak objek daripada yang tersedia.
           </p>
@@ -1989,7 +1991,7 @@ function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
         </div>
 
         <div className="mt-5 rounded-lg border border-[#66336226] bg-[#66336208] p-4">
-          <h4 className="mb-2 text-base font-semibold text-[#663362]">⭐ Kasus Khusus</h4>
+          <h4 className="mb-2 text-base font-semibold text-[#663362]">Kasus Khusus</h4>
           <p className="text-sm leading-relaxed text-[#2C2C2A]">
             <b>Permutasi Semua Objek:</b> P(n,n) = n!
           </p>
@@ -2003,7 +2005,7 @@ function PenjelasanKonsep1({ onNext }: { onNext?: () => void }) {
 
       {onNext && <NextButton onClick={handleNext} loading={loading} />}
       {error && (
-        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+        <p className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-3 text-sm text-[#C24949]">
           ⚠️ {error}
         </p>
       )}
@@ -2082,7 +2084,7 @@ function EksplorasiKontekstual2({ onComplete, readOnly = false, savedData }: { o
           body: JSON.stringify({
             concept_id: "permutasi_dengan_unsur_sama",
             question_key: "siapa_benar_ada",
-            answer: { soal: "Abdi vs Gian — kata ADA", jawaban: siapaBenar, alasan },
+            answer: { soal: "Abdi vs Gian: kata ADA", jawaban: siapaBenar, alasan },
             feedback: fb.text,
             is_correct: fb.isCorrect,
           }),
@@ -2136,7 +2138,7 @@ function EksplorasiKontekstual2({ onComplete, readOnly = false, savedData }: { o
                 onChange={(e) => setSiapaBenar(e.target.value)}
                 placeholder="Abdi / Gian / ..."
                 disabled={feedback?.isCorrect === true}
-                className="w-full rounded-xl border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66]"
+                className="w-full rounded-xl border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66]"
               />
             </div>
             <div>
@@ -2146,9 +2148,9 @@ function EksplorasiKontekstual2({ onComplete, readOnly = false, savedData }: { o
           </div>
 
           {feedback && (
-            <div className={`mt-3 rounded-lg border p-3 ${feedback.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-              <p className={`mb-1 text-xs font-medium ${feedback.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                {feedback.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+            <div className={`mt-3 rounded-lg border p-3 ${feedback.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+              <p className={`mb-1 text-xs font-medium ${feedback.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                {feedback.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
               </p>
               <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{feedback.text}</RichText>
             </div>
@@ -2438,24 +2440,24 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
         {/* Aktivitas 1: Amati */}
         <div className="space-y-4">
           <h4 className="text-base font-semibold text-[#346739]">
-            Aktivitas 1 — Amati: Dari kata "ADA", berapa susunan kata yang bisa dibentuk? (dua huruf A identik)
+            Aktivitas 1: Amati: Dari kata "ADA", berapa susunan kata yang bisa dibentuk? (dua huruf A identik)
           </h4>
 
           {/* Tabel ADA */}
           <SoalCard
-            title="Langkah 1: Beri label dulu — anggap dua A berbeda: A₁ dan A₂."
+            title="Langkah 1: Beri label dulu, anggap dua A berbeda: A₁ dan A₂."
             onSave={handleSaveA1Table}
             saved={a1TableAllCorrect}
           >
             {a1TableFB && !a1TableAllCorrect && (
-              <div className="mb-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-                <p className="text-xs font-medium text-[#C44F4F]">❌ {a1TableFB}</p>
+              <div className="mb-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+                <p className="text-xs font-medium text-[#C24949]">❌ {a1TableFB}</p>
               </div>
             )}
             <div className="overflow-x-auto rounded-xl border border-[#34673926]">
               <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="bg-[#B8E6BC]">
+                  <tr className="bg-[#D4E8D4]">
                     <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Susunan (dengan label)</th>
                     <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Susunan (tanpa label)</th>
                     <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Keterangan</th>
@@ -2463,11 +2465,11 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
                 </thead>
                 <tbody className="divide-y divide-[#34673915]">
                   {[
-                    { label: "A₁A₂D", tanpa: "AAD", ket: "—", ro: true },
+                    { label: "A₁A₂D", tanpa: "AAD", ket: "-", ro: true },
                     { label: "A₂A₁D", tanpa: "AAD", ket: "Sama dengan baris 1", ro: true },
-                    { label: "A₁DA₂", tanpa: "ADA", ket: "—", ro: true },
+                    { label: "A₁DA₂", tanpa: "ADA", ket: "-", ro: true },
                     { label: "A₂DA₁", tanpa: null, ket: "Sama dengan baris 3", ro: false, val: adaR4Tanpa, set: setAdaR4Tanpa },
-                    { label: "DA₁A₂", tanpa: "DAA", ket: "—", ro: true },
+                    { label: "DA₁A₂", tanpa: "DAA", ket: "-", ro: true },
                     { label: "DA₂A₁", tanpa: null, ket: "Sama dengan baris 5", ro: false, val: adaR6Tanpa, set: setAdaR6Tanpa },
                   ].map((row: any, i: number) => (
                     <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-[#DBFFD5]/30"}>
@@ -2495,8 +2497,8 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
             saved={a1L2AllCorrect}
           >
             {a1L2FB && !a1L2AllCorrect && (
-              <div className="mb-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-                <p className="text-xs font-medium text-[#C44F4F]">❌ {a1L2FB}</p>
+              <div className="mb-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+                <p className="text-xs font-medium text-[#C24949]">❌ {a1L2FB}</p>
               </div>
             )}
             <div className="space-y-3">
@@ -2526,8 +2528,8 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
             saved={a1L3AllCorrect}
           >
             {a1L3FB && !a1L3AllCorrect && (
-              <div className="mb-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-                <p className="text-xs font-medium text-[#C44F4F]">❌ {a1L3FB}</p>
+              <div className="mb-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+                <p className="text-xs font-medium text-[#C24949]">❌ {a1L3FB}</p>
               </div>
             )}
             <div className="space-y-3">
@@ -2556,8 +2558,8 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
                     onClick={() => setCocokManual(false)}
                     className={`rounded-full border-2 px-5 py-2 text-sm font-medium transition-colors ${
                       cocokManual === false
-                        ? "border-[#C44F4F] bg-[#C44F4F]/10 text-[#C44F4F]"
-                        : "border-[#34673933] bg-white text-[#2C2C2A] hover:border-[#C44F4F]"
+                        ? "border-[#C24949] bg-[#C24949]/10 text-[#C24949]"
+                        : "border-[#34673933] bg-white text-[#2C2C2A] hover:border-[#C24949]"
                     } disabled:opacity-50 disabled:cursor-default`}
                   >
                     ❌ Tidak cocok
@@ -2572,14 +2574,14 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
         {/* Aktivitas 2: Nalar */}
         <div style={{ display: deepStep >= 3 ? undefined : "none" }}>
         <SoalCard
-          number="Aktivitas 2 — Nalar"
-          title="Temukan Pola: Perluasan pola — lengkapi tabel:"
+          number="Aktivitas 2: Nalar"
+          title="Temukan Pola: Perluasan pola, lengkapi tabel:"
           onSave={handleSaveA2}
           saved={a2AllCorrect}
         >
           {a2FB && !a2AllCorrect && (
-            <div className="mb-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-              <p className="text-xs font-medium text-[#C44F4F]">❌ {a2FB}</p>
+            <div className="mb-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+              <p className="text-xs font-medium text-[#C24949]">❌ {a2FB}</p>
             </div>
           )}
           <div className="overflow-x-auto rounded-xl border border-[#34673926] mb-4">
@@ -2611,7 +2613,7 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
                           onChange={(e) => setPilihanHuruf(e.target.value)}
                           placeholder="Huruf pilihanmu..."
                           disabled={a2AllCorrect}
-                          className="w-32 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-sm placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-32 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-sm placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -2628,7 +2630,7 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
                           onChange={(e) => setPilihanUlang(e.target.value)}
                           placeholder="cth: A=2, B=1"
                           disabled={a2AllCorrect}
-                          className="w-36 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-sm placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-36 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-sm placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       ) : null)}
                     </td>
@@ -2646,7 +2648,7 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
                           }}
                           placeholder="…"
                           disabled={a2AllCorrect}
-                          className="w-32 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-mono placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-32 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-mono placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -2665,7 +2667,7 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
                           }}
                           placeholder="…"
                           disabled={a2AllCorrect}
-                          className="w-20 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-semibold placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-20 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-semibold placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -2685,7 +2687,7 @@ function AktivitasDeepLearning2({ onComplete, readOnly = false, savedData }: { o
               onChange={(e) => setRumusSama(e.target.value)}
               placeholder="..."
               disabled={a2AllCorrect}
-              className="inline-block rounded-md border-2 border-[#34673933] bg-white px-3 py-1 text-sm font-mono placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+              className="inline-block rounded-md border-2 border-[#34673933] bg-white px-3 py-1 text-sm font-mono placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
               style={{ minWidth: "200px" }}
             />
           </div>
@@ -2738,7 +2740,7 @@ function PenjelasanKonsep2({ onNext }: { onNext?: () => void }) {
       <SectionBadge>Penjelasan Konsep</SectionBadge>
 
       <div className="rounded-xl bg-white p-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">📖 Permutasi dengan Unsur yang Sama</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Permutasi dengan Unsur yang Sama</h3>
         <p className="mb-3 leading-relaxed text-[#2C2C2A]">
           Jika dari <b>n</b> objek terdapat objek-objek yang sama (misal: k₁ objek sama jenis 1,
           k₂ objek sama jenis 2, dst.), maka:
@@ -2763,7 +2765,7 @@ function PenjelasanKonsep2({ onNext }: { onNext?: () => void }) {
 
       {onNext && <NextButton onClick={handleNext} loading={loading} />}
       {error && (
-        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+        <p className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-3 text-sm text-[#C24949]">
           ⚠️ {error}
         </p>
       )}
@@ -2832,7 +2834,7 @@ function EksplorasiKontekstual3({ onComplete, readOnly = false, savedData }: { o
         concept_id: "permutasi_siklis",
         question_key: "permutasi_siklis_eksplorasi",
         answer: { toggle: toggle, berapaSusunan },
-        feedback: isCorrect ? "Jawaban benar — permutasi siklis dipahami." : errors.join(" "),
+        feedback: isCorrect ? "Jawaban benar. Permutasi siklis dipahami." : errors.join(" "),
         is_correct: isCorrect,
       }),
     }).catch((err) => console.error("[eksplorasi-kontekstual-3] DB save error:", err));
@@ -2881,8 +2883,8 @@ function EksplorasiKontekstual3({ onComplete, readOnly = false, savedData }: { o
           </div>
 
           {checkFB && !allCorrect && (
-            <div className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-              <p className="text-xs font-medium text-[#C44F4F]">❌ {checkFB}</p>
+            <div className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+              <p className="text-xs font-medium text-[#C24949]">❌ {checkFB}</p>
             </div>
           )}
 
@@ -3142,7 +3144,7 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
         {/* Aktivitas 1: Amati 3 orang */}
         <div className="space-y-4">
           <h4 className="text-base font-semibold text-[#346739]">
-            Aktivitas 1 — Amati (Selidiki Rotasi): Dari 3 orang (A, B, C) duduk melingkar
+            Aktivitas 1: Amati (Selidiki Rotasi): Dari 3 orang (A, B, C) duduk melingkar
           </h4>
 
           <p className="text-sm font-medium text-[#346739]">Langkah 1: Daftar semua permutasi linear (duduk berjajar)</p>
@@ -3154,7 +3156,7 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
           <div className="overflow-x-auto rounded-xl border border-[#34673926] mb-4">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="bg-[#B8E6BC]">
+                <tr className="bg-[#D4E8D4]">
                   <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Kelompok</th>
                   <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Susunan yang Sama (Rotasi)</th>
                   <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A]">Susunan Melingkar Unik</th>
@@ -3181,8 +3183,8 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
             saved={a1aCorrect}
           >
             {a1aFB && !a1aCorrect && (
-              <div className="mb-2 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2">
-                <p className="text-xs font-medium text-[#C44F4F]">❌ {a1aFB}</p>
+              <div className="mb-2 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2">
+                <p className="text-xs font-medium text-[#C24949]">❌ {a1aFB}</p>
               </div>
             )}
             <InputBlank value={susunanUnik3} onChange={setSusunanUnik3} disabled={a1aCorrect} />
@@ -3195,8 +3197,8 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
             saved={a1bCorrect}
           >
             {a1bFB && !a1bCorrect && (
-              <div className="mb-2 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2">
-                <p className="text-xs font-medium text-[#C44F4F]">❌ {a1bFB}</p>
+              <div className="mb-2 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2">
+                <p className="text-xs font-medium text-[#C24949]">❌ {a1bFB}</p>
               </div>
             )}
             <InputBlank value={munculKali} onChange={setMunculKali} disabled={a1bCorrect} />
@@ -3210,8 +3212,8 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
             saved={a1cCorrect}
           >
             {a1cFB && !a1cCorrect && (
-              <div className="mb-2 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2">
-                <p className="text-xs font-medium text-[#C44F4F]">❌ {a1cFB}</p>
+              <div className="mb-2 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2">
+                <p className="text-xs font-medium text-[#C24949]">❌ {a1cFB}</p>
               </div>
             )}
             <InputBlank value={angkaSama} onChange={setAngkaSama} disabled={a1cCorrect} />
@@ -3220,13 +3222,13 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
 
           {deepStep >= 3 && (
           <SoalCard
-            title="Langkah 3: Hitung — P(siklis 3) = 3!/3 = 6/3 = ..."
+            title="Langkah 3: Hitung P(siklis 3) = 3!/3 = 6/3 = ..."
             onSave={handleSaveA1d}
             saved={a1dCorrect}
           >
             {a1dFB && !a1dCorrect && (
-              <div className="mb-2 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2">
-                <p className="text-xs font-medium text-[#C44F4F]">❌ {a1dFB}</p>
+              <div className="mb-2 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2">
+                <p className="text-xs font-medium text-[#C24949]">❌ {a1dFB}</p>
               </div>
             )}
             <InputBlank value={psiklis3} onChange={setPsiklis3} disabled={a1dCorrect} />
@@ -3237,14 +3239,14 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
         {/* Aktivitas B2: Nalar tabel n */}
         {deepStep >= 4 && (
         <SoalCard
-          number="Aktivitas B2 — Nalar"
+          number="Aktivitas B2: Nalar"
           title="Temukan Pola: Lakukan hal yang sama untuk berbagai nilai n:"
           onSave={handleSaveA2}
           saved={a2Correct}
         >
           {a2FB && !a2Correct && (
-            <div className="mb-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-2.5">
-              <p className="text-xs font-medium text-[#C44F4F]">❌ {a2FB}</p>
+            <div className="mb-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-2.5">
+              <p className="text-xs font-medium text-[#C24949]">❌ {a2FB}</p>
             </div>
           )}
           <div className="overflow-x-auto rounded-xl border border-[#34673926] mb-4">
@@ -3280,7 +3282,7 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
                           }}
                           placeholder="…"
                           disabled={a2Correct}
-                          className="w-24 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-mono placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-24 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-mono placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -3299,7 +3301,7 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
                           }}
                           placeholder="…"
                           disabled={a2Correct}
-                          className="w-20 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-20 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -3318,7 +3320,7 @@ function AktivitasDeepLearning3({ onComplete, readOnly = false, savedData }: { o
                           }}
                           placeholder="…"
                           disabled={a2Correct}
-                          className="w-24 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-semibold placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0]"
+                          className="w-24 rounded-md border-2 border-[#34673933] bg-white px-2 py-1 text-center text-sm font-semibold placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0]"
                         />
                       )}
                     </td>
@@ -3383,7 +3385,7 @@ function PenjelasanKonsep3({ onNext }: { onNext?: () => void }) {
       <SectionBadge>Penjelasan Konsep</SectionBadge>
 
       <div className="rounded-xl bg-white p-5">
-        <h3 className="mb-3 text-lg font-bold text-[#346739]">📖 Permutasi Siklis</h3>
+        <h3 className="mb-3 text-lg font-bold text-[#346739]">Permutasi Siklis</h3>
         <p className="mb-3 leading-relaxed text-[#2C2C2A]">
           Permutasi Siklis adalah susunan objek-objek yang membentuk lingkaran tertutup, di mana
           rotasi dari susunan yang sama dianggap identik.
@@ -3412,10 +3414,10 @@ function PenjelasanKonsep3({ onNext }: { onNext?: () => void }) {
           </p>
         </div>
 
-        <div className="mt-5 rounded-lg border-2 border-[#C44F4F33] bg-[#C44F4F08] p-4">
-          <h4 className="mb-2 text-base font-semibold text-[#C44F4F]">⚠ Permutasi Siklis Khusus: Objek dengan dua sisi</h4>
+        <div className="mt-5 rounded-lg border-2 border-[#C2494933] bg-[#C2494908] p-4">
+          <h4 className="mb-2 text-base font-semibold text-[#C24949]">⚠ Permutasi Siklis Khusus: Objek dengan dua sisi</h4>
           <p className="text-sm leading-relaxed text-[#2C2C2A] mb-2">
-            Untuk benda seperti <b>kalung, gelang, atau cincin</b> — membaliknya menghasilkan
+            Untuk benda seperti <b>kalung, gelang, atau cincin</b>, membaliknya menghasilkan
             susunan yang dianggap sama (karena kalung bisa dipakai di kedua sisi).
           </p>
           <div className="rounded-lg bg-white px-4 py-3 text-center">
@@ -3433,7 +3435,7 @@ function PenjelasanKonsep3({ onNext }: { onNext?: () => void }) {
 
       {onNext && <NextButton onClick={handleNext} loading={loading} />}
       {error && (
-        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+        <p className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-3 text-sm text-[#C24949]">
           ⚠️ {error}
         </p>
       )}
@@ -3553,7 +3555,7 @@ function GradedAnswerInput({ value, onChange, placeholder, label, expectedAnswer
   return (
     <div className="flex flex-col gap-1.5">
       {label ? <p className="text-sm font-medium text-[#346739]">{label}</p> : null}
-      <p className="text-[11px] text-[#6b6b68] -mt-0.5 italic">
+      <p className="text-[11px] text-[#6b6b66] -mt-0.5 italic">
         💡 Tulis jawaban akhir berupa <b>angka</b> saja, tidak perlu cara.
       </p>
       <div className="flex items-center gap-2">
@@ -3569,7 +3571,7 @@ function GradedAnswerInput({ value, onChange, placeholder, label, expectedAnswer
             (readOnly || grade === "correct"
               ? "border-[#346739] bg-[#DBFFD5]/30 cursor-default"
               : grade === "incorrect"
-                ? "border-[#C44F4F] focus:ring-[#C44F4F22]"
+                ? "border-[#C24949] focus:ring-[#C2494922]"
                 : "border-[#34673944] focus:border-[#346739] focus:ring-[#34673922]")
           }
         />
@@ -3578,7 +3580,7 @@ function GradedAnswerInput({ value, onChange, placeholder, label, expectedAnswer
             type="button"
             onClick={handleCheck}
             disabled={!value.trim()}
-            className="shrink-0 rounded-lg bg-[#346739] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2a5230] disabled:bg-[#34673944] disabled:cursor-not-allowed active:scale-95"
+            className="shrink-0 rounded-lg bg-[#346739] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2c5830] disabled:bg-[#34673944] disabled:cursor-not-allowed active:scale-95"
           >
             Cek
           </button>
@@ -3590,7 +3592,7 @@ function GradedAnswerInput({ value, onChange, placeholder, label, expectedAnswer
         )}
       </div>
       {grade === "incorrect" && (
-        <p className="text-xs text-[#C44F4F] font-medium flex items-center gap-1">
+        <p className="text-xs text-[#C24949] font-medium flex items-center gap-1">
           <span>❌</span> Jawaban belum tepat. Coba periksa kembali perhitunganmu!
         </p>
       )}
@@ -3687,14 +3689,14 @@ function BlankInput({ value, onChange, expectedAnswer, saveMeta, onCorrect, read
           (readOnly || grade === "correct"
             ? "border-[#346739] bg-[#DBFFD5]/60 text-[#346739]"
             : grade === "incorrect"
-              ? "border-[#C44F4F] bg-[#C44F4F08] focus:ring-[#C44F4F22]"
+              ? "border-[#C24949] bg-[#C2494908] focus:ring-[#C2494922]"
               : "border-[#34673944] bg-white focus:border-[#346739] focus:ring-[#34673922]")
         }
       />
       {grade === "correct" ? (
         <span className="text-sm font-bold text-[#346739]">✓</span>
       ) : grade === "incorrect" ? (
-        <span className="text-xs font-bold text-[#C44F4F]">✕</span>
+        <span className="text-xs font-bold text-[#C24949]">✕</span>
       ) : !readOnly ? (
         <button
           type="button"
@@ -3767,7 +3769,7 @@ function InsightBox({ children }: { children: React.ReactNode }) {
  
 function SimBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[#346739] text-white text-[10px] font-semibold px-2 py-0.5 tracking-wide uppercase">
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#346739] text-white text-xs font-semibold px-2 py-0.5">
       {children}
     </span>
   );
@@ -3775,7 +3777,7 @@ function SimBadge({ children }: { children: React.ReactNode }) {
  
 function SimShell({ title, children, onReset }: { title: string; children: React.ReactNode; onReset?: () => void }) {
   return (
-    <div className="rounded-xl border border-dashed border-[#34673955] bg-[#F7FBF6] px-4 py-4 mb-3">
+    <div className="rounded-xl border border-dashed border-[#34673955] bg-[#F3FFF1] px-4 py-4 mb-3">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <SimBadge>Simulasi</SimBadge>
@@ -3796,6 +3798,16 @@ function SimShell({ title, children, onReset }: { title: string; children: React
   );
 }
  
+// Kontrol di dalam SVG tidak bisa <button>: role="button" + Enter/Spasi.
+function onActivateKey(fn: () => void) {
+  return (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      fn();
+    }
+  };
+}
+
 // ════════════════════════════════════════════════════════════════
 // CONTOH 1 — Drag kandidat ke slot jabatan (permutasi linier)
 // ════════════════════════════════════════════════════════════════
@@ -3838,24 +3850,27 @@ function Contoh1({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
  
   return (
     <SoalCardBertahap
-      number="Contoh 1 — Mudah"
+      number="Contoh 1 (Mudah)"
       title="Dari 6 calon pengurus OSIS, akan dipilih Ketua, Sekretaris, dan Bendahara. Berapa banyak susunan pengurus yang mungkin?"
     >
-      <SimShell title="Drag kandidat ke jabatan yang sesuai" onReset={reset}>
+      <SimShell title="Klik kandidat lalu klik jabatannya (atau drag)" onReset={reset}>
         <div className="flex flex-wrap gap-2 mb-4">
           {available.length === 0 ? (
-            <p className="text-xs text-[#6b6b68] italic">Semua kandidat sudah ditempatkan.</p>
+            <p className="text-xs text-[#6b6b66] italic">Semua kandidat sudah ditempatkan.</p>
           ) : (
             available.map((k) => (
-              <div
+              <button
+                type="button"
                 key={k}
                 draggable
                 onDragStart={() => setDragging(k)}
                 onDragEnd={() => setDragging(null)}
-                className="cursor-grab active:cursor-grabbing rounded-full bg-white border border-[#346739] text-[#346739] text-xs font-medium px-3 py-1.5 shadow-sm select-none"
+                onClick={() => setDragging(dragging === k ? null : k)}
+                aria-pressed={dragging === k}
+                className={`min-h-11 cursor-grab active:cursor-grabbing rounded-full border border-[#346739] text-xs font-medium px-3 py-1.5 shadow-sm select-none ${dragging === k ? "bg-[#346739] text-white" : "bg-white text-[#346739]"}`}
               >
                 {k}
-              </div>
+              </button>
             ))
           )}
         </div>
@@ -3868,7 +3883,7 @@ function Contoh1({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
               onDrop={() => dropTo(i)}
               className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#34673955] bg-white px-2 py-3 min-h-[84px] justify-center"
             >
-              <p className="text-[10px] uppercase tracking-wide text-[#346739] font-semibold">{jab}</p>
+              <p className="text-xs text-[#346739] font-semibold">{jab}</p>
               {slots[i] ? (
                 <button
                   type="button"
@@ -3879,14 +3894,22 @@ function Contoh1({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
                   {slots[i]} ✕
                 </button>
               ) : (
-                <p className="text-[11px] text-[#6b6b68] italic">taruh di sini</p>
+                <button
+                  type="button"
+                  onClick={() => dropTo(i)}
+                  disabled={!dragging}
+                  aria-label={dragging ? `Taruh ${dragging} sebagai ${jab}` : `${jab} kosong, pilih kandidat dulu`}
+                  className="min-h-11 rounded-full px-3 text-[11px] italic text-[#6b6b66] enabled:text-[#346739] enabled:underline disabled:cursor-not-allowed"
+                >
+                  taruh di sini
+                </button>
               )}
             </div>
           ))}
         </div>
  
-        <p className="text-[11px] text-[#6b6b68] mt-3">
-          Coba susun beberapa kombinasi berbeda — perhatikan bahwa menukar siapa jadi Ketua vs Sekretaris
+        <p className="text-[11px] text-[#6b6b66] mt-3">
+          Coba susun beberapa kombinasi berbeda, lalu perhatikan bahwa menukar siapa jadi Ketua vs Sekretaris
           menghasilkan susunan yang berbeda, meski orangnya sama.
         </p>
       </SimShell>
@@ -3975,24 +3998,27 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
  
   return (
     <SoalCardBertahap
-      number="Contoh 2 — Mudah"
+      number="Contoh 2 (Mudah)"
       title="Enam orang pengurus OSIS akan duduk mengelilingi meja bundar untuk rapat. Berapa banyak susunan tempat duduk yang berbeda?"
     >
-      <SimShell title="Drag orang ke kursi, lalu coba putar mejanya" onReset={reset}>
+      <SimShell title="Klik nama lalu klik kursinya (atau drag), lalu coba putar mejanya" onReset={reset}>
         <div className="flex flex-wrap gap-2 mb-4">
           {available.length === 0 ? (
-            <p className="text-xs text-[#6b6b68] italic">Semua sudah duduk.</p>
+            <p className="text-xs text-[#6b6b66] italic">Semua sudah duduk.</p>
           ) : (
             available.map((n) => (
-              <div
+              <button
+                type="button"
                 key={n}
                 draggable
                 onDragStart={() => setDragging(n)}
                 onDragEnd={() => setDragging(null)}
-                className="cursor-grab active:cursor-grabbing rounded-full bg-white border border-[#346739] text-[#346739] text-xs font-medium px-3 py-1.5 shadow-sm select-none"
+                onClick={() => setDragging(dragging === n ? null : n)}
+                aria-pressed={dragging === n}
+                className={`min-h-11 cursor-grab active:cursor-grabbing rounded-full border border-[#346739] text-xs font-medium px-3 py-1.5 shadow-sm select-none ${dragging === n ? "bg-[#346739] text-white" : "bg-white text-[#346739]"}`}
               >
                 {n}
-              </div>
+              </button>
             ))
           )}
         </div>
@@ -4003,8 +4029,24 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
             <text x="100" y="104" textAnchor="middle" className="fill-[#346739]" fontSize="9">
               Meja
             </text>
-            {positions.map((p, i) => (
-              <g key={i}>
+            {positions.map((p, i) => {
+              const act = () => (dragging ? dropTo(i) : seats[i] && clearSeat(i));
+              return (
+              <g
+                key={i}
+                role="button"
+                tabIndex={0}
+                aria-label={
+                  dragging
+                    ? `Dudukkan ${dragging} di kursi ${i + 1}`
+                    : seats[i]
+                      ? `Kursi ${i + 1}: ${seats[i]}, kosongkan`
+                      : `Kursi ${i + 1} kosong`
+                }
+                onClick={act}
+                onKeyDown={onActivateKey(act)}
+                style={{ cursor: "pointer" }}
+              >
                 <circle
                   cx={p.x}
                   cy={p.y}
@@ -4014,8 +4056,6 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
                   strokeWidth="1.5"
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => dropTo(i)}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => clearSeat(i)}
                 />
                 <text
                   x={p.x}
@@ -4028,7 +4068,8 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
                   {seats[i] ? seats[i]!.slice(0, 3) : i + 1}
                 </text>
               </g>
-            ))}
+              );
+            })}
           </svg>
  
           <div className="flex-1">
@@ -4040,8 +4081,8 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
             >
               Putar meja satu posisi ↻
             </button>
-            <p className="text-[11px] text-[#6b6b68] mt-2 leading-relaxed">
-              Diputar {rotated}× — perhatikan: urutan relatif orang tetap sama persis, cuma
+            <p className="text-[11px] text-[#6b6b66] mt-2 leading-relaxed">
+              Diputar {rotated}×. Perhatikan: urutan relatif orang tetap sama persis, cuma
               posisinya bergeser. Di meja bundar, ini dianggap <b>susunan yang sama</b> karena tidak ada
               kursi nomor 1 sebagai patokan.
             </p>
@@ -4052,7 +4093,7 @@ function Contoh2({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
       <LangkahBerpikir
         steps={[
           <>
-            <b>Identifikasi situasi:</b> Apakah ada &ldquo;kursi nomor 1&rdquo; di meja bundar? → <b>Tidak</b> —
+            <b>Identifikasi situasi:</b> Apakah ada &ldquo;kursi nomor 1&rdquo; di meja bundar? → <b>Tidak</b>,
             tidak ada titik referensi yang membedakan posisi → susunan melingkar → gunakan <b>permutasi siklis</b>.
           </>,
           <span>
@@ -4084,7 +4125,7 @@ function Contoh3({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
  
   return (
     <SoalCardBertahap
-      number="Contoh 3 — Sedang"
+      number="Contoh 3 (Sedang)"
       title="Pengurus OSIS terdiri dari 10 siswa. Akan dipilih Ketua, Wakil Ketua, Sekretaris, dan Bendahara. Jika Rafi hanya bersedia menjadi Ketua atau tidak ikut sama sekali, berapa banyak susunan pengurus yang mungkin?"
     >
       <SimShell title="Klik salah satu kondisi Rafi untuk lihat cabang kasusnya">
@@ -4129,7 +4170,7 @@ function Contoh3({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
           </div>
         )}
         {activeCase === null && (
-          <p className="text-[11px] text-[#6b6b68] italic">Pilih salah satu kartu di atas untuk melihat penjelasannya.</p>
+          <p className="text-[11px] text-[#6b6b66] italic">Pilih salah satu kartu di atas untuk melihat penjelasannya.</p>
         )}
       </SimShell>
  
@@ -4141,7 +4182,7 @@ function Contoh3({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
           <div>
             <b>Pilah kasus:</b>
             <p className="mt-1">
-              <b>Kasus 1 — Rafi menjadi Ketua:</b> posisi Ketua hanya untuk Rafi (1 cara). Posisi Wakil,
+              <b>Kasus 1 (Rafi menjadi Ketua):</b> posisi Ketua hanya untuk Rafi (1 cara). Posisi Wakil,
               Sekretaris, Bendahara diisi 9 siswa tersisa secara berurutan: P(9, 3) = 9!/(9−3)! ={" "}
               <BlankInput value={blanks["k1a"] ?? ""} onChange={setBlank("k1a")} expectedAnswer="9" saveMeta={{ questionKey: "contoh_3_k1a", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k1a")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_3_k1a"]} />
               {" × "}
@@ -4153,7 +4194,7 @@ function Contoh3({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
               {". Subtotal Kasus 1 = 1 × 504 = 504."}
             </p>
             <p>
-              <b>Kasus 2 — Rafi tidak ikut:</b> tersisa 9 siswa untuk 4 posisi: P(9, 4) = 9 × 8 × 7 × 6 ={" "}
+              <b>Kasus 2 (Rafi tidak ikut):</b> tersisa 9 siswa untuk 4 posisi: P(9, 4) = 9 × 8 × 7 × 6 ={" "}
               <BlankInput value={blanks["k2Total"] ?? ""} onChange={setBlank("k2Total")} expectedAnswer="3024" saveMeta={{ questionKey: "contoh_3_kasus2", difficultyLevel: "sedang", orderIndex: 2 }} onCorrect={() => markCorrect("k2Total")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_3_kasus2"]} />
               {"."}
             </p>
@@ -4177,11 +4218,11 @@ function Contoh3({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
 const KATA = "MATEMATIKA".split("");
 const LETTER_COLORS: Record<string, string> = {
   M: "#346739",
-  A: "#5B8C5A",
-  T: "#8FBF8D",
-  E: "#B7D9B4",
-  I: "#6b6b68",
-  K: "#6b6b68",
+  A: "#346739",
+  T: "#D4E8D4",
+  E: "#D4E8D4",
+  I: "#6b6b66",
+  K: "#6b6b66",
 };
  
 function shuffle<T>(arr: T[]): T[] {
@@ -4219,21 +4260,25 @@ function Contoh4({ onSoalDone, readOnly = false, savedAnswer }: { onSoalDone?: (
   }, []);
  
   return (
-    <SoalCardBertahap number="Contoh 4 — Sedang" title='Berapa banyak cara menyusun huruf-huruf dari kata "MATEMATIKA"?'>
-      <SimShell title="Drag huruf untuk menyusun ulang — huruf yang sama warnanya identik" onReset={() => setOrder(KATA)}>
+    <SoalCardBertahap number="Contoh 4 (Sedang)" title='Berapa banyak cara menyusun huruf-huruf dari kata "MATEMATIKA"?'>
+      <SimShell title="Klik huruf lalu klik posisi tujuannya (atau drag). Huruf yang sama warnanya identik" onReset={() => setOrder(KATA)}>
         <div className="flex gap-1.5 mb-3 flex-wrap">
           {order.map((ch, i) => (
-            <div
+            <button
+              type="button"
               key={i}
               draggable
               onDragStart={() => setDragIdx(i)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(i)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-white text-sm font-bold cursor-grab active:cursor-grabbing select-none shadow-sm"
+              onClick={() => (dragIdx === null ? setDragIdx(i) : dragIdx === i ? setDragIdx(null) : handleDrop(i))}
+              aria-pressed={dragIdx === i}
+              aria-label={`${ch}, posisi ${i + 1}`}
+              className={`w-11 h-11 flex items-center justify-center rounded-lg text-white text-sm font-bold cursor-grab active:cursor-grabbing select-none shadow-sm ${dragIdx === i ? "ring-2 ring-[#663362] ring-offset-2" : ""}`}
               style={{ backgroundColor: LETTER_COLORS[ch] ?? "#346739" }}
             >
               {ch}
-            </div>
+            </button>
           ))}
           <button
             type="button"
@@ -4254,8 +4299,8 @@ function Contoh4({ onSoalDone, readOnly = false, savedAnswer }: { onSoalDone?: (
             </span>
           ))}
         </div>
-        <p className="text-[11px] text-[#6b6b68] mt-2">
-          Coba tukar posisi dua huruf <b>M</b> — susunan totalnya terlihat sama saja, kan? Itulah kenapa
+        <p className="text-[11px] text-[#6b6b66] mt-2">
+          Coba tukar posisi dua huruf <b>M</b>: susunan totalnya terlihat sama saja, kan? Itulah kenapa
           huruf kembar bikin jumlah susunan sebenarnya lebih sedikit dari 10!.
         </p>
       </SimShell>
@@ -4322,24 +4367,27 @@ function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
  
   return (
     <SoalCardBertahap
-      number="Contoh 5 — Sedang"
+      number="Contoh 5 (Sedang)"
       title="Lima pasang suami-istri akan duduk mengelilingi meja bundar. Berapa banyak susunan yang mungkin jika setiap suami harus duduk di sebelah istrinya?"
     >
-      <SimShell title="Susun blok pasangan di meja, lalu klik blok untuk tukar posisi dalam pasangan" onReset={reset}>
+      <SimShell title="Klik pasangan lalu klik kursinya (atau drag), lalu klik blok untuk tukar posisi dalam pasangan" onReset={reset}>
         <div className="flex flex-wrap gap-2 mb-4">
           {available.length === 0 ? (
-            <p className="text-xs text-[#6b6b68] italic">Semua pasangan sudah ditempatkan.</p>
+            <p className="text-xs text-[#6b6b66] italic">Semua pasangan sudah ditempatkan.</p>
           ) : (
             available.map((p) => (
-              <div
+              <button
+                type="button"
                 key={p.id}
                 draggable
                 onDragStart={() => setDragging(p.id)}
                 onDragEnd={() => setDragging(null)}
-                className="cursor-grab active:cursor-grabbing rounded-full bg-white border border-[#346739] text-[#346739] text-[11px] font-medium px-3 py-1.5 shadow-sm select-none"
+                onClick={() => setDragging(dragging === p.id ? null : p.id)}
+                aria-pressed={dragging === p.id}
+                className={`min-h-11 cursor-grab active:cursor-grabbing rounded-full border border-[#346739] text-[11px] font-medium px-3 py-1.5 shadow-sm select-none ${dragging === p.id ? "bg-[#346739] text-white" : "bg-white text-[#346739]"}`}
               >
                 {p.nama}
-              </div>
+              </button>
             ))
           )}
         </div>
@@ -4351,8 +4399,24 @@ function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
               const pid = blockSeats[i];
               const pasangan = PASANGAN.find((p) => p.id === pid);
               const isSwapped = pid ? swapped[pid] : false;
+              const act = () => (dragging ? dropTo(i) : pid && toggleSwap(pid));
+              const nama = PASANGAN.find((p) => p.id === dragging)?.nama;
               return (
-                <g key={i}>
+                <g
+                  key={i}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={
+                    nama
+                      ? `Dudukkan ${nama} di kursi ${i + 1}`
+                      : pasangan
+                        ? `Kursi ${i + 1}: ${pasangan.nama}, ${isSwapped ? "istri di kiri" : "suami di kiri"}. Tukar posisi`
+                        : `Kursi ${i + 1} kosong`
+                  }
+                  onClick={act}
+                  onKeyDown={onActivateKey(act)}
+                  style={{ cursor: "pointer" }}
+                >
                   <rect
                     x={pos.x - 22}
                     y={pos.y - 14}
@@ -4364,8 +4428,6 @@ function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
                     strokeWidth="1.5"
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => dropTo(i)}
-                    onClick={() => pid && toggleSwap(pid)}
-                    style={{ cursor: pid ? "pointer" : "default" }}
                   >
                     {pasangan ? <title>{pasangan.nama}</title> : null}
                   </rect>
@@ -4383,9 +4445,9 @@ function Contoh5({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
               );
             })}
           </svg>
-          <p className="text-[11px] text-[#6b6b68] leading-relaxed flex-1">
+          <p className="text-[11px] text-[#6b6b66] leading-relaxed flex-1">
             Tiap blok mewakili satu pasangan yang harus duduk berdampingan. Klik blok untuk menukar posisi
-            suami-istri di dalamnya (♂ ↔ ♀) — ini menunjukkan 2 kemungkinan susunan per pasangan, terlepas
+            suami-istri di dalamnya (♂ ↔ ♀). Ini menunjukkan 2 kemungkinan susunan per pasangan, terlepas
             dari urutan blok-bloknya di meja.
           </p>
         </div>
@@ -4451,35 +4513,39 @@ function Contoh6({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
  
   return (
     <SoalCardBertahap
-      number="Contoh 6 — HOTS"
+      number="Contoh 6 (HOTS)"
       title="Berapa banyak bilangan yang terdiri dari angka-angka {1, 1, 2, 2, 3} yang dapat dibentuk jika nilainya lebih dari 20.000?"
     >
-      <SimShell title="Susun digit dan lihat langsung apakah bilangannya memenuhi syarat" onReset={() => setOrder(DIGIT_SET)}>
+      <SimShell title="Klik digit lalu klik posisi tujuannya (atau drag), dan lihat langsung apakah bilangannya memenuhi syarat" onReset={() => setOrder(DIGIT_SET)}>
         <div className="flex gap-1.5 mb-3">
           {order.map((d, i) => (
-            <div
+            <button
+              type="button"
               key={i}
               draggable
               onDragStart={() => setDragIdx(i)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(i)}
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#346739] text-white text-base font-bold cursor-grab active:cursor-grabbing select-none shadow-sm"
+              onClick={() => (dragIdx === null ? setDragIdx(i) : dragIdx === i ? setDragIdx(null) : handleDrop(i))}
+              aria-pressed={dragIdx === i}
+              aria-label={`Digit ${d}, posisi ${i + 1}`}
+              className={`w-11 h-11 flex items-center justify-center rounded-lg bg-[#346739] text-white text-base font-bold cursor-grab active:cursor-grabbing select-none shadow-sm ${dragIdx === i ? "ring-2 ring-[#663362] ring-offset-2" : ""}`}
             >
               {d}
-            </div>
+            </button>
           ))}
         </div>
  
         <div
           className={
             "rounded-lg px-3 py-2 text-sm font-semibold border-2 " +
-            (valid ? "bg-[#DBFFD5]/60 border-[#346739] text-[#346739]" : "bg-red-50 border-red-300 text-red-500")
+            (valid ? "bg-[#DBFFD5]/60 border-[#346739] text-[#346739]" : "bg-danger-50 border-danger-200 text-danger-strong")
           }
         >
           {Number(order.join("")).toLocaleString("id-ID")} {valid ? "✓ lebih dari 20.000" : "✕ tidak memenuhi syarat"}
         </div>
-        <p className="text-[11px] text-[#6b6b68] mt-2">
-          Coba geser digit pertama ke 1 — bilangan langsung gagal syarat. Ini nunjukin kenapa
+        <p className="text-[11px] text-[#6b6b66] mt-2">
+          Coba geser digit pertama ke 1, bilangan langsung gagal syarat. Ini nunjukin kenapa
           <b> digit pertama</b> jadi kunci pemilahan kasus di soal ini.
         </p>
       </SimShell>
@@ -4487,18 +4553,18 @@ function Contoh6({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
       <LangkahBerpikir
         steps={[
           <>
-            <b>Identifikasi situasi:</b> total 5 digit dengan angka berulang — 1 muncul 2 kali, 2 muncul 2 kali.
+            <b>Identifikasi situasi:</b> total 5 digit dengan angka berulang: 1 muncul 2 kali, 2 muncul 2 kali.
             Syarat &gt; 20.000 berarti digit pertama ≥ 2 → pilah kasus berdasarkan digit pertama.
           </>,
           <div>
             <b>Tentukan digit pertama yang memenuhi:</b> bisa <b>2</b> atau <b>3</b>.
             <p className="mt-1">
-              <b>Kasus 1 — digit pertama = 2:</b> sisa angka {'{1, 1, 2, 3}'} → P = 4!/2! = 24/2 ={" "}
+              <b>Kasus 1 (digit pertama = 2):</b> sisa angka {'{1, 1, 2, 3}'} → P = 4!/2! = 24/2 ={" "}
               <BlankInput value={blanks["k1"] ?? ""} onChange={setBlank("k1")} expectedAnswer="12" saveMeta={{ questionKey: "contoh_6_kasus1", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k1")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_kasus1"]} />
               {"."}
             </p>
             <p>
-              <b>Kasus 2 — digit pertama = 3:</b> sisa angka {'{1, 1, 2, 2}'} → P = 4!/(
+              <b>Kasus 2 (digit pertama = 3):</b> sisa angka {'{1, 1, 2, 2}'} → P = 4!/(
               <BlankInput value={blanks["k2a"] ?? ""} onChange={setBlank("k2a")} expectedAnswer="2" saveMeta={{ questionKey: "contoh_6_k2a", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k2a")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_k2a"]} />
               !·<BlankInput value={blanks["k2b"] ?? ""} onChange={setBlank("k2b")} expectedAnswer="2" saveMeta={{ questionKey: "contoh_6_k2b", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k2b")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_k2b"]} />
               !) = 24/<BlankInput value={blanks["k2c"] ?? ""} onChange={setBlank("k2c")} expectedAnswer="4" saveMeta={{ questionKey: "contoh_6_k2c", difficultyLevel: "hots", orderIndex: 5 }} onCorrect={() => markCorrect("k2c")} readOnly={readOnly} savedAnswer={savedAnswers?.["contoh_6_k2c"]} />
@@ -4519,7 +4585,7 @@ function Contoh6({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
       />
  
  
-      <InsightBox>Perhatikan: di setiap kasus, sisa angka yang tersusun berbeda komposisinya — sehingga rumus penyebutnya pun berbeda.</InsightBox>
+      <InsightBox>Perhatikan: di setiap kasus, sisa angka yang tersusun berbeda komposisinya, sehingga rumus penyebutnya pun berbeda.</InsightBox>
     </SoalCardBertahap>
   );
 }
@@ -4563,10 +4629,10 @@ function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
 
   return (
     <SoalCardBertahap
-      number="Contoh 7 — HOTS"
+      number="Contoh 7 (HOTS)"
       title="Delapan siswa akan duduk mengelilingi meja bundar. Di antara mereka, Ari dan Budi berseteru dan tidak mau duduk berdekatan. Berapa banyak susunan tempat duduk yang mungkin?"
     >
-      <SimShell title="Klik dua kursi untuk menukar posisi — cek apakah Ari &amp; Budi berdekatan">
+      <SimShell title="Klik dua kursi untuk menukar posisi, lalu cek apakah Ari &amp; Budi berdekatan">
         <svg viewBox="0 0 200 200" className="w-48 h-48 mx-auto">
           <circle cx="100" cy="100" r="50" fill="#DBFFD5" stroke="#34673955" strokeWidth="1" />
           {isAdjacent && (
@@ -4575,7 +4641,7 @@ function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
               y1={positions[ariIdx].y}
               x2={positions[budiIdx].x}
               y2={positions[budiIdx].y}
-              stroke="#e04b4b"
+              stroke="#c24949"
               strokeWidth="2.5"
               strokeDasharray="3 3"
             />
@@ -4607,8 +4673,8 @@ function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
                   cx={p.x}
                   cy={p.y}
                   r="17"
-                  fill={isConflict ? "#e04b4b" : isSelected ? "#663362" : "#346739"}
-                  stroke={isConflict ? "#b83030" : isSelected ? "#663362" : "#346739"}
+                  fill={isConflict ? "#c24949" : isSelected ? "#663362" : "#346739"}
+                  stroke={isConflict ? "#c24949" : isSelected ? "#663362" : "#346739"}
                   strokeWidth="1.5"
                 />
                 <text x={p.x} y={p.y + 3} textAnchor="middle" fontSize="7.5" fill="white" style={{ pointerEvents: "none" }}>
@@ -4620,16 +4686,16 @@ function Contoh7({ onSoalDone, readOnly = false, savedAnswers }: { onSoalDone?: 
         </svg>
 
         {/* Hint interaksi */}
-        <p className="text-[11px] text-[#6b6b68] mt-2 text-center">
+        <p className="text-[11px] text-[#6b6b66] mt-2 text-center">
           {selectedIdx === null
-            ? "👆 Klik satu kursi untuk memilih, lalu klik kursi lain untuk menukar posisi."
-            : `👆 Kursi terpilih: **${seats[selectedIdx]}**. Klik kursi lain untuk menukar, atau klik lagi untuk batal.`}
+            ? "Klik satu kursi untuk memilih, lalu klik kursi lain untuk menukar posisi."
+            : `Kursi terpilih: **${seats[selectedIdx]}**. Klik kursi lain untuk menukar, atau klik lagi untuk batal.`}
         </p>
 
         <div
           className={
             "mt-3 rounded-lg px-3 py-2 text-xs font-semibold text-center border-2 " +
-            (isAdjacent ? "bg-red-50 border-red-300 text-red-500" : "bg-[#DBFFD5]/60 border-[#346739] text-[#346739]")
+            (isAdjacent ? "bg-danger-50 border-danger-200 text-danger-strong" : "bg-[#DBFFD5]/60 border-[#346739] text-[#346739]")
           }
         >
           {isAdjacent ? "✕ Ari & Budi sedang berdekatan" : "✓ Ari & Budi tidak berdekatan"}
@@ -4734,14 +4800,14 @@ function MengapaCorner({ onNext, refleksiCompleted = false }: { onNext?: () => v
       <div className="rounded-xl bg-white p-5">
         <h3 className="mb-3 text-lg font-bold text-[#346739]">💡 Mengapa urutan penting dalam permutasi?</h3>
         <p className="mb-4 leading-relaxed text-[#2C2C2A]">
-          Pikirkan password "1234" vs "4321" — meski menggunakan angka yang sama, kedua password
+          Pikirkan password "1234" vs "4321": meski menggunakan angka yang sama, kedua password
           ini berbeda dan tidak saling membuka kunci. Dalam permutasi, <b>konteks menentukan apakah
-          urutan bermakna</b>. Jabatan Ketua dan Sekretaris berbeda meski orangnya sama — itulah
+          urutan bermakna</b>. Jabatan Ketua dan Sekretaris berbeda meski orangnya sama. Itulah
           permutasi dalam kehidupan nyata.
         </p>
 
-        <div className="rounded-lg border-2 border-[#C44F4F33] bg-[#C44F4F08] p-4">
-          <p className="text-sm font-semibold text-[#C44F4F] mb-1">⚡ Tes cepat:</p>
+        <div className="rounded-lg border-2 border-[#C2494933] bg-[#C2494908] p-4">
+          <p className="text-sm font-semibold text-[#C24949] mb-1">Tes cepat:</p>
           <p className="text-sm leading-relaxed text-[#2C2C2A]">
             Tanya dirimu sendiri, <i>"Apakah urutan A-B dan B-A menghasilkan hasil yang berbeda?"</i>
             Jika YA → Permutasi. Jika TIDAK → bukan Permutasi.
@@ -4846,7 +4912,7 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: { onComplete?
     if (!answer.trim()) {
       setFeedbackMap((prev) => ({
         ...prev,
-        [stepIndex]: { text: "Tulis jawabanmu dulu ya! 📝", isCorrect: false },
+        [stepIndex]: { text: "Tulis jawabanmu dulu ya!", isCorrect: false },
       }));
       return;
     }
@@ -4913,16 +4979,16 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: { onComplete?
             const fb = feedbackMap[i];
             return (
               <div key={i} className="rounded-xl bg-white p-4">
-                <label className="mb-2 block text-sm font-medium text-[#663362]">
+                <p className="mb-2 block text-sm font-medium text-[#663362]">
                   {i + 1}. {q.soal}
-                </label>
+                </p>
                 <div className="w-full rounded-lg border border-[#34673933] bg-[#F5F5F0] px-4 py-2.5 text-sm text-[#6B6B66]">
                   {answers[i]}
                 </div>
                 {fb && (
-                  <div className={`mt-2 rounded-lg border p-2.5 ${fb.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                    <p className={`mb-0.5 text-xs font-medium ${fb.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                      {fb.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+                  <div className={`mt-2 rounded-lg border p-2.5 ${fb.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                    <p className={`mb-0.5 text-xs font-medium ${fb.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                      {fb.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                     </p>
                     <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</RichText>
                   </div>
@@ -4935,7 +5001,7 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: { onComplete?
         <div className="mt-6 flex items-start gap-3.5 rounded-2xl bg-[#346739] p-6">
           <CheckIcon />
           <div>
-            <p className="text-lg font-semibold text-white">🎉 Refleksi selesai!</p>
+            <p className="text-lg font-semibold text-white">Refleksi selesai!</p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
               Kamu sudah menyelesaikan semua pertanyaan refleksi. Pemahamanmu tentang permutasi semakin baik!
             </p>
@@ -4965,7 +5031,7 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: { onComplete?
             else if (isActive) { dotBg = "bg-white"; dotBorder = "border-[#346739]"; }
             return (
               <React.Fragment key={i}>
-                <div className={`flex h-7 w-7 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"}`}>
+                <div className={`flex h-7 w-7 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"}`}>
                   {isCompleted ? "✓" : i + 1}
                 </div>
                 {i < TOTAL_REFLEKSI_PERMUTASI - 1 && (
@@ -4997,12 +5063,12 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: { onComplete?
                 disabled={disabled}
                 onChange={(e) => updateAnswer(i, e.target.value)}
                 rows={3}
-                className={`w-full resize-y rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966] ${disabled ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : ""}`}
+                className={`w-full resize-y rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#6B6B66] ${disabled ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : ""}`}
               />
               {fb && (
-                <div className={`mt-2 rounded-lg border p-2.5 ${fb.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-                  <p className={`mb-0.5 text-xs font-medium ${fb.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-                    {fb.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+                <div className={`mt-2 rounded-lg border p-2.5 ${fb.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+                  <p className={`mb-0.5 text-xs font-medium ${fb.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+                    {fb.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
                   </p>
                   <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</RichText>
                 </div>
@@ -5079,7 +5145,7 @@ function CollapsibleJawabanSection({
 
   // Pre-completed but jawaban not yet loaded — show collapsed view
   return (
-    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F5F5F0] p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
@@ -5250,12 +5316,12 @@ export default function PermutasiContent({
     <div className="flex flex-col gap-2">
       {/* Header */}
       <div className="mb-2">
-        <p className="text-xs font-semibold tracking-[0.12em] uppercase text-[#346739] opacity-70">
+        <p className="text-xs font-semibold text-[#346739]">
           Materi 4
         </p>
         <h1 className="text-2xl font-bold text-[#1a3d1c]">Permutasi</h1>
-        <p className="mt-1 text-sm leading-relaxed text-[#5a7d5c]">
-          Pelajari cara menghitung banyaknya susunan objek ketika urutan diperhatikan — dari
+        <p className="mt-1 text-sm leading-relaxed text-[#5d7c5f]">
+          Pelajari cara menghitung banyaknya susunan objek ketika urutan diperhatikan, dari
           permutasi dasar, permutasi dengan unsur sama, hingga permutasi siklis.
         </p>
       </div>
@@ -5266,7 +5332,7 @@ export default function PermutasiContent({
       {(isVisible(0) || isVisible(1) || isVisible(2)) && (
         <div className="mt-2 mb-4 rounded-lg bg-[#663362]/10 px-4 py-3">
           <p className="text-sm font-semibold text-[#663362]">
-            Bagian 1 — Permutasi r Unsur dari n Unsur
+            Bagian 1: Permutasi r Unsur dari n Unsur
           </p>
         </div>
       )}
@@ -5322,7 +5388,7 @@ export default function PermutasiContent({
       {(isVisible(3) || isVisible(4) || isVisible(5)) && (
         <div className="mt-6 mb-4 rounded-lg bg-[#663362]/10 px-4 py-3">
           <p className="text-sm font-semibold text-[#663362]">
-            Bagian 2 — Permutasi dengan Unsur yang Sama
+            Bagian 2: Permutasi dengan Unsur yang Sama
           </p>
         </div>
       )}
@@ -5378,7 +5444,7 @@ export default function PermutasiContent({
       {(isVisible(6) || isVisible(7) || isVisible(8) || isVisible(9) || isVisible(10)) && (
         <div className="mt-6 mb-4 rounded-lg bg-[#663362]/10 px-4 py-3">
           <p className="text-sm font-semibold text-[#663362]">
-            Bagian 3 — Permutasi Siklis
+            Bagian 3: Permutasi Siklis
           </p>
         </div>
       )}
@@ -5434,7 +5500,7 @@ export default function PermutasiContent({
       {(isVisible(9) || isVisible(10)) && (
         <div className="mt-6 mb-4 rounded-lg bg-[#663362]/10 px-4 py-3">
           <p className="text-sm font-semibold text-[#663362]">
-            Bagian 4 — Latihan & Refleksi
+            Bagian 4: Latihan & Refleksi
           </p>
         </div>
       )}
@@ -5498,7 +5564,7 @@ export default function PermutasiContent({
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">
-              🎉 Semua bagian Permutasi selesai!
+              Semua bagian Permutasi selesai!
             </p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
               Kamu sudah menyelesaikan Eksplorasi, Deep Learning, Penjelasan Konsep, Contoh Soal,

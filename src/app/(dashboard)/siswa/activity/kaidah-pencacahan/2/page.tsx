@@ -11,8 +11,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 // ── Step Definitions (2 sequential questions) ────────────────────
@@ -73,14 +73,14 @@ function Spinner() {
 
 // ── Feedback Box ─────────────────────────────────────────────────
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
-  const borderColor = isCorrect === false ? "border-[#C44F4F33]" : "border-[#34673933]";
-  const bgColor = isCorrect === false ? "bg-[#C44F4F08]" : "bg-[#34673908]";
-  const labelColor = isCorrect === false ? "text-[#C44F4F]" : "text-[#346739]";
-  const icon = isCorrect === false ? "❌" : "💬";
+  const borderColor = isCorrect === false ? "border-[#C2494933]" : "border-[#34673933]";
+  const bgColor = isCorrect === false ? "bg-[#C2494908]" : "bg-[#34673908]";
+  const labelColor = isCorrect === false ? "text-[#C24949]" : "text-[#346739]";
+  const icon = isCorrect === false ? "❌ " : "";
 
   return (
     <div className={`mt-3 rounded-lg border ${borderColor} ${bgColor} p-3`}>
-      <p className={`mb-1 text-xs font-medium ${labelColor}`}>{icon} Feedback Kombi</p>
+      <p className={`mb-1 text-xs font-medium ${labelColor}`}>{icon}Feedback Kombi</p>
       <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{text}</RichText>
     </div>
   );
@@ -142,7 +142,7 @@ function ProgressIndicator({
 
           let dotBg = "bg-[#E5E5E0]";
           let dotBorder = "border-[#C5C5C0]";
-          let dotText = "text-[#9E9D99]";
+          let dotText = "text-[#6B6B66]";
           if (isCompleted) {
             dotBg = "bg-[#346739]";
             dotBorder = "border-[#346739]";
@@ -200,7 +200,7 @@ function AturanRadio({
             className="accent-green-700"
             disabled={readOnly}
           />
-          <span className="text-sm capitalize font-medium text-slate-700">{opt}</span>
+          <span className="text-sm capitalize font-medium text-ink">{opt}</span>
         </label>
       ))}
     </div>
@@ -259,7 +259,7 @@ export default function AktivitasKP2() {
               const sub = data.submissions[key];
               if (sub) {
                 preFilled[i] = {
-                  text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  text: `Jawaban kamu:\n${formatJawaban(sub.answer)}\n\nFeedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                   isCorrect: sub.isCorrect,
                 };
                 if (!sub.isCorrect && firstUnanswered > i) {
@@ -301,7 +301,7 @@ export default function AktivitasKP2() {
         setFeedbackMap((p) => ({
           ...p,
           [idx]: {
-            text: `📝 Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            text: `Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\nFeedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
             isCorrect: data.submission.isCorrect,
           },
         }));
@@ -483,11 +483,11 @@ export default function AktivitasKP2() {
                   {s.kode}
                 </div>
                 <div className="flex-1 space-y-3">
-                  <p className={`text-sm flex-1 ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+                  <p className={`text-sm flex-1 ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
                     {s.teks}
                   </p>
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-xs font-semibold text-slate-500">Aturan:</span>
+                    <span className="text-xs font-semibold text-muted">Aturan:</span>
                     <AturanRadio
                       name={`situasi-${s.kode}`}
                       value={answers[s.kode]?.aturan ?? ""}
@@ -532,18 +532,18 @@ export default function AktivitasKP2() {
         <h2 className="text-base font-bold mb-4" style={{ color: C.purple }}>
           Diskusi Pasangan
         </h2>
-        <p className="text-sm text-slate-600 mb-4">
+        <p className="text-sm text-muted mb-4">
           Setelah mengisi tabel, diskusikan bersama pasanganmu:
         </p>
         <div className="space-y-4">
           {DISKUSI_ITEMS.map(({ key, label }) => (
             <div key={key}>
-              <label htmlFor={`diskusi-${key}`} className="text-sm font-medium text-slate-700 block mb-2">
+              <label htmlFor={`diskusi-${key}`} className="text-sm font-medium text-ink block mb-2">
                 {label}
               </label>
               <textarea
                 id={`diskusi-${key}`}
-                className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[72px] ${
+                className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[72px] ${
                   readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"
                 }`}
                 style={{ borderColor: C.border }}
@@ -610,8 +610,8 @@ export default function AktivitasKP2() {
                   {ind}
                 </span>
               ))}
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#C9962B" }}>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#C9962B" }} /> Joyful
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#8E6A1E" }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#8E6A1E" }} /> Joyful
               </span>
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#2A5A8C" }}>
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#2A5A8C" }} /> Mindful
@@ -625,11 +625,11 @@ export default function AktivitasKP2() {
           {/* ── PETUNJUK ── */}
           <div className="rounded-xl p-4 space-y-2" style={{ backgroundColor: C.greenLight }}>
             <p className="text-sm font-bold" style={{ color: C.green }}>
-              📋 Petunjuk
+              Petunjuk
             </p>
-            <p className="text-sm text-slate-700">
+            <p className="text-sm text-ink">
               Bersama pasanganmu, klasifikasikan setiap situasi berikut ke dalam aturan yang
-              tepat. Yang terpenting adalah <strong>alasan kalian</strong> — bukan sekadar
+              tepat. Yang terpenting adalah <strong>alasan kalian</strong>, bukan sekadar
               jawabannya.
             </p>
           </div>
@@ -641,7 +641,7 @@ export default function AktivitasKP2() {
           {isLoadingExisting && (
             <div className="flex items-center justify-center py-12">
               <Spinner />
-              <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+              <span className="ml-3 text-sm text-muted">Memuat aktivitas...</span>
             </div>
           )}
 
@@ -655,7 +655,7 @@ export default function AktivitasKP2() {
                 <p className="font-bold text-base" style={{ color: C.green }}>
                   ✅ Kamu sudah menyelesaikan aktivitas ini!
                 </p>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-muted mt-1">
                   Klik &ldquo;Lihat jawabanku&rdquo; di setiap langkah untuk melihat jawaban dan feedback.
                 </p>
               </div>
@@ -707,9 +707,9 @@ export default function AktivitasKP2() {
               style={{ backgroundColor: C.greenLight }}
             >
               <p className="font-bold text-base" style={{ color: C.green }}>
-                🎉 Semua langkah selesai!
+                Semua langkah selesai!
               </p>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="text-sm text-muted mt-1">
                 Semua jawabanmu sudah tersimpan. Lanjutkan ke aktivitas berikutnya ya!
               </p>
             </div>

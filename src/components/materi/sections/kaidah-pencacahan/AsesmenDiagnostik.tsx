@@ -6,7 +6,7 @@ import { useAsesmenDiagnostik } from "@/hooks/useAsesmenDiagnostik";
 import type { GradingResult } from "@/lib/data/asesmen-diagnostik";
 
 const inputBase =
-    "border-b-2 border-gray-300 focus:border-blue-500 outline-none bg-transparent px-1 py-0.5 transition-colors placeholder:text-gray-300 text-sm";
+    "border-b-2 border-line-strong focus:border-blue-500 outline-none bg-transparent px-1 py-0.5 transition-colors placeholder:text-[#6B6B66] text-sm";
 
 function BlockHeader({
     label,
@@ -19,18 +19,18 @@ function BlockHeader({
 }) {
     return (
         <div className="flex flex-col gap-0.5 pl-3 py-1 border-l-4 border-[#663362]">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#663362]">
+            <span className="text-xs font-bold text-[#663362]">
                 {label}
             </span>
             <h3 className="kp-greeting">{title}</h3>
-            <p className="text-xs text-gray-400 italic">{subtitle}</p>
+            <p className="text-xs text-muted italic">{subtitle}</p>
         </div>
     );
 }
 
 function QuestionNumber({ n }: { n: number }) {
     return (
-        <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-500 text-xs font-bold mt-0.5">
+        <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface text-muted text-xs font-bold mt-0.5">
             {n}
         </span>
     );
@@ -62,7 +62,7 @@ function RadioGroup({
 }) {
     return (
         <div className="flex items-center gap-4">
-            <label className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-700">
+            <label className="flex items-center gap-1.5 cursor-pointer text-sm text-ink">
                 <input
                     type="radio"
                     name={name}
@@ -73,7 +73,7 @@ function RadioGroup({
                 />
                 Ya
             </label>
-            <label className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-700">
+            <label className="flex items-center gap-1.5 cursor-pointer text-sm text-ink">
                 <input
                     type="radio"
                     name={name}
@@ -102,7 +102,7 @@ function AnswerTextarea({
             placeholder={placeholder}
             value={value ?? ""}
             onChange={(e) => onChange?.(e.target.value)}
-            className="w-full h-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none transition-colors placeholder:text-gray-300"
+            className="w-full h-20 border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none transition-colors placeholder:text-[#6B6B66]"
         />
     );
 }
@@ -213,8 +213,8 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                 }}
                 className="flex flex-col items-center gap-4"
             >
-                <div className="w-8 h-8 border-4 border-gray-200 border-t-[#346739] rounded-full animate-spin" />
-                <p style={{ fontSize: "14px", color: "#888" }}>
+                <div className="w-8 h-8 border-4 border-line border-t-[#346739] rounded-full animate-spin" />
+                <p style={{ fontSize: "14px", color: "#6B6B66" }}>
                     Memuat asesmen diagnostik...
                 </p>
             </article>
@@ -289,7 +289,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                 <div className="flex flex-col gap-3">
                     <blockquote className="kp-quote">
                         <strong>Untuk Guru:</strong> Laksanakan asesmen ini sebelum
-                        memulai pembelajaran Kaidah Pencacahan — idealnya di akhir
+                        memulai pembelajaran Kaidah Pencacahan, idealnya di akhir
                         pertemuan sebelumnya atau 15 menit pertama pertemuan pertama.
                         Hasilnya bukan untuk nilai, melainkan untuk memetakan kesiapan
                         siswa dan menentukan apakah perlu jeda review prasyarat.
@@ -297,7 +297,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                     <blockquote className="kp-quote">
                         <strong>Untuk Siswa:</strong> Kerjakan soal berikut secara
                         mandiri dan jujur dalam waktu 15 menit. Tidak ada nilai yang
-                        diambil dari sini — ini hanya untuk membantu gurumu memahami
+                        diambil dari sini. Ini hanya untuk membantu gurumu memahami
                         kesiapanmu belajar.
                     </blockquote>
                 </div>
@@ -337,7 +337,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
 
                     <QuestionRow number={2}>
                         <p className="kp-body">
-                            Sederhanakan pecahan berikut — tidak perlu dihitung sampai
+                            Sederhanakan pecahan berikut. Tidak perlu dihitung sampai
                             habis, <strong>cukup coret yang sama</strong>.
                         </p>
                         <div className="flex flex-col gap-3 pl-1">
@@ -459,14 +459,14 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                         </RichText>
                         <div className="flex flex-col gap-2 pl-1">
                             <div className="flex items-center gap-3">
-                                <span className="text-sm text-gray-500 w-20 flex-shrink-0">
+                                <span className="text-sm text-muted w-20 flex-shrink-0">
                                     Jawaban:
                                 </span>
                                 <div className="flex gap-4">
                                     {["Sama", "Berbeda"].map((opt) => (
                                         <label
                                             key={opt}
-                                            className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-700"
+                                            className="flex items-center gap-1.5 cursor-pointer text-sm text-ink"
                                         >
                                             <input
                                                 type="radio"
@@ -482,7 +482,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-sm text-gray-500 w-20 flex-shrink-0">
+                                <span className="text-sm text-muted w-20 flex-shrink-0">
                                     Alasan:
                                 </span>
                                 <input
@@ -510,17 +510,17 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                         <p className="kp-body">
                             Lengkapi tabel berikut berdasarkan intuisimu:
                         </p>
-                        <div className="overflow-x-auto rounded-lg border border-gray-200">
+                        <div className="overflow-x-auto rounded-lg border border-line">
                             <table className="w-full border-collapse text-sm">
                                 <thead>
-                                    <tr className="bg-[#B8E6BC] border-b border-gray-200">
-                                        <th className="px-4 py-3 text-left font-semibold text-gray-600 w-3/5">
+                                    <tr className="bg-[#D4E8D4] border-b border-line">
+                                        <th className="px-4 py-3 text-left font-semibold text-muted w-3/5">
                                             Situasi
                                         </th>
-                                        <th className="px-4 py-3 text-center font-semibold text-gray-600 w-1/5">
+                                        <th className="px-4 py-3 text-center font-semibold text-muted w-1/5">
                                             Operasi
                                         </th>
-                                        <th className="px-4 py-3 text-center font-semibold text-gray-600 w-1/5">
+                                        <th className="px-4 py-3 text-center font-semibold text-muted w-1/5">
                                             Hasil
                                         </th>
                                     </tr>
@@ -533,31 +533,31 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                     ].map((situation, i) => (
                                         <tr
                                             key={i}
-                                            className={i % 2 === 1 ? "bg-gray-50/60" : ""}
+                                            className={i % 2 === 1 ? "bg-surface/60" : ""}
                                         >
-                                            <td className="px-4 py-3 text-gray-700 border-t border-gray-100">
+                                            <td className="px-4 py-3 text-ink border-t border-line">
                                                 {situation}
                                             </td>
-                                            <td className="px-4 py-3 text-center border-t border-gray-100">
+                                            <td className="px-4 py-3 text-center border-t border-line">
                                                 <select
                                                     name={`q7-op-${i}`}
                                                     value={getAnswer(7, i + 3)}
                                                     onChange={(e) => setAnswer(7, i + 3, e.target.value)}
-                                                    className={`${inputBase} w-16 text-center mx-auto block cursor-pointer appearance-none text-gray-500`}
-                                                    style={{ color: getAnswer(7, i + 3) ? undefined : "#d1d5db" }}
+                                                    className={`${inputBase} w-16 text-center mx-auto block cursor-pointer appearance-none text-muted`}
+                                                    style={{ color: getAnswer(7, i + 3) ? undefined : "#c5c5c0" }}
                                                 >
-                                                    <option value="" disabled className="text-gray-300">
+                                                    <option value="" disabled className="text-muted">
                                                         + / ×
                                                     </option>
-                                                    <option value="+" className="text-gray-700">
+                                                    <option value="+" className="text-ink">
                                                         +
                                                     </option>
-                                                    <option value="×" className="text-gray-700">
+                                                    <option value="×" className="text-ink">
                                                         ×
                                                     </option>
                                                 </select>
                                             </td>
-                                            <td className="px-4 py-3 text-center border-t border-gray-100">
+                                            <td className="px-4 py-3 text-center border-t border-line">
                                                 <input
                                                     type="text"
                                                     inputMode="numeric"
@@ -581,7 +581,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                         </p>
                         <div className="flex flex-col gap-2 pl-1">
                             <div className="flex items-center gap-3">
-                                <span className="text-sm text-gray-500 flex-shrink-0">
+                                <span className="text-sm text-muted flex-shrink-0">
                                     Kata &quot;Atau&quot; &rarr; operasi
                                 </span>
                                 <input
@@ -594,7 +594,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                 />
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-sm text-gray-500 flex-shrink-0">
+                                <span className="text-sm text-muted flex-shrink-0">
                                     Kata &quot;Dan&quot; &rarr; operasi
                                 </span>
                                 <input
@@ -618,8 +618,8 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                         subtitle="Prasyarat: Menafsirkan konteks soal kombinatorika"
                     />
 
-                    <p className="text-xs text-gray-400 italic -mt-2 pl-9">
-                        Jawab pertanyaan berikut tanpa menghitung — cukup analisis
+                    <p className="text-xs text-muted italic -mt-2 pl-9">
+                        Jawab pertanyaan berikut tanpa menghitung. Cukup analisis
                         situasinya.
                     </p>
 
@@ -631,7 +631,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                         </p>
                         <div className="flex flex-col gap-3 pl-1">
                             <div className="flex items-center gap-3">
-                                <span className="text-sm text-gray-500 w-20 flex-shrink-0">
+                                <span className="text-sm text-muted w-20 flex-shrink-0">
                                     Jawaban:
                                 </span>
                                 <RadioGroup
@@ -641,7 +641,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                 />
                             </div>
                             <div className="flex flex-col gap-1">
-                                <span className="text-sm text-gray-500">Mengapa?</span>
+                                <span className="text-sm text-muted">Mengapa?</span>
                                 <AnswerTextarea
                                     value={getAnswer(9, 1)}
                                     onChange={(v) => setAnswer(9, 1, v)}
@@ -658,7 +658,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                         </p>
                         <div className="flex flex-col gap-3 pl-1">
                             <div className="flex items-center gap-3">
-                                <span className="text-sm text-gray-500 w-20 flex-shrink-0">
+                                <span className="text-sm text-muted w-20 flex-shrink-0">
                                     Jawaban:
                                 </span>
                                 <RadioGroup
@@ -668,7 +668,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                 />
                             </div>
                             <div className="flex flex-col gap-1">
-                                <span className="text-sm text-gray-500">
+                                <span className="text-sm text-muted">
                                     Apa perbedaan mendasar antara soal nomor 9 dan 10?
                                 </span>
                                 <AnswerTextarea
@@ -681,7 +681,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                 </section>
 
                 {/* ═══════════════ Submit & Feedback ═══════════════ */}
-                <div className="flex flex-col items-center gap-4 pt-4 border-t border-gray-100">
+                <div className="flex flex-col items-center gap-4 pt-4 border-t border-line">
                     {!showResult ? (
                         <button
                             type="submit"
@@ -695,7 +695,7 @@ export default function AsesmenDiagnostik({ onPass }: AsesmenDiagnostikProps) {
                                 fontSize: "16px",
                                 fontWeight: 600,
                                 cursor: isSubmitting ? "not-allowed" : "pointer",
-                                background: isSubmitting ? "#a0c4a0" : "#346739",
+                                background: isSubmitting ? "#d4e8d4" : "#346739",
                                 color: "white",
                                 border: "none",
                                 opacity: isSubmitting ? 0.7 : 1,
@@ -740,19 +740,19 @@ function CooldownScreen({
                     width: "96px",
                     height: "96px",
                     borderRadius: "50%",
-                    border: "6px solid #dc2626",
+                    border: "6px solid #c24949",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexDirection: "column",
-                    background: "#fef2f2",
+                    background: "#fff5f5",
                 }}
             >
                 <span
                     style={{
                         fontSize: "20px",
                         fontWeight: 700,
-                        color: "#dc2626",
+                        color: "#c24949",
                         lineHeight: 1,
                     }}
                 >
@@ -765,22 +765,22 @@ function CooldownScreen({
                     style={{
                         fontSize: "18px",
                         fontWeight: 700,
-                        color: "#dc2626",
+                        color: "#c24949",
                         margin: 0,
                     }}
                 >
-                    Belum Lulus, Tetap Semangat! 💪
+                    Belum Lulus, Tetap Semangat!
                 </p>
-                <p style={{ fontSize: "13px", color: "#888", margin: "4px 0 0" }}>
+                <p style={{ fontSize: "13px", color: "#6B6B66", margin: "4px 0 0" }}>
                     Silakan coba lagi dalam{" "}
-                    <strong style={{ color: "#dc2626" }}>
+                    <strong style={{ color: "#c24949" }}>
                         {formatCooldown(cooldownRemaining)}
                     </strong>
                 </p>
             </div>
 
-            <p style={{ fontSize: "13px", color: "#888" }}>
-                📚 Pelajari dulu materi prasyarat agar lebih siap.
+            <p style={{ fontSize: "13px", color: "#6B6B66" }}>
+                Pelajari dulu materi prasyarat agar lebih siap.
             </p>
         </div>
     );
@@ -805,7 +805,7 @@ function PassedSummary({ result }: { result: GradingResult }) {
                     alignItems: "center",
                     justifyContent: "center",
                     flexDirection: "column",
-                    background: "#f0faf0",
+                    background: "#f3fff1",
                 }}
             >
                 <span
@@ -818,7 +818,7 @@ function PassedSummary({ result }: { result: GradingResult }) {
                 >
                     {score}
                 </span>
-                <span style={{ fontSize: "11px", color: "#888" }}>dari 100</span>
+                <span style={{ fontSize: "11px", color: "#6B6B66" }}>dari 100</span>
             </div>
 
             <div className="text-center">
@@ -830,10 +830,10 @@ function PassedSummary({ result }: { result: GradingResult }) {
                         margin: 0,
                     }}
                 >
-                    Selamat! Kamu Lulus! 🎉
+                    Selamat! Kamu Lulus!
                 </p>
-                <p style={{ fontSize: "13px", color: "#888", margin: "4px 0 0" }}>
-                    {correctCount} dari {totalQuestions} nomor benar — Kamu siap
+                <p style={{ fontSize: "13px", color: "#6B6B66", margin: "4px 0 0" }}>
+                    {correctCount} dari {totalQuestions} nomor benar. Kamu siap
                     melanjutkan ke materi berikutnya.
                 </p>
             </div>
@@ -867,25 +867,25 @@ function ResultFeedback({
                     width: "96px",
                     height: "96px",
                     borderRadius: "50%",
-                    border: `6px solid ${isPass ? "#346739" : "#dc2626"}`,
+                    border: `6px solid ${isPass ? "#346739" : "#c24949"}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexDirection: "column",
-                    background: isPass ? "#f0faf0" : "#fef2f2",
+                    background: isPass ? "#f3fff1" : "#fff5f5",
                 }}
             >
                 <span
                     style={{
                         fontSize: "24px",
                         fontWeight: 700,
-                        color: isPass ? "#346739" : "#dc2626",
+                        color: isPass ? "#346739" : "#c24949",
                         lineHeight: 1,
                     }}
                 >
                     {score}
                 </span>
-                <span style={{ fontSize: "11px", color: "#888" }}>dari 100</span>
+                <span style={{ fontSize: "11px", color: "#6B6B66" }}>dari 100</span>
             </div>
 
             {/* Status */}
@@ -894,19 +894,19 @@ function ResultFeedback({
                     style={{
                         fontSize: "18px",
                         fontWeight: 700,
-                        color: isPass ? "#346739" : "#dc2626",
+                        color: isPass ? "#346739" : "#c24949",
                         margin: 0,
                     }}
                 >
                     {isPass
-                        ? "Selamat! Kamu Lulus! 🎉"
-                        : "Belum Lulus, Tetap Semangat! 💪"}
+                        ? "Selamat! Kamu Lulus!"
+                        : "Belum Lulus, Tetap Semangat!"}
                 </p>
-                <p style={{ fontSize: "13px", color: "#888", margin: "4px 0 0" }}>
+                <p style={{ fontSize: "13px", color: "#6B6B66", margin: "4px 0 0" }}>
                     {correctCount} dari {totalQuestions} nomor benar
                     {isPass
-                        ? " — Kamu siap melanjutkan ke materi berikutnya."
-                        : ` — Butuh minimal 7 benar. Kurang ${7 - correctCount} nomor lagi.`}
+                        ? ". Kamu siap melanjutkan ke materi berikutnya."
+                        : `. Butuh minimal 7 benar. Kurang ${7 - correctCount} nomor lagi.`}
                 </p>
             </div>
 
@@ -946,7 +946,7 @@ function ResultFeedback({
                         textAlign: "center",
                     }}
                 >
-                    <span style={{ fontWeight: 600 }}>📚 Sebelum mencoba lagi: </span>
+                    <span style={{ fontWeight: 600 }}>Sebelum mencoba lagi: </span>
                     pelajari dulu materi prasyarat agar lebih siap.
                 </div>
             )}
@@ -962,21 +962,21 @@ function ResultFeedback({
                             gap: "10px",
                             padding: "6px 12px",
                             borderRadius: "8px",
-                            background: q.correct ? "#f0faf0" : "#fef2f2",
+                            background: q.correct ? "#f3fff1" : "#fff5f5",
                             fontSize: "13px",
                         }}
                     >
                         <span
                             style={{
                                 fontWeight: 600,
-                                color: q.correct ? "#346739" : "#dc2626",
+                                color: q.correct ? "#346739" : "#c24949",
                                 minWidth: "60px",
                             }}
                         >
                             Nomor {q.number}
                         </span>
                         <span
-                            style={{ color: q.correct ? "#346739" : "#dc2626" }}
+                            style={{ color: q.correct ? "#346739" : "#c24949" }}
                         >
                             {q.correct ? "✓ Benar" : "✗ Salah"}
                         </span>
@@ -984,7 +984,7 @@ function ResultFeedback({
                             <span
                                 style={{
                                     fontSize: "11px",
-                                    color: "#999",
+                                    color: "#6B6B66",
                                     marginLeft: "auto",
                                 }}
                             >
@@ -1004,12 +1004,12 @@ function ResultFeedback({
                             <p
                                 style={{
                                     fontSize: "13px",
-                                    color: "#888",
+                                    color: "#6B6B66",
                                     margin: 0,
                                 }}
                             >
-                                ⏳ Silakan coba lagi dalam{" "}
-                                <strong style={{ color: "#dc2626" }}>
+                                Silakan coba lagi dalam{" "}
+                                <strong style={{ color: "#c24949" }}>
                                     {formatCooldown(cooldownRemaining!)}
                                 </strong>
                             </p>
@@ -1022,9 +1022,9 @@ function ResultFeedback({
                                     fontSize: "14px",
                                     fontWeight: 600,
                                     cursor: "not-allowed",
-                                    background: "#e5e7eb",
-                                    color: "#9ca3af",
-                                    border: "2px solid #d1d5db",
+                                    background: "#e5e5e0",
+                                    color: "#6B6B66",
+                                    border: "2px solid #c5c5c0",
                                 }}
                             >
                                 Coba Lagi
@@ -1046,7 +1046,7 @@ function ResultFeedback({
                                 transition: "all 0.2s",
                             }}
                             onMouseEnter={(e) => {
-                                e.currentTarget.style.background = "#f0faf0";
+                                e.currentTarget.style.background = "#f3fff1";
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.background = "white";

@@ -70,7 +70,7 @@ function CardShell({ children }: { children: React.ReactNode }) {
 
 function PanelHeading() {
   return (
-    <p className="m-0 text-xs font-semibold uppercase tracking-wide text-brand-500">
+    <p className="m-0 text-xs font-semibold text-brand-500">
       Aktivitas kamu
     </p>
   );
@@ -79,7 +79,7 @@ function PanelHeading() {
 function EmptyMessage() {
   return (
     <p
-      className="m-0 max-w-[240px] text-center leading-relaxed text-zinc-600"
+      className="m-0 max-w-[240px] text-center leading-relaxed text-muted"
       style={{ fontSize: "var(--right-card-text-size)" }}
     >
       Belum ada aktivitas. Yuk, mulai belajar hari ini!
@@ -157,7 +157,7 @@ export default function AktivitasKamuPanel() {
         <PanelHeading />
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <p
-            className="m-0 max-w-[240px] leading-relaxed text-zinc-600"
+            className="m-0 max-w-[240px] leading-relaxed text-muted"
             style={{ fontSize: "var(--right-card-text-size)" }}
           >
             Gagal memuat data. Coba lagi nanti.
@@ -182,7 +182,7 @@ export default function AktivitasKamuPanel() {
         <PanelHeading />
         {hasProgress && (
           <span className="shrink-0 rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-600">
-            Kamu hebat! 🔥
+            Kamu hebat!
           </span>
         )}
       </div>
@@ -201,12 +201,12 @@ export default function AktivitasKamuPanel() {
                   percentage={c.percentage}
                   size={64}
                   strokeWidth={6}
-                  color="#16a34a"
-                  trackColor="#dcfce7"
+                  color="#346739"
+                  trackColor="#f3fff1"
                   animated
                 />
                 <span
-                  className="line-clamp-2 w-full break-words text-center text-[11px] font-medium leading-tight text-zinc-600"
+                  className="line-clamp-2 w-full break-words text-center text-[11px] font-medium leading-tight text-muted"
                   title={fullLabel}
                 >
                   {shortLabel(fullLabel)}

@@ -10,8 +10,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 type Jenis = "" | "permutasi" | "kombinasi";
@@ -45,14 +45,14 @@ function TextInput({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-500">
+        <label htmlFor={id} className="text-xs font-semibold text-muted">
           {label}
         </label>
       )}
       <input
         id={id}
         type="text"
-        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
         style={{ borderColor: C.border }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -83,14 +83,14 @@ function TextArea({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-500">
+        <label htmlFor={id} className="text-xs font-semibold text-muted">
           {label}
         </label>
       )}
       <textarea
         id={id}
         rows={rows}
-        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
         style={{ borderColor: C.border }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -128,7 +128,7 @@ function JenisRadio({
             disabled={readOnly}
             className="accent-green-700"
           />
-          <span className="text-sm font-medium text-slate-700">{opt.label}</span>
+          <span className="text-sm font-medium text-ink">{opt.label}</span>
         </label>
       ))}
     </div>
@@ -160,9 +160,9 @@ function SaveButton({ onClick, isSaving, isCorrect }: { onClick: () => void; isS
 
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
   const isWrong = isCorrect === false;
-  const bc = isWrong ? "border-[#C44F4F33]" : "border-[#34673933]";
-  const bg = isWrong ? "bg-[#C44F4F08]" : "bg-[#34673908]";
-  const lc = isWrong ? "text-[#C44F4F]" : "text-[#346739]";
+  const bc = isWrong ? "border-[#C2494933]" : "border-[#34673933]";
+  const bg = isWrong ? "bg-[#C2494908]" : "bg-[#34673908]";
+  const lc = isWrong ? "text-[#C24949]" : "text-[#346739]";
   const ic = isWrong ? "❌" : "✅";
   const title = isWrong ? "Jawaban Kurang Tepat" : "Jawaban Benar!";
   return (
@@ -190,20 +190,18 @@ function SoalBadge({ n, label }: { n: number; label: string }) {
 }
 
 function SectionHeader({
-  icon,
   title,
   subtitle,
 }: {
-  icon: string;
   title: string;
   subtitle?: string;
 }) {
   return (
     <div className="rounded-xl p-4 mb-5" style={{ backgroundColor: C.greenLight }}>
       <p className="text-base font-bold" style={{ color: C.green }}>
-        {icon} {title}
+        {title}
       </p>
-      {subtitle && <p className="text-sm text-slate-600 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-sm text-muted mt-1">{subtitle}</p>}
     </div>
   );
 }
@@ -338,7 +336,7 @@ function SimulasiTimGabungan({
     >
       <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="text-xs font-bold" style={{ color: "#2A5A8C" }}>
-          🎮 Simulasi: Susun Tim Olimpiademu
+          Simulasi: Susun Tim Olimpiademu
         </p>
         {!state.selesai && (
           <span
@@ -352,7 +350,7 @@ function SimulasiTimGabungan({
 
       {!state.selesai && (
         <>
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             Pilih anggota tim untuk masing-masing bidang secara berurutan.
           </p>
 
@@ -374,7 +372,7 @@ function SimulasiTimGabungan({
                     opacity: tahapTerkunci ? 0.5 : 1,
                   }}
                 >
-                  <p className="text-xs font-semibold text-slate-600 mb-2">
+                  <p className="text-xs font-semibold text-muted mb-2">
                     {tahap.label}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -389,7 +387,7 @@ function SimulasiTimGabungan({
                           className="rounded-lg px-3 py-1.5 text-sm font-medium border transition-colors disabled:cursor-not-allowed"
                           style={{
                             backgroundColor: sudahDipilih ? C.green : C.white,
-                            color: sudahDipilih ? C.white : "#334155",
+                            color: sudahDipilih ? C.white : "#2C2C2A",
                             borderColor: sudahDipilih ? C.green : C.border,
                             opacity: !sudahDipilih && (tahapPenuh || tahapTerkunci) ? 0.4 : 1,
                           }}
@@ -411,7 +409,7 @@ function SimulasiTimGabungan({
               style={{ backgroundColor: C.greenLight }}
             >
               <p className="text-xs font-semibold mb-1" style={{ color: C.green }}>
-                🏆 Tim Olimpiade Terpilih:
+                Tim Olimpiade Terpilih:
               </p>
               <p className="font-medium" style={{ color: C.green }}>
                 Matematika: {state.dipilih.matematika.map((id) => labelOrang("matematika", id)).join(", ")}
@@ -432,7 +430,7 @@ function SimulasiTimGabungan({
                 className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
                 style={{ backgroundColor: "#2A5A8C" }}
               >
-                🔄 Coba Susunan Lain
+                Coba Susunan Lain
               </button>
             )}
             {semuaTahapPenuh && (
@@ -448,7 +446,7 @@ function SimulasiTimGabungan({
           </div>
 
           {semuaTahapPenuh && (
-            <p className="text-xs text-slate-500 italic">
+            <p className="text-xs text-muted italic">
               Tips: coba beberapa susunan tim yang berbeda untuk merasakan bahwa
               setiap bidang dipilih secara terpisah, lalu digabung jadi satu tim.
             </p>
@@ -465,9 +463,9 @@ function SimulasiTimGabungan({
           <p className="text-sm font-bold" style={{ color: C.green }}>
             ✅ Kamu sudah mencoba 3 kali!
           </p>
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             Dari 3 percobaan, kamu melihat bahwa memilih tim Matematika, Fisika, dan
-            Kimia adalah 3 keputusan terpisah yang terjadi bersamaan — itu sebabnya
+            Kimia adalah 3 keputusan terpisah yang terjadi bersamaan. Itu sebabnya
             jumlah caranya dikalikan (aturan perkalian), bukan dijumlahkan.
           </p>
           <button
@@ -476,7 +474,7 @@ function SimulasiTimGabungan({
             className="rounded-full px-4 py-1.5 text-xs font-medium border mt-1"
             style={{ borderColor: C.green, color: C.green, backgroundColor: C.white }}
           >
-            🔁 Reset Simulasi
+            Reset Simulasi
           </button>
         </div>
       )}
@@ -541,7 +539,7 @@ export default function AktivitasKombinasi3() {
               const sub = data.submissions[key];
               if (sub) {
                 preFilled[key] = {
-                  text: `📝 Jawaban kamu:\n${sub.answer}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  text: `Jawaban kamu:\n${sub.answer}\n\nFeedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                   isCorrect: sub.isCorrect,
                 };
                 if (!sub.isCorrect && firstUnanswered > i) firstUnanswered = i;
@@ -589,13 +587,13 @@ export default function AktivitasKombinasi3() {
     if (!allFilled) return { isCorrect: false, feedback: "⚠️ Lengkapi semua isian dulu ya sebelum menyimpan!" };
 
     if (okMatN && okMatR && okMatH && okFisN && okFisR && okFisH && okKimN && okKimR && okKimH && okTotal) {
-      return { isCorrect: true, feedback: "🎯 Tepat! C(5,2)=10, C(4,2)=6, C(3,2)=3. Total = 10×6×3 = 180 cara. Ini adalah kombinasi karena urutan pemilihan dalam satu bidang tidak penting, lalu hasil tiap bidang dikalikan (aturan perkalian)." };
+      return { isCorrect: true, feedback: "Tepat! C(5,2)=10, C(4,2)=6, C(3,2)=3. Total = 10×6×3 = 180 cara. Ini adalah kombinasi karena urutan pemilihan dalam satu bidang tidak penting, lalu hasil tiap bidang dikalikan (aturan perkalian)." };
     }
 
-    let fb = "🤔 Ada yang perlu dicek:\n";
-    if (!okMatN || !okMatR || !okMatH) fb += "• Matematika: pilih r dari n yang tersedia. Gunakan C(n,r) — pastikan n dan r benar.\n";
-    if (!okFisN || !okFisR || !okFisH) fb += "• Fisika: pilih r dari n yang tersedia. Gunakan C(n,r) — pastikan n dan r benar.\n";
-    if (!okKimN || !okKimR || !okKimH) fb += "• Kimia: pilih r dari n yang tersedia. Gunakan C(n,r) — pastikan n dan r benar.\n";
+    let fb = "Ada yang perlu dicek:\n";
+    if (!okMatN || !okMatR || !okMatH) fb += "• Matematika: pilih r dari n yang tersedia. Gunakan C(n,r) dan pastikan n dan r benar.\n";
+    if (!okFisN || !okFisR || !okFisH) fb += "• Fisika: pilih r dari n yang tersedia. Gunakan C(n,r) dan pastikan n dan r benar.\n";
+    if (!okKimN || !okKimR || !okKimH) fb += "• Kimia: pilih r dari n yang tersedia. Gunakan C(n,r) dan pastikan n dan r benar.\n";
     if (!okTotal) fb += "• Total = kalikan ketiga hasil (aturan perkalian: setiap bidang dipilih secara bersamaan).\n";
     return { isCorrect: false, feedback: fb };
   }
@@ -636,7 +634,7 @@ export default function AktivitasKombinasi3() {
             if (res.ok) {
               const data = await res.json();
               const isCorrect = data.isCorrect ?? true;
-              setFeedbackMap((p) => ({ ...p, [key]: { text: data.feedback ?? "💬 Jawaban sudah tersimpan.", isCorrect } }));
+              setFeedbackMap((p) => ({ ...p, [key]: { text: data.feedback ?? "Jawaban sudah tersimpan.", isCorrect } }));
               showToast("Jawaban tersimpan! ✅");
               if (isCorrect) {
                 const idx = getQuestionIndex(key);
@@ -646,7 +644,7 @@ export default function AktivitasKombinasi3() {
               setFeedbackMap((p) => ({ ...p, [key]: { text: "⚠️ Gagal menyimpan. Coba lagi nanti.", isCorrect: false } }));
             }
           } catch {
-            setFeedbackMap((p) => ({ ...p, [key]: { text: "💬 Jawabanmu sudah tercatat. Feedback AI akan muncul setelah guru memeriksa.", isCorrect: true } }));
+            setFeedbackMap((p) => ({ ...p, [key]: { text: "Jawabanmu sudah tercatat. Feedback AI akan muncul setelah guru memeriksa.", isCorrect: true } }));
             showToast("Jawaban tersimpan! ✅");
             const idx = getQuestionIndex(key);
             if (idx >= 0) setCurrentStep((prev) => Math.max(prev, idx + 1));
@@ -658,7 +656,7 @@ export default function AktivitasKombinasi3() {
         await new Promise((r) => setTimeout(r, 500));
         
         // Save to DB
-        const soalText = "Kombinasi Aktivitas 3 — Hitung banyak cara memilih tim olimpiade lengkap";
+        const soalText = "Kombinasi Aktivitas 3: Hitung banyak cara memilih tim olimpiade lengkap";
         const jawaban = `Mat:C(${q2_mat_n},${q2_mat_r})=${q2_mat_hasil} Fis:C(${q2_fis_n},${q2_fis_r})=${q2_fis_hasil} Kim:C(${q2_kim_n},${q2_kim_r})=${q2_kim_hasil} Total:${q2_total}`;
         fetch("/api/aktivitas-siswa", {
           method: "POST",
@@ -722,7 +720,7 @@ export default function AktivitasKombinasi3() {
         setFeedbackMap((p) => ({
           ...p,
           [key]: {
-            text: `📝 Jawaban kamu:\n${data.submission.answer}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            text: `Jawaban kamu:\n${data.submission.answer}\n\nFeedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
             isCorrect: data.submission.isCorrect,
           },
         }));
@@ -735,9 +733,9 @@ export default function AktivitasKombinasi3() {
 
   // ── Question labels for review mode ────────────────────────────
   const QUESTION_LABELS: Record<string, string> = {
-    q1: "Pertanyaan 1 — Permutasi atau Kombinasi?",
-    q2: "Pertanyaan 2 — Hitung Banyak Cara",
-    q3: "Pertanyaan 3 — Mengapa Dikalikan?",
+    q1: "Pertanyaan 1: Permutasi atau Kombinasi?",
+    q2: "Pertanyaan 2: Hitung Banyak Cara",
+    q3: "Pertanyaan 3: Mengapa Dikalikan?",
   };
 
   // ── Question full text for review mode ─────────────────────────
@@ -777,7 +775,7 @@ export default function AktivitasKombinasi3() {
           <button type="button" onClick={() => setRevealedSteps(p => ({ ...p, [qKey]: true }))}
             className="rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
             style={{ backgroundColor: C.green }}>
-            💬 Lihat jawabanku
+            Lihat jawabanku
           </button>
         </div>
       );
@@ -816,13 +814,13 @@ export default function AktivitasKombinasi3() {
             </span>
           </div>
           <h1 className="text-2xl font-bold mb-2" style={{ color: C.purple }}>
-            Aktivitas 3 — “Tim Konsultan Sekolah”
+            Aktivitas 3: “Tim Konsultan Sekolah”
           </h1>
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs font-semibold text-slate-500">Pilar:</span>
+            <span className="text-xs font-semibold text-muted">Pilar:</span>
             {[
-              { label: "Joyful", color: "#C9962B" },
-              { label: "Meaningful", color: "#4CAF50" },
+              { label: "Joyful", color: "#8E6A1E" },
+              { label: "Meaningful", color: "#377F3A" },
               { label: "Mindful", color: "#2A5A8C" },
             ].map((p) => (
               <span
@@ -841,7 +839,7 @@ export default function AktivitasKombinasi3() {
         {isLoadingExisting && (
           <div className="flex items-center justify-center py-12">
             <Spinner />
-            <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+            <span className="ml-3 text-sm text-muted">Memuat aktivitas...</span>
           </div>
         )}
 
@@ -850,7 +848,7 @@ export default function AktivitasKombinasi3() {
           <>
             <div className="rounded-xl p-4 text-center mb-6" style={{ backgroundColor: C.greenLight }}>
               <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
-              <p className="text-sm text-slate-600 mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
+              <p className="text-sm text-muted mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
             </div>
             <div className="space-y-6">
               {QUESTION_KEYS.map((key, idx) => {
@@ -871,7 +869,7 @@ export default function AktivitasKombinasi3() {
                           <div>
                             <p className="text-sm font-semibold" style={{ color: C.purple }}>{QUESTION_LABELS[key] ?? key}</p>
                             {soalText && (
-                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{soalText}</p>
+                              <p className="text-xs text-muted mt-0.5 line-clamp-2">{soalText}</p>
                             )}
                           </div>
                         </div>
@@ -897,7 +895,7 @@ export default function AktivitasKombinasi3() {
                           <>
                             <SoalBadge n={1} label="Pertanyaan 1" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-800">
+                              <p className="text-sm font-medium text-ink">
                                 Apakah ini soal permutasi atau kombinasi? Jelaskan alasanmu!
                               </p>
                               <JenisRadio
@@ -922,50 +920,50 @@ export default function AktivitasKombinasi3() {
                           <>
                             <SoalBadge n={2} label="Pertanyaan 2" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-800 mb-3">
+                              <p className="text-sm font-medium text-ink mb-3">
                                 Hitung berapa banyak cara memilih tim olimpiade lengkap
                                 (2 Matematika + 2 Fisika + 2 Kimia):
                               </p>
                               <div className="space-y-4">
                                 {/* Matematika */}
-                                <div className="rounded-lg p-3" style={{ backgroundColor: "#f1f5f9" }}>
-                                  <p className="text-sm font-medium text-slate-700 mb-2">Pilih 2 Matematika dari 5:</p>
+                                <div className="rounded-lg p-3" style={{ backgroundColor: "#f5f5f0" }}>
+                                  <p className="text-sm font-medium text-ink mb-2">Pilih 2 Matematika dari 5:</p>
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-sm text-slate-500">C(</span>
+                                    <span className="text-sm text-muted">C(</span>
                                     <div className="w-14"><TextInput value={q2_mat_n} onChange={setQ2_mat_n} placeholder="n" readOnly /></div>
-                                    <span className="text-sm text-slate-500">,</span>
+                                    <span className="text-sm text-muted">,</span>
                                     <div className="w-14"><TextInput value={q2_mat_r} onChange={setQ2_mat_r} placeholder="r" readOnly /></div>
-                                    <span className="text-sm text-slate-500">) =</span>
+                                    <span className="text-sm text-muted">) =</span>
                                     <div className="w-24"><TextInput value={q2_mat_hasil} onChange={setQ2_mat_hasil} placeholder="Hasil" readOnly /></div>
                                   </div>
                                 </div>
                                 {/* Fisika */}
-                                <div className="rounded-lg p-3" style={{ backgroundColor: "#f1f5f9" }}>
-                                  <p className="text-sm font-medium text-slate-700 mb-2">Pilih 2 Fisika dari 4:</p>
+                                <div className="rounded-lg p-3" style={{ backgroundColor: "#f5f5f0" }}>
+                                  <p className="text-sm font-medium text-ink mb-2">Pilih 2 Fisika dari 4:</p>
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-sm text-slate-500">C(</span>
+                                    <span className="text-sm text-muted">C(</span>
                                     <div className="w-14"><TextInput value={q2_fis_n} onChange={setQ2_fis_n} placeholder="n" readOnly /></div>
-                                    <span className="text-sm text-slate-500">,</span>
+                                    <span className="text-sm text-muted">,</span>
                                     <div className="w-14"><TextInput value={q2_fis_r} onChange={setQ2_fis_r} placeholder="r" readOnly /></div>
-                                    <span className="text-sm text-slate-500">) =</span>
+                                    <span className="text-sm text-muted">) =</span>
                                     <div className="w-24"><TextInput value={q2_fis_hasil} onChange={setQ2_fis_hasil} placeholder="Hasil" readOnly /></div>
                                   </div>
                                 </div>
                                 {/* Kimia */}
-                                <div className="rounded-lg p-3" style={{ backgroundColor: "#f1f5f9" }}>
-                                  <p className="text-sm font-medium text-slate-700 mb-2">Pilih 2 Kimia dari 3:</p>
+                                <div className="rounded-lg p-3" style={{ backgroundColor: "#f5f5f0" }}>
+                                  <p className="text-sm font-medium text-ink mb-2">Pilih 2 Kimia dari 3:</p>
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-sm text-slate-500">C(</span>
+                                    <span className="text-sm text-muted">C(</span>
                                     <div className="w-14"><TextInput value={q2_kim_n} onChange={setQ2_kim_n} placeholder="n" readOnly /></div>
-                                    <span className="text-sm text-slate-500">,</span>
+                                    <span className="text-sm text-muted">,</span>
                                     <div className="w-14"><TextInput value={q2_kim_r} onChange={setQ2_kim_r} placeholder="r" readOnly /></div>
-                                    <span className="text-sm text-slate-500">) =</span>
+                                    <span className="text-sm text-muted">) =</span>
                                     <div className="w-24"><TextInput value={q2_kim_hasil} onChange={setQ2_kim_hasil} placeholder="Hasil" readOnly /></div>
                                   </div>
                                 </div>
                                 {/* Total */}
                                 <div className="rounded-lg p-3" style={{ borderColor: `${C.green}66`, borderWidth: "2px" }}>
-                                  <p className="text-sm font-bold text-slate-700 mb-2">Total cara:</p>
+                                  <p className="text-sm font-bold text-ink mb-2">Total cara:</p>
                                   <TextInput value={q2_total} onChange={setQ2_total} placeholder="Tulis total perhitungan..." readOnly />
                                 </div>
                               </div>
@@ -978,7 +976,7 @@ export default function AktivitasKombinasi3() {
                           <>
                             <SoalBadge n={3} label="Pertanyaan 3" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-800">
+                              <p className="text-sm font-medium text-ink">
                                 Mengapa ketiga pemilihan di atas dikalikan, bukan dijumlahkan?
                               </p>
                               <TextArea
@@ -1013,9 +1011,8 @@ export default function AktivitasKombinasi3() {
         >
           {/* Konteks */}
           <SectionHeader
-            icon="🏫"
             title="Konteks"
-            subtitle="Kelompokmu adalah tim konsultan yang diminta sekolah untuk membantu tiga departemen yang masing-masing punya masalah pencacahan. Setiap masalah membutuhkan analisis mendalam — bukan sekadar menghitung."
+            subtitle="Kelompokmu adalah tim konsultan yang diminta sekolah untuk membantu tiga departemen yang masing-masing punya masalah pencacahan. Setiap masalah membutuhkan analisis mendalam, bukan sekadar menghitung."
           />
 
           {/* Masalah */}
@@ -1027,15 +1024,15 @@ export default function AktivitasKombinasi3() {
             }}
           >
             <p className="text-sm font-bold mb-3" style={{ color: C.purple }}>
-              📋 Masalah — Departemen Akademik: Pembentukan Tim Olimpiade
+              Masalah Departemen Akademik: Pembentukan Tim Olimpiade
             </p>
-            <p className="text-sm text-slate-700 mb-3">
+            <p className="text-sm text-ink mb-3">
               Sekolah memiliki <strong>12 siswa berbakat</strong> yang akan dikirim ke olimpiade sains.
-              Tersedia 3 bidang: <strong>Matematika, Fisika, dan Kimia</strong> — masing-masing mengirim{" "}
+              Tersedia 3 bidang: <strong>Matematika, Fisika, dan Kimia</strong>, masing-masing mengirim{" "}
               <strong>2 siswa</strong>.
             </p>
-            <p className="text-sm text-slate-700">Diketahui:</p>
-            <ul className="text-sm text-slate-700 list-disc list-inside space-y-1 mt-1">
+            <p className="text-sm text-ink">Diketahui:</p>
+            <ul className="text-sm text-ink list-disc list-inside space-y-1 mt-1">
               <li>5 siswa hanya bisa ikut olimpiade Matematika</li>
               <li>4 siswa hanya bisa ikut olimpiade Fisika</li>
               <li>3 siswa hanya bisa ikut olimpiade Kimia</li>
@@ -1052,7 +1049,7 @@ export default function AktivitasKombinasi3() {
               {/* Simulasi (fitur baru) — sebelum siswa menjawab */}
               <SimulasiTimGabungan state={simulasi} onChange={setSimulasi} />
 
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-ink">
                 Apakah ini soal permutasi atau kombinasi? Jelaskan alasanmu!
               </p>
               <div className="space-y-3">
@@ -1088,7 +1085,7 @@ export default function AktivitasKombinasi3() {
           <div>
             <SoalBadge n={2} label="Pertanyaan 2" />
             <PertanyaanCard>
-              <p className="text-sm font-medium text-slate-800 mb-3">
+              <p className="text-sm font-medium text-ink mb-3">
                 Hitung berapa banyak cara memilih tim olimpiade lengkap
                 (2 Matematika + 2 Fisika + 2 Kimia):
               </p>
@@ -1097,13 +1094,13 @@ export default function AktivitasKombinasi3() {
                 {/* Matematika */}
                 <div
                   className="rounded-lg p-3"
-                  style={{ backgroundColor: "#f1f5f9" }}
+                  style={{ backgroundColor: "#f5f5f0" }}
                 >
-                  <p className="text-sm font-medium text-slate-700 mb-2">
+                  <p className="text-sm font-medium text-ink mb-2">
                     Pilih 2 Matematika dari 5:
                   </p>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-slate-500">C(</span>
+                    <span className="text-sm text-muted">C(</span>
                     <div className="w-14">
                       <TextInput
                         value={q2_mat_n}
@@ -1111,7 +1108,7 @@ export default function AktivitasKombinasi3() {
                         placeholder="n"
                       />
                     </div>
-                    <span className="text-sm text-slate-500">,</span>
+                    <span className="text-sm text-muted">,</span>
                     <div className="w-14">
                       <TextInput
                         value={q2_mat_r}
@@ -1119,7 +1116,7 @@ export default function AktivitasKombinasi3() {
                         placeholder="r"
                       />
                     </div>
-                    <span className="text-sm text-slate-500">) =</span>
+                    <span className="text-sm text-muted">) =</span>
                     <div className="w-24">
                       <TextInput
                         value={q2_mat_hasil}
@@ -1133,13 +1130,13 @@ export default function AktivitasKombinasi3() {
                 {/* Fisika */}
                 <div
                   className="rounded-lg p-3"
-                  style={{ backgroundColor: "#f1f5f9" }}
+                  style={{ backgroundColor: "#f5f5f0" }}
                 >
-                  <p className="text-sm font-medium text-slate-700 mb-2">
+                  <p className="text-sm font-medium text-ink mb-2">
                     Pilih 2 Fisika dari 4:
                   </p>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-slate-500">C(</span>
+                    <span className="text-sm text-muted">C(</span>
                     <div className="w-14">
                       <TextInput
                         value={q2_fis_n}
@@ -1147,7 +1144,7 @@ export default function AktivitasKombinasi3() {
                         placeholder="n"
                       />
                     </div>
-                    <span className="text-sm text-slate-500">,</span>
+                    <span className="text-sm text-muted">,</span>
                     <div className="w-14">
                       <TextInput
                         value={q2_fis_r}
@@ -1155,7 +1152,7 @@ export default function AktivitasKombinasi3() {
                         placeholder="r"
                       />
                     </div>
-                    <span className="text-sm text-slate-500">) =</span>
+                    <span className="text-sm text-muted">) =</span>
                     <div className="w-24">
                       <TextInput
                         value={q2_fis_hasil}
@@ -1169,13 +1166,13 @@ export default function AktivitasKombinasi3() {
                 {/* Kimia */}
                 <div
                   className="rounded-lg p-3"
-                  style={{ backgroundColor: "#f1f5f9" }}
+                  style={{ backgroundColor: "#f5f5f0" }}
                 >
-                  <p className="text-sm font-medium text-slate-700 mb-2">
+                  <p className="text-sm font-medium text-ink mb-2">
                     Pilih 2 Kimia dari 3:
                   </p>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-slate-500">C(</span>
+                    <span className="text-sm text-muted">C(</span>
                     <div className="w-14">
                       <TextInput
                         value={q2_kim_n}
@@ -1183,7 +1180,7 @@ export default function AktivitasKombinasi3() {
                         placeholder="n"
                       />
                     </div>
-                    <span className="text-sm text-slate-500">,</span>
+                    <span className="text-sm text-muted">,</span>
                     <div className="w-14">
                       <TextInput
                         value={q2_kim_r}
@@ -1191,7 +1188,7 @@ export default function AktivitasKombinasi3() {
                         placeholder="r"
                       />
                     </div>
-                    <span className="text-sm text-slate-500">) =</span>
+                    <span className="text-sm text-muted">) =</span>
                     <div className="w-24">
                       <TextInput
                         value={q2_kim_hasil}
@@ -1210,7 +1207,7 @@ export default function AktivitasKombinasi3() {
                     borderWidth: "2px",
                   }}
                 >
-                  <p className="text-sm font-bold text-slate-700 mb-2">
+                  <p className="text-sm font-bold text-ink mb-2">
                     Total cara:
                   </p>
                   <TextInput
@@ -1240,7 +1237,7 @@ export default function AktivitasKombinasi3() {
           <div>
             <SoalBadge n={3} label="Pertanyaan 3" />
             <PertanyaanCard>
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-ink">
                 Mengapa ketiga pemilihan di atas dikalikan, bukan dijumlahkan?
               </p>
               <TextArea
@@ -1270,11 +1267,10 @@ export default function AktivitasKombinasi3() {
             className="mt-8 rounded-2xl border-2 p-6 text-center space-y-3"
             style={{ borderColor: C.green, backgroundColor: C.greenLight }}
           >
-            <p className="text-2xl">🎉</p>
             <p className="text-lg font-bold" style={{ color: C.green }}>
               Kamu sudah menyelesaikan aktivitas ini!
             </p>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted">
               Semua soal telah dijawab dengan benar. Kamu sudah memahami
               kombinasi dengan aturan perkalian dengan baik!
             </p>

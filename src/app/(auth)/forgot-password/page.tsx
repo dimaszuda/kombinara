@@ -48,26 +48,27 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="w-full max-w-[450px] mt-8">
-            <label className="block text-sm mb-1">Email</label>
+            <label htmlFor="email" className="block text-sm mb-1">Email</label>
             <div className="relative">
               <Image
                 src="/icons/username-icon.png"
-                alt="email icon"
+                alt=""
                 width={20}
                 height={20}
                 className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
               />
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full py-2.5 pl-11 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+                className="w-full py-2.5 pl-11 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
                 placeholder="Masukkan email kamu"
                 autoFocus
               />
             </div>
 
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            {error && <p role="alert" className="text-[#B91C1C] text-sm mt-2">{error}</p>}
 
             <button
               type="submit"

@@ -89,7 +89,7 @@ export const SOAL_DATA: Array<{
     question:
       "Dari kota A ke kota B ada 4 jalur, dari kota B ke kota C ada 5 jalur, dari kota A ke kota C ada 3 jalur. Bowo melakukan perjalanan dari kota A ke kota C dan kembali lagi ke kota A. Jika berangkatnya harus melalui kota B, berapa banyak rute perjalanan yang bisa Bowo ambil jika tidak boleh melalui jalur yang sama?",
     answer: 300,
-    cara: "Pergi (harus lewat B): 4×5=20. Pulang C→B→A tanpa mengulang jalur: dari 3 jalur A–C sisa (bukan yang dipakai pergi, tak relevan karena beda rute) — dengan syarat tak lewat jalur sama: berangkat A-B-C pakai 1 dari 4 jalur A-B dan 1 dari 5 jalur B-C; pulang C-A langsung ada 3 jalur, Berarti ada 20 × 3 = 60 rute. Lalu bisa juga pulangnya lewat B lagi tidak lewat jalur yang sama berarti 4 x 5 x 4 x 3 = 240. Jadi totalnya ada 60 + 240 = 300 rute yang bisa Ani ambil.",
+    cara: "Pergi (harus lewat B): 4×5=20. Pulang C→B→A tanpa mengulang jalur: dari 3 jalur A–C sisa (bukan yang dipakai pergi, tak relevan karena beda rute), dengan syarat tak lewat jalur sama: berangkat A-B-C pakai 1 dari 4 jalur A-B dan 1 dari 5 jalur B-C; pulang C-A langsung ada 3 jalur, Berarti ada 20 × 3 = 60 rute. Lalu bisa juga pulangnya lewat B lagi tidak lewat jalur yang sama berarti 4 x 5 x 4 x 3 = 240. Jadi totalnya ada 60 + 240 = 300 rute yang bisa Ani ambil.",
   },
   {
     question_number: 9,
@@ -158,7 +158,7 @@ export function SoalKepahaman({
   return (
     <div
       className="rounded-2xl border-2 p-5 space-y-3"
-      style={{ borderColor: checked && isCorrect ? C.green : checked && !isCorrect ? C.wrong : "#E5E7EB" }}
+      style={{ borderColor: checked && isCorrect ? C.green : checked && !isCorrect ? C.wrong : "#E5E5E0" }}
     >
       {/* Header row */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -181,18 +181,18 @@ export function SoalKepahaman({
 
       {/* Answer row */}
       <div className="flex items-center gap-2 flex-wrap">
-        <label className="text-sm font-medium text-[#346739]">Jawaban:</label>
-        <input
+        <label htmlFor={`soal-kepahaman-${question_number}`} className="text-sm font-medium text-[#346739]">Jawaban:</label>
+        <input id={`soal-kepahaman-${question_number}`}
           type="text"
           inputMode="numeric"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           placeholder="..."
           style={{
-            borderColor: checked ? (isCorrect ? C.green : C.wrong) : "#94a3b8",
+            borderColor: checked ? (isCorrect ? C.green : C.wrong) : "#6B6B66",
             color: C.green,
           }}
-          className="w-28 border-2 rounded-lg px-3 py-1.5 text-center font-semibold text-sm focus:outline-none"
+          className="w-28 border-2 rounded-lg px-3 py-1.5 text-center font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-[#663362]"
         />
         {!hideCheckButton && (
           <button

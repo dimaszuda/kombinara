@@ -10,8 +10,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 type YaTidak = "" | "ya" | "tidak";
@@ -46,14 +46,14 @@ function TextInput({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-500">
+        <label htmlFor={id} className="text-xs font-semibold text-muted">
           {label}
         </label>
       )}
       <input
         id={id}
         type="text"
-        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
         style={{ borderColor: C.border }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -84,14 +84,14 @@ function TextArea({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-500">
+        <label htmlFor={id} className="text-xs font-semibold text-muted">
           {label}
         </label>
       )}
       <textarea
         id={id}
         rows={rows}
-        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
         style={{ borderColor: C.border }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -126,7 +126,7 @@ function YaTidakRadio({
             disabled={readOnly}
             className="accent-green-700"
           />
-          <span className="text-sm font-medium capitalize text-slate-700">{opt}</span>
+          <span className="text-sm font-medium capitalize text-ink">{opt}</span>
         </label>
       ))}
     </div>
@@ -144,13 +144,13 @@ function StrategiSelect({
 }) {
   return (
     <select
-      className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default pointer-events-none" : ""}`}
+      className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default pointer-events-none" : ""}`}
       style={{ borderColor: C.border }}
       value={value}
       onChange={(e) => onChange(e.target.value as StrategiPilihan)}
       disabled={readOnly}
     >
-      <option value="">— pilih —</option>
+      <option value="">Pilih strategi</option>
       <option value="strategi1">Strategi 1 (Kasus per Kasus)</option>
       <option value="strategi2">Strategi 2 (Komplemen)</option>
     </select>
@@ -182,9 +182,9 @@ function SaveButton({ onClick, isSaving, isCorrect }: { onClick: () => void; isS
 
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
   const isWrong = isCorrect === false;
-  const bc = isWrong ? "border-[#C44F4F33]" : "border-[#34673933]";
-  const bg = isWrong ? "bg-[#C44F4F08]" : "bg-[#34673908]";
-  const lc = isWrong ? "text-[#C44F4F]" : "text-[#346739]";
+  const bc = isWrong ? "border-[#C2494933]" : "border-[#34673933]";
+  const bg = isWrong ? "bg-[#C2494908]" : "bg-[#34673908]";
+  const lc = isWrong ? "text-[#C24949]" : "text-[#346739]";
   const ic = isWrong ? "❌" : "✅";
   const title = isWrong ? "Jawaban Kurang Tepat" : "Jawaban Benar!";
   return (
@@ -216,16 +216,16 @@ function SectionHeader({
   title,
   subtitle,
 }: {
-  icon: string;
+  icon?: string;
   title: string;
   subtitle?: string;
 }) {
   return (
     <div className="rounded-xl p-4 mb-5" style={{ backgroundColor: C.greenLight }}>
       <p className="text-base font-bold" style={{ color: C.green }}>
-        {icon} {title}
+        {icon && `${icon} `}{title}
       </p>
-      {subtitle && <p className="text-sm text-slate-600 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-sm text-muted mt-1">{subtitle}</p>}
     </div>
   );
 }
@@ -332,7 +332,7 @@ function SimulasiSyarat({
     >
       <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="text-xs font-bold" style={{ color: "#2A5A8C" }}>
-          🎮 Simulasi: Coba Susun Sendiri
+          Simulasi: Coba Susun Sendiri
         </p>
         {!state.selesai && (
           <span
@@ -346,7 +346,7 @@ function SimulasiSyarat({
 
       {!state.selesai && (
         <>
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             Klik {jumlahSlot} orang di bawah ini untuk menyusun satu pilihan, lalu lihat apakah susunanmu memenuhi syarat.
           </p>
 
@@ -363,7 +363,7 @@ function SimulasiSyarat({
                   className="rounded-lg px-3 py-1.5 text-sm font-medium border transition-colors disabled:cursor-not-allowed"
                   style={{
                     backgroundColor: sudahDipilih ? C.green : C.white,
-                    color: sudahDipilih ? C.white : "#334155",
+                    color: sudahDipilih ? C.white : "#2C2C2A",
                     borderColor: sudahDipilih ? C.green : C.border,
                     opacity: !sudahDipilih && slotPenuh ? 0.4 : 1,
                   }}
@@ -380,21 +380,21 @@ function SimulasiSyarat({
               className="rounded-lg p-3 text-sm"
               style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}
             >
-              <p className="text-xs font-semibold text-slate-500 mb-1">
+              <p className="text-xs font-semibold text-muted mb-1">
                 Susunan Pilihanmu:
               </p>
-              <p className="font-medium text-slate-800 mb-2">{labelDipilih}</p>
+              <p className="font-medium text-ink mb-2">{labelDipilih}</p>
 
               {hasil && (
                 <div
                   className="rounded-md px-3 py-2 text-sm font-semibold flex flex-col gap-1"
                   style={{
-                    backgroundColor: hasil.memenuhi ? C.greenLight : "#FEE2E2",
+                    backgroundColor: hasil.memenuhi ? C.greenLight : "#FFF5F5",
                     color: hasil.memenuhi ? C.green : "#B91C1C",
                   }}
                 >
                   <span>{hasil.memenuhi ? "✅ Memenuhi Syarat" : "❌ Melanggar Syarat"}</span>
-                  <span className="text-xs font-normal" style={{ color: "#334155" }}>
+                  <span className="text-xs font-normal" style={{ color: "#2C2C2A" }}>
                     {hasil.rincian}
                   </span>
                 </div>
@@ -409,7 +409,7 @@ function SimulasiSyarat({
                 type="button"
                 onClick={() => onChange({ ...state, dipilih: [] })}
                 className="rounded-full px-4 py-1.5 text-xs font-medium border"
-                style={{ borderColor: C.border, color: "#334155" }}
+                style={{ borderColor: C.border, color: "#2C2C2A" }}
               >
                 Ulangi Pilih
               </button>
@@ -421,7 +421,7 @@ function SimulasiSyarat({
                 className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
                 style={{ backgroundColor: "#2A5A8C" }}
               >
-                🔄 Coba Susunan Lain
+                Coba Susunan Lain
               </button>
             )}
             {slotPenuh && (
@@ -437,7 +437,7 @@ function SimulasiSyarat({
           </div>
 
           {slotPenuh && (
-            <p className="text-xs text-slate-500 italic">
+            <p className="text-xs text-muted italic">
               Tips: coba beberapa susunan berbeda dulu untuk melihat kapan syaratnya terpenuhi
               dan kapan tidak, baru tekan &quot;Selesai, Coba Lagi&quot;.
             </p>
@@ -454,14 +454,14 @@ function SimulasiSyarat({
           <p className="text-sm font-bold" style={{ color: C.green }}>
             ✅ Kamu sudah mencoba 3 kali!
           </p>
-          <p className="text-sm text-slate-700">{ringkasanInsight}</p>
+          <p className="text-sm text-ink">{ringkasanInsight}</p>
           <button
             type="button"
             onClick={handleResetSimulasi}
             className="rounded-full px-4 py-1.5 text-xs font-medium border mt-1"
             style={{ borderColor: C.green, color: C.green, backgroundColor: C.white }}
           >
-            🔁 Reset Simulasi
+            Reset Simulasi
           </button>
         </div>
       )}
@@ -512,8 +512,8 @@ function cekSyaratSoalB(idDipilih: string[]): HasilCekSyarat {
   return {
     memenuhi: !keduanyaMasuk,
     rincian: keduanyaMasuk
-      ? "Rian dan Sinta sama-sama masuk dalam tim ini — ini melanggar syarat."
-      : "Rian dan Sinta tidak berada bersama dalam tim ini — syarat terpenuhi.",
+      ? "Rian dan Sinta sama-sama masuk dalam tim ini. Ini melanggar syarat."
+      : "Rian dan Sinta tidak berada bersama dalam tim ini. Syarat terpenuhi.",
   };
 }
 
@@ -577,7 +577,7 @@ export default function AktivitasKombinasi2() {
               const sub = data.submissions[key];
               if (sub) {
                 preFilled[key] = {
-                  text: `📝 Jawaban kamu:\n${sub.answer}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  text: `Jawaban kamu:\n${sub.answer}\n\nFeedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                   isCorrect: sub.isCorrect,
                 };
                 if (!sub.isCorrect && firstUnanswered > i) firstUnanswered = i;
@@ -626,8 +626,8 @@ export default function AktivitasKombinasi2() {
         const ok4p = flexMatch(s1_4p, "1");
         const okTotal = flexMatch(s1_total, "115");
         if (!s1_2p.trim() || !s1_3p.trim() || !s1_4p.trim() || !s1_total.trim()) return null; // belum diisi
-        if (ok2p && ok3p && ok4p && okTotal) return fbOk("🎯 Tepat! C(4,2)×C(6,2)=90 + C(4,3)×C(6,1)=24 + C(4,4)×C(6,0)=1 → Total = 115.");
-        let fb = "🤔 Ada yang perlu dicek:\n";
+        if (ok2p && ok3p && ok4p && okTotal) return fbOk("Tepat! C(4,2)×C(6,2)=90 + C(4,3)×C(6,1)=24 + C(4,4)×C(6,0)=1 → Total = 115.");
+        let fb = "Ada yang perlu dicek:\n";
         if (!ok2p) fb += "• Tepat 2P: C(4,2) × C(6,2). Hitung masing-masing lalu kalikan.\n";
         if (!ok3p) fb += "• Tepat 3P: C(4,3) × C(6,1). Hitung masing-masing lalu kalikan.\n";
         if (!ok4p) fb += "• Tepat 4P: C(4,4) × C(6,0). Hitung masing-masing lalu kalikan.\n";
@@ -646,8 +646,8 @@ export default function AktivitasKombinasi2() {
         const allFilled = s2_totalSemua.trim() && s2_0p.trim() && s2_0pSub.trim() && s2_1p.trim() && s2_1pSub.trim() && s2_totalMelanggar.trim() && s2_totalMemenuhi.trim();
         if (!allFilled) return null;
         if (okSemua && ok0p && ok1p && okMelanggar && okMemenuhi)
-          return fbOk("🎯 Tepat! C(10,4)=210. Pelanggar: 0P=15 + 1P=80 = 95. Memenuhi = 210−95 = 115. Hasil sama dengan Strategi 1!");
-        let fb = "🤔 Ada yang perlu dicek:\n";
+          return fbOk("Tepat! C(10,4)=210. Pelanggar: 0P=15 + 1P=80 = 95. Memenuhi = 210−95 = 115. Hasil sama dengan Strategi 1!");
+        let fb = "Ada yang perlu dicek:\n";
         if (!okSemua) fb += "• Total semua tanpa syarat: C(10,4). Hitung dengan teliti.\n";
         if (!ok0pCalc || !ok0p) fb += "• 0P: pilih 0 dari 4 perempuan DAN 4 dari 6 laki-laki → C(4,0) × C(6,4).\n";
         if (!ok1pCalc || !ok1p) fb += "• 1P: pilih 1 dari 4 perempuan DAN 3 dari 6 laki-laki → C(4,1) × C(6,3).\n";
@@ -662,8 +662,8 @@ export default function AktivitasKombinasi2() {
         const okKeduanya = flexMatch(b1_keduanya, "35");
         const okTotal = flexMatch(b1_total, "77");
         if (!b1_rian.trim() || !b1_sinta.trim() || !b1_keduanya.trim() || !b1_total.trim()) return null;
-        if (okRian && okSinta && okKeduanya && okTotal) return fbOk("🎯 Tepat! C(7,2)=21 + C(7,2)=21 + C(7,3)=35 → Total = 77.");
-        let fb = "🤔 Ada yang perlu dicek:\n";
+        if (okRian && okSinta && okKeduanya && okTotal) return fbOk("Tepat! C(7,2)=21 + C(7,2)=21 + C(7,3)=35 → Total = 77.");
+        let fb = "Ada yang perlu dicek:\n";
         if (!okRian) fb += "• Rian masuk, Sinta tidak: pilih 2 dari 7 sisa → C(7,2).\n";
         if (!okSinta) fb += "• Sinta masuk, Rian tidak: pilih 2 dari 7 sisa → C(7,2).\n";
         if (!okKeduanya) fb += "• Keduanya tidak: pilih 3 dari 7 sisa → C(7,3).\n";
@@ -676,8 +676,8 @@ export default function AktivitasKombinasi2() {
         const okMelanggar = /C\s*\(\s*7\s*,\s*1\s*\)\s*=\s*7|7/.test(b2_melanggarCalc.replace(/\s/g, ""));
         const okMemenuhi = flexMatch(b2_totalMemenuhi, "77");
         if (!b2_totalSemua.trim() || !b2_melanggarCalc.trim() || !b2_totalMemenuhi.trim()) return null;
-        if (okSemua && okMelanggar && okMemenuhi) return fbOk("🎯 Tepat! C(9,3)=84. Pelanggar: C(7,1)=7. Memenuhi = 84−7 = 77. Hasil sama dengan Strategi 1!");
-        let fb = "🤔 Ada yang perlu dicek:\n";
+        if (okSemua && okMelanggar && okMemenuhi) return fbOk("Tepat! C(9,3)=84. Pelanggar: C(7,1)=7. Memenuhi = 84−7 = 77. Hasil sama dengan Strategi 1!");
+        let fb = "Ada yang perlu dicek:\n";
         if (!okSemua) fb += "• Total semua tanpa syarat: C(9,3). Hitung dengan teliti.\n";
         if (!okMelanggar) fb += "• Rian & Sinta pasti masuk → pilih 1 dari 7 sisa → C(7,1).\n";
         if (!okMemenuhi) fb += "• Memenuhi = Total semua − Melanggar.\n";
@@ -688,8 +688,8 @@ export default function AktivitasKombinasi2() {
         if (soalB_verifikasi === "" || soalB_cepat === "") return null;
         const okVerif = soalB_verifikasi === "ya";
         const okCepat = soalB_cepat === "strategi2";
-        if (okVerif && okCepat) return fbOk("🎯 Tepat! Hasilnya sama. Untuk soal 'tidak boleh bersama', strategi Komplemen biasanya lebih cepat karena hanya perlu menghitung satu kasus pelanggaran.");
-        let fb = "🤔 Belum tepat:\n";
+        if (okVerif && okCepat) return fbOk("Tepat! Hasilnya sama. Untuk soal 'tidak boleh bersama', strategi Komplemen biasanya lebih cepat karena hanya perlu menghitung satu kasus pelanggaran.");
+        let fb = "Belum tepat:\n";
         if (!okVerif) fb += "• Hasil Strategi 1 dan Strategi 2 seharusnya sama. Coba hitung ulang keduanya.\n";
         if (!okCepat) fb += "• Untuk 'tidak boleh bersama', pikirkan: berapa kasus pelanggaran yang perlu dihitung? Strategi mana yang paling sedikit langkahnya?\n";
         return fbNo(fb);
@@ -700,8 +700,8 @@ export default function AktivitasKombinasi2() {
         const ok1 = panduan1 === "strategi2";
         const ok2 = panduan2 === "strategi2";
         const ok3 = panduan3 === "strategi2";
-        if (ok1 && ok2 && ok3) return fbOk("🎯 Tepat! Secara umum: kalau pengecualian lebih sedikit, gunakan Komplemen. Kalau kasusnya sedikit dan jelas, Kasus per Kasus bisa lebih mudah.");
-        let fb = "🤔 Panduan memilih strategi:\n";
+        if (ok1 && ok2 && ok3) return fbOk("Tepat! Secara umum: kalau pengecualian lebih sedikit, gunakan Komplemen. Kalau kasusnya sedikit dan jelas, Kasus per Kasus bisa lebih mudah.");
+        let fb = "Panduan memilih strategi:\n";
         if (!ok1) fb += "• Syarat 'minimal' → banyak sub-kasus → strategi mana yang menghindari banyak sub-kasus?\n";
         if (!ok2) fb += "• Syarat 'tidak boleh bersama' → cukup 1 kasus pelanggaran → strategi mana yang lebih sedikit langkahnya?\n";
         if (!ok3) fb += "• Pengecualian lebih sedikit dari yang diminta → strategi mana yang lebih praktis?\n";
@@ -761,7 +761,7 @@ export default function AktivitasKombinasi2() {
             if (res.ok) {
               const data = await res.json();
               const isCorrect = data.isCorrect ?? true;
-              setFeedbackMap((p) => ({ ...p, [key]: { text: data.feedback ?? "💬 Jawaban sudah tersimpan.", isCorrect } }));
+              setFeedbackMap((p) => ({ ...p, [key]: { text: data.feedback ?? "Jawaban sudah tersimpan.", isCorrect } }));
               showToast("Jawaban tersimpan! ✅");
               if (isCorrect) {
                 const idx = getQuestionIndex(key);
@@ -771,7 +771,7 @@ export default function AktivitasKombinasi2() {
               setFeedbackMap((p) => ({ ...p, [key]: { text: "⚠️ Gagal menyimpan. Coba lagi nanti.", isCorrect: false } }));
             }
           } catch {
-            setFeedbackMap((p) => ({ ...p, [key]: { text: "💬 Jawabanmu sudah tercatat. Feedback AI akan muncul setelah guru memeriksa.", isCorrect: true } }));
+            setFeedbackMap((p) => ({ ...p, [key]: { text: "Jawabanmu sudah tercatat. Feedback AI akan muncul setelah guru memeriksa.", isCorrect: true } }));
             showToast("Jawaban tersimpan! ✅");
             const idx = getQuestionIndex(key);
             if (idx >= 0) setCurrentStep((prev) => Math.max(prev, idx + 1));
@@ -785,7 +785,7 @@ export default function AktivitasKombinasi2() {
           setFeedbackMap((p) => ({ ...p, [key]: { text: "⚠️ Lengkapi semua isian dulu ya sebelum menyimpan!", isCorrect: false } }));
         } else {
           // Save to DB
-          const soalText = `Kombinasi Aktivitas 2 — ${key}`;
+          const soalText = `Kombinasi Aktivitas 2: ${key}`;
           const jawaban = buildJawaban(key);
           fetch("/api/aktivitas-siswa", {
             method: "POST",
@@ -867,7 +867,7 @@ export default function AktivitasKombinasi2() {
         setFeedbackMap((p) => ({
           ...p,
           [key]: {
-            text: `📝 Jawaban kamu:\n${data.submission.answer}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            text: `Jawaban kamu:\n${data.submission.answer}\n\nFeedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
             isCorrect: data.submission.isCorrect,
           },
         }));
@@ -880,20 +880,20 @@ export default function AktivitasKombinasi2() {
 
   // ── Question labels for review mode ────────────────────────────
   const QUESTION_LABELS: Record<string, string> = {
-    a_langkah0: "Soal A — Langkah 0 (Sebelum menghitung)",
-    a_strategi1: "Soal A — Strategi 1 (Kasus per Kasus)",
-    a_strategi2: "Soal A — Strategi 2 (Komplemen)",
-    a_verifikasi: "Soal A — Verifikasi & Efisiensi",
-    b_strategi1: "Soal B — Strategi 1 (Kasus per Kasus)",
-    b_strategi2: "Soal B — Strategi 2 (Komplemen)",
-    b_verifikasi: "Soal B — Verifikasi & Efisiensi",
-    diskusi_pasangan: "Diskusi Pasangan — Panduan Memilih Strategi",
+    a_langkah0: "Soal A: Langkah 0 (Sebelum menghitung)",
+    a_strategi1: "Soal A: Strategi 1 (Kasus per Kasus)",
+    a_strategi2: "Soal A: Strategi 2 (Komplemen)",
+    a_verifikasi: "Soal A: Verifikasi & Efisiensi",
+    b_strategi1: "Soal B: Strategi 1 (Kasus per Kasus)",
+    b_strategi2: "Soal B: Strategi 2 (Komplemen)",
+    b_verifikasi: "Soal B: Verifikasi & Efisiensi",
+    diskusi_pasangan: "Diskusi Pasangan: Panduan Memilih Strategi",
   };
 
   // ── Question full text for review mode ─────────────────────────
   const QUESTION_SOAL: Record<string, string> = {
     a_langkah0: "Dari 6 siswa laki-laki dan 4 siswa perempuan, akan dipilih 4 orang anggota panitia yang terdiri dari minimal 2 perempuan. Mengapa soal ini tidak bisa langsung dihitung dengan C(10,4)?",
-    a_strategi1: "Lengkapi tabel Kasus per Kasus: Tepat 2P, Tepat 3P, Tepat 4P — hitung masing-masing dan jumlahkan.",
+    a_strategi1: "Lengkapi tabel Kasus per Kasus: Tepat 2P, Tepat 3P, Tepat 4P. Hitung masing-masing dan jumlahkan.",
     a_strategi2: "Lengkapi perhitungan Komplemen: total semua C(10,4), total melanggar (0P + 1P), lalu total memenuhi = total semua − total melanggar.",
     a_verifikasi: "Apakah kedua strategi menghasilkan jawaban yang sama? Strategi mana yang lebih efisien? Mengapa?",
     b_strategi1: "Dari 9 anggota, pilih tim 3 orang. Rian dan Sinta tidak boleh bersama. Hitung dengan Kasus per Kasus.",
@@ -960,7 +960,7 @@ export default function AktivitasKombinasi2() {
           <button type="button" onClick={() => setRevealedSteps(p => ({ ...p, [qKey]: true }))}
             className="rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
             style={{ backgroundColor: C.green }}>
-            💬 Lihat jawabanku
+            Lihat jawabanku
           </button>
         </div>
       );
@@ -999,12 +999,12 @@ export default function AktivitasKombinasi2() {
             </span>
           </div>
           <h1 className="text-2xl font-bold mb-2" style={{ color: C.purple }}>
-            Aktivitas 2 — “Kasus Per Kasus vs Komplemen — Pilih Strategimu!”
+            Aktivitas 2: “Kasus Per Kasus atau Komplemen? Pilih Strategimu!”
           </h1>
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs font-semibold text-slate-500">Pilar:</span>
+            <span className="text-xs font-semibold text-muted">Pilar:</span>
             {[
-              { label: "Joyful", color: "#C9962B" },
+              { label: "Joyful", color: "#8E6A1E" },
               { label: "Mindful", color: "#2A5A8C" },
             ].map((p) => (
               <span
@@ -1023,7 +1023,7 @@ export default function AktivitasKombinasi2() {
         {isLoadingExisting && (
           <div className="flex items-center justify-center py-12">
             <Spinner />
-            <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+            <span className="ml-3 text-sm text-muted">Memuat aktivitas...</span>
           </div>
         )}
 
@@ -1032,7 +1032,7 @@ export default function AktivitasKombinasi2() {
           <>
             <div className="rounded-xl p-4 text-center mb-6" style={{ backgroundColor: C.greenLight }}>
               <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
-              <p className="text-sm text-slate-600 mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
+              <p className="text-sm text-muted mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
             </div>
             <div className="space-y-6">
               {QUESTION_KEYS.map((key, idx) => {
@@ -1053,7 +1053,7 @@ export default function AktivitasKombinasi2() {
                           <div>
                             <p className="text-sm font-semibold" style={{ color: C.purple }}>{QUESTION_LABELS[key] ?? key}</p>
                             {soalText && (
-                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{soalText}</p>
+                              <p className="text-xs text-muted mt-0.5 line-clamp-2">{soalText}</p>
                             )}
                           </div>
                         </div>
@@ -1077,9 +1077,9 @@ export default function AktivitasKombinasi2() {
                         {/* ── a_langkah0 ── */}
                         {key === "a_langkah0" && (
                           <>
-                            <SoalBadge n={1} label="Soal A — Langkah 0 (Sebelum menghitung)" />
+                            <SoalBadge n={1} label="Soal A: Langkah 0 (Sebelum menghitung)" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-800">
+                              <p className="text-sm font-medium text-ink">
                                 Mengapa soal ini tidak bisa langsung dihitung dengan C(10,4)?
                               </p>
                               <TextArea value={soalA_langkah0} onChange={setSoalA_langkah0} rows={3} readOnly />
@@ -1090,18 +1090,18 @@ export default function AktivitasKombinasi2() {
                         {/* ── a_strategi1 ── */}
                         {key === "a_strategi1" && (
                           <>
-                            <SoalBadge n={2} label="Soal A — Strategi 1 (Kasus per Kasus)" />
+                            <SoalBadge n={2} label="Soal A: Strategi 1 (Kasus per Kasus)" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-700">Lengkapi tabel berikut:</p>
+                              <p className="text-sm font-medium text-ink">Lengkapi tabel berikut:</p>
                               <div className="overflow-x-auto">
                                 <table className="w-full text-sm border-collapse">
                                   <thead>
                                     <tr className="border-b" style={{ borderColor: C.border }}>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kasus</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Perempuan</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Laki-laki</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Perhitungan</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Subtotal</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Kasus</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Perempuan</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Laki-laki</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Perhitungan</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Subtotal</th>
                                     </tr>
                                   </thead>
                                   <tbody>
@@ -1109,25 +1109,25 @@ export default function AktivitasKombinasi2() {
                                       <td className="py-2 px-2">Tepat 2P</td>
                                       <td className="py-2 px-2">2 dari 4</td>
                                       <td className="py-2 px-2">2 dari 6</td>
-                                      <td className="py-2 px-2 text-xs text-slate-500">C(4,2)×C(6,2)</td>
+                                      <td className="py-2 px-2 text-xs text-muted">C(4,2)×C(6,2)</td>
                                       <td className="py-2 px-2"><TextInput value={s1_2p} onChange={setS1_2p} readOnly /></td>
                                     </tr>
                                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
                                       <td className="py-2 px-2">Tepat 3P</td>
                                       <td className="py-2 px-2">3 dari 4</td>
                                       <td className="py-2 px-2">1 dari 6</td>
-                                      <td className="py-2 px-2 text-xs text-slate-500">C(4,3)×C(6,1)</td>
+                                      <td className="py-2 px-2 text-xs text-muted">C(4,3)×C(6,1)</td>
                                       <td className="py-2 px-2"><TextInput value={s1_3p} onChange={setS1_3p} readOnly /></td>
                                     </tr>
                                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
                                       <td className="py-2 px-2">Tepat 4P</td>
                                       <td className="py-2 px-2">4 dari 4</td>
                                       <td className="py-2 px-2">0 dari 6</td>
-                                      <td className="py-2 px-2 text-xs text-slate-500">C(4,4)×C(6,0)</td>
+                                      <td className="py-2 px-2 text-xs text-muted">C(4,4)×C(6,0)</td>
                                       <td className="py-2 px-2"><TextInput value={s1_4p} onChange={setS1_4p} readOnly /></td>
                                     </tr>
                                     <tr>
-                                      <td className="py-2 px-2 font-bold text-slate-700" colSpan={4}>Total</td>
+                                      <td className="py-2 px-2 font-bold text-ink" colSpan={4}>Total</td>
                                       <td className="py-2 px-2"><TextInput value={s1_total} onChange={setS1_total} readOnly /></td>
                                     </tr>
                                   </tbody>
@@ -1140,21 +1140,21 @@ export default function AktivitasKombinasi2() {
                         {/* ── a_strategi2 ── */}
                         {key === "a_strategi2" && (
                           <>
-                            <SoalBadge n={3} label="Soal A — Strategi 2 (Komplemen)" />
+                            <SoalBadge n={3} label="Soal A: Strategi 2 (Komplemen)" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-700 mb-3">Lengkapi perhitungan berikut:</p>
-                              <div className="rounded-lg p-3 mb-3" style={{ backgroundColor: "#f1f5f9" }}>
-                                <p className="text-sm text-slate-700">Total semua panitia tanpa syarat = C(10,4) =</p>
+                              <p className="text-sm font-medium text-ink mb-3">Lengkapi perhitungan berikut:</p>
+                              <div className="rounded-lg p-3 mb-3" style={{ backgroundColor: "#f5f5f0" }}>
+                                <p className="text-sm text-ink">Total semua panitia tanpa syarat = C(10,4) =</p>
                                 <TextInput value={s2_totalSemua} onChange={setS2_totalSemua} readOnly />
                               </div>
-                              <p className="text-sm font-medium text-slate-700 mb-2">Panitia yang <strong>melanggar syarat</strong> (kurang dari 2 perempuan):</p>
+                              <p className="text-sm font-medium text-ink mb-2">Panitia yang <strong>melanggar syarat</strong> (kurang dari 2 perempuan):</p>
                               <div className="overflow-x-auto">
                                 <table className="w-full text-sm border-collapse">
                                   <thead>
                                     <tr className="border-b" style={{ borderColor: C.border }}>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kasus</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Perhitungan</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Subtotal</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Kasus</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Perhitungan</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Subtotal</th>
                                     </tr>
                                   </thead>
                                   <tbody>
@@ -1173,11 +1173,11 @@ export default function AktivitasKombinasi2() {
                               </div>
                               <div className="space-y-2 mt-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm text-slate-700">Total yang melanggar =</span>
+                                  <span className="text-sm text-ink">Total yang melanggar =</span>
                                   <div className="w-32"><TextInput value={s2_totalMelanggar} onChange={setS2_totalMelanggar} readOnly /></div>
                                 </div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-sm text-slate-700">Total memenuhi syarat = C(10,4) − Total melanggar =</span>
+                                  <span className="text-sm text-ink">Total memenuhi syarat = C(10,4) − Total melanggar =</span>
                                   <div className="w-32"><TextInput value={s2_totalMemenuhi} onChange={setS2_totalMemenuhi} readOnly /></div>
                                 </div>
                               </div>
@@ -1188,15 +1188,15 @@ export default function AktivitasKombinasi2() {
                         {/* ── a_verifikasi ── */}
                         {key === "a_verifikasi" && (
                           <>
-                            <SoalBadge n={4} label="Soal A — Verifikasi & Efisiensi" />
+                            <SoalBadge n={4} label="Soal A: Verifikasi & Efisiensi" />
                             <PertanyaanCard readOnly>
                               <div className="space-y-4">
                                 <div>
-                                  <p className="text-sm font-medium text-slate-700 mb-2">Apakah kedua strategi menghasilkan jawaban yang sama?</p>
+                                  <p className="text-sm font-medium text-ink mb-2">Apakah kedua strategi menghasilkan jawaban yang sama?</p>
                                   <YaTidakRadio name="a_verifikasi_review" value={soalA_verifikasi} onChange={setSoalA_verifikasi} readOnly />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-slate-700 mb-2">Strategi mana yang lebih efisien?</p>
+                                  <p className="text-sm font-medium text-ink mb-2">Strategi mana yang lebih efisien?</p>
                                   <StrategiSelect value={soalA_efisien} onChange={setSoalA_efisien} readOnly />
                                 </div>
                                 <TextArea label="Mengapa?" value={soalA_alasan} onChange={setSoalA_alasan} rows={3} readOnly />
@@ -1208,39 +1208,39 @@ export default function AktivitasKombinasi2() {
                         {/* ── b_strategi1 ── */}
                         {key === "b_strategi1" && (
                           <>
-                            <SoalBadge n={5} label="Soal B — Strategi 1 (Kasus per Kasus)" />
+                            <SoalBadge n={5} label="Soal B: Strategi 1 (Kasus per Kasus)" />
                             <PertanyaanCard readOnly>
                               <div className="overflow-x-auto">
                                 <table className="w-full text-sm border-collapse">
                                   <thead>
                                     <tr className="border-b" style={{ borderColor: C.border }}>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kasus</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kondisi</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Perhitungan</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Subtotal</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Kasus</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Kondisi</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Perhitungan</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Subtotal</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
                                       <td className="py-2 px-2">Rian masuk, Sinta tidak</td>
                                       <td className="py-2 px-2">Pilih 2 dari 7 sisa</td>
-                                      <td className="py-2 px-2 text-xs text-slate-500">C(7,2)</td>
+                                      <td className="py-2 px-2 text-xs text-muted">C(7,2)</td>
                                       <td className="py-2 px-2"><TextInput value={b1_rian} onChange={setB1_rian} readOnly /></td>
                                     </tr>
                                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
                                       <td className="py-2 px-2">Sinta masuk, Rian tidak</td>
                                       <td className="py-2 px-2">Pilih 2 dari 7 sisa</td>
-                                      <td className="py-2 px-2 text-xs text-slate-500">C(7,2)</td>
+                                      <td className="py-2 px-2 text-xs text-muted">C(7,2)</td>
                                       <td className="py-2 px-2"><TextInput value={b1_sinta} onChange={setB1_sinta} readOnly /></td>
                                     </tr>
                                     <tr>
                                       <td className="py-2 px-2">Keduanya tidak masuk</td>
                                       <td className="py-2 px-2">Pilih 3 dari 7 sisa</td>
-                                      <td className="py-2 px-2 text-xs text-slate-500">C(7,3)</td>
+                                      <td className="py-2 px-2 text-xs text-muted">C(7,3)</td>
                                       <td className="py-2 px-2"><TextInput value={b1_keduanya} onChange={setB1_keduanya} readOnly /></td>
                                     </tr>
                                     <tr>
-                                      <td className="py-2 px-2 font-bold text-slate-700" colSpan={3}>Total</td>
+                                      <td className="py-2 px-2 font-bold text-ink" colSpan={3}>Total</td>
                                       <td className="py-2 px-2"><TextInput value={b1_total} onChange={setB1_total} readOnly /></td>
                                     </tr>
                                   </tbody>
@@ -1253,19 +1253,19 @@ export default function AktivitasKombinasi2() {
                         {/* ── b_strategi2 ── */}
                         {key === "b_strategi2" && (
                           <>
-                            <SoalBadge n={6} label="Soal B — Strategi 2 (Komplemen)" />
+                            <SoalBadge n={6} label="Soal B: Strategi 2 (Komplemen)" />
                             <PertanyaanCard readOnly>
                               <div className="space-y-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm text-slate-700">Total tim tanpa syarat = C(9,3) =</span>
+                                  <span className="text-sm text-ink">Total tim tanpa syarat = C(9,3) =</span>
                                   <div className="w-24"><TextInput value={b2_totalSemua} onChange={setB2_totalSemua} readOnly /></div>
                                 </div>
                                 <div>
-                                  <p className="text-sm text-slate-700 mb-1">Tim yang melanggar (Rian dan Sinta keduanya masuk):</p>
+                                  <p className="text-sm text-ink mb-1">Tim yang melanggar (Rian dan Sinta keduanya masuk):</p>
                                   <TextInput value={b2_melanggarCalc} onChange={setB2_melanggarCalc} readOnly />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm text-slate-700">Total memenuhi =</span>
+                                  <span className="text-sm text-ink">Total memenuhi =</span>
                                   <div className="w-24"><TextInput value={b2_totalMemenuhi} onChange={setB2_totalMemenuhi} readOnly /></div>
                                 </div>
                               </div>
@@ -1276,15 +1276,15 @@ export default function AktivitasKombinasi2() {
                         {/* ── b_verifikasi ── */}
                         {key === "b_verifikasi" && (
                           <>
-                            <SoalBadge n={7} label="Soal B — Verifikasi & Efisiensi" />
+                            <SoalBadge n={7} label="Soal B: Verifikasi & Efisiensi" />
                             <PertanyaanCard readOnly>
                               <div className="space-y-4">
                                 <div>
-                                  <p className="text-sm font-medium text-slate-700 mb-2">Apakah hasilnya sama?</p>
+                                  <p className="text-sm font-medium text-ink mb-2">Apakah hasilnya sama?</p>
                                   <YaTidakRadio name="b_verifikasi_review" value={soalB_verifikasi} onChange={setSoalB_verifikasi} readOnly />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-slate-700 mb-2">Untuk soal seperti ini (ada dua orang yang tidak boleh bersama), strategi mana yang lebih cepat?</p>
+                                  <p className="text-sm font-medium text-ink mb-2">Untuk soal seperti ini (ada dua orang yang tidak boleh bersama), strategi mana yang lebih cepat?</p>
                                   <StrategiSelect value={soalB_cepat} onChange={setSoalB_cepat} readOnly />
                                 </div>
                               </div>
@@ -1301,21 +1301,21 @@ export default function AktivitasKombinasi2() {
                                 <table className="w-full text-sm border-collapse">
                                   <thead>
                                     <tr className="border-b" style={{ borderColor: C.border }}>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kondisi Soal</th>
-                                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Strategi yang Lebih Efisien</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Kondisi Soal</th>
+                                      <th className="text-left py-2 px-2 font-semibold text-muted">Strategi yang Lebih Efisien</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
-                                      <td className="py-2.5 px-2 text-slate-700">Syarat &quot;minimal&quot; atau &quot;paling sedikit&quot; dan kasusnya banyak</td>
+                                      <td className="py-2.5 px-2 text-ink">Syarat &quot;minimal&quot; atau &quot;paling sedikit&quot; dan kasusnya banyak</td>
                                       <td className="py-2.5 px-2"><StrategiSelect value={panduan1} onChange={setPanduan1} readOnly /></td>
                                     </tr>
                                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
-                                      <td className="py-2.5 px-2 text-slate-700">Syarat &quot;tidak boleh bersama&quot; atau &quot;pengecualian sederhana&quot;</td>
+                                      <td className="py-2.5 px-2 text-ink">Syarat &quot;tidak boleh bersama&quot; atau &quot;pengecualian sederhana&quot;</td>
                                       <td className="py-2.5 px-2"><StrategiSelect value={panduan2} onChange={setPanduan2} readOnly /></td>
                                     </tr>
                                     <tr>
-                                      <td className="py-2.5 px-2 text-slate-700">Syarat yang pengecualiannya lebih sedikit dari yang diminta</td>
+                                      <td className="py-2.5 px-2 text-ink">Syarat yang pengecualiannya lebih sedikit dari yang diminta</td>
                                       <td className="py-2.5 px-2"><StrategiSelect value={panduan3} onChange={setPanduan3} readOnly /></td>
                                     </tr>
                                   </tbody>
@@ -1346,7 +1346,6 @@ export default function AktivitasKombinasi2() {
         >
           {/* Petunjuk */}
           <SectionHeader
-            icon="🧭"
             title="Petunjuk"
             subtitle="Setiap soal di bawah ini bisa diselesaikan dengan dua strategi berbeda. Bersama pasanganmu: (1) Identifikasi kedua strategi, (2) Selesaikan dengan keduanya, (3) Verifikasi bahwa hasilnya sama, (4) Tentukan mana yang lebih efisien."
           />
@@ -1363,19 +1362,19 @@ export default function AktivitasKombinasi2() {
           {/* Langkah 0 */}
           {currentStep >= 0 && (
           <div>
-            <SoalBadge n={1} label="Soal A — Langkah 0 (Sebelum menghitung)" />
+            <SoalBadge n={1} label="Soal A: Langkah 0 (Sebelum menghitung)" />
             <PertanyaanCard>
               {/* Simulasi (fitur baru) — sebelum siswa menjawab */}
               <SimulasiSyarat
                 orangPilihan={ORANG_SOAL_A}
                 jumlahSlot={4}
                 cekSyarat={cekSyaratSoalA}
-                ringkasanInsight="Dari 3 percobaan, kamu menemukan bahwa tidak semua susunan 4 orang otomatis memenuhi syarat minimal 2 perempuan — itu sebabnya soal ini tidak bisa langsung dihitung dengan C(10,4), dan butuh strategi khusus."
+                ringkasanInsight="Dari 3 percobaan, kamu menemukan bahwa tidak semua susunan 4 orang otomatis memenuhi syarat minimal 2 perempuan. Itu sebabnya soal ini tidak bisa langsung dihitung dengan C(10,4), dan butuh strategi khusus."
                 state={simulasiA}
                 onChange={setSimulasiA}
               />
 
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-ink">
                 Mengapa soal ini tidak bisa langsung dihitung dengan C(10,4)?
               </p>
               <TextArea
@@ -1399,12 +1398,12 @@ export default function AktivitasKombinasi2() {
           {/* Strategi 1 */}
           {currentStep >= 1 && (
           <div>
-            <SoalBadge n={2} label="Soal A — Strategi 1 (Kasus per Kasus)" />
+            <SoalBadge n={2} label="Soal A: Strategi 1 (Kasus per Kasus)" />
             <PertanyaanCard>
-              <p className="text-sm font-medium text-slate-700">
+              <p className="text-sm font-medium text-ink">
                 Lengkapi tabel berikut:
               </p>
-              <p className="text-[11px] text-slate-400 italic mb-2">💡 Kolom "Subtotal" dan "Total": cukup masukkan jawaban akhirnya saja.</p>
+              <p className="text-[11px] text-muted italic mb-2">💡 Kolom "Subtotal" dan "Total": cukup masukkan jawaban akhirnya saja.</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead>
@@ -1412,11 +1411,11 @@ export default function AktivitasKombinasi2() {
                       className="border-b"
                       style={{ borderColor: C.border }}
                     >
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kasus</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Perempuan</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Laki-laki</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Perhitungan</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Subtotal</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Kasus</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Perempuan</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Laki-laki</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Perhitungan</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1424,7 +1423,7 @@ export default function AktivitasKombinasi2() {
                       <td className="py-2 px-2">Tepat 2P</td>
                       <td className="py-2 px-2">2 dari 4</td>
                       <td className="py-2 px-2">2 dari 6</td>
-                      <td className="py-2 px-2 text-xs text-slate-500">C(4,2)×C(6,2)</td>
+                      <td className="py-2 px-2 text-xs text-muted">C(4,2)×C(6,2)</td>
                       <td className="py-2 px-2">
                         <TextInput
                           value={s1_2p}
@@ -1437,7 +1436,7 @@ export default function AktivitasKombinasi2() {
                       <td className="py-2 px-2">Tepat 3P</td>
                       <td className="py-2 px-2">3 dari 4</td>
                       <td className="py-2 px-2">1 dari 6</td>
-                      <td className="py-2 px-2 text-xs text-slate-500">C(4,3)×C(6,1)</td>
+                      <td className="py-2 px-2 text-xs text-muted">C(4,3)×C(6,1)</td>
                       <td className="py-2 px-2">
                         <TextInput
                           value={s1_3p}
@@ -1450,7 +1449,7 @@ export default function AktivitasKombinasi2() {
                       <td className="py-2 px-2">Tepat 4P</td>
                       <td className="py-2 px-2">4 dari 4</td>
                       <td className="py-2 px-2">0 dari 6</td>
-                      <td className="py-2 px-2 text-xs text-slate-500">C(4,4)×C(6,0)</td>
+                      <td className="py-2 px-2 text-xs text-muted">C(4,4)×C(6,0)</td>
                       <td className="py-2 px-2">
                         <TextInput
                           value={s1_4p}
@@ -1461,7 +1460,7 @@ export default function AktivitasKombinasi2() {
                     </tr>
                     <tr>
                       <td
-                        className="py-2 px-2 font-bold text-slate-700"
+                        className="py-2 px-2 font-bold text-ink"
                         colSpan={4}
                       >
                         Total
@@ -1492,14 +1491,14 @@ export default function AktivitasKombinasi2() {
           {/* Strategi 2 */}
           {currentStep >= 2 && (
           <div>
-            <SoalBadge n={3} label="Soal A — Strategi 2 (Komplemen)" />
+            <SoalBadge n={3} label="Soal A: Strategi 2 (Komplemen)" />
             <PertanyaanCard>
-              <p className="text-sm font-medium text-slate-700 mb-3">
+              <p className="text-sm font-medium text-ink mb-3">
                 Lengkapi perhitungan berikut:
               </p>
 
-              <div className="rounded-lg p-3 mb-3" style={{ backgroundColor: "#f1f5f9" }}>
-                <p className="text-sm text-slate-700">
+              <div className="rounded-lg p-3 mb-3" style={{ backgroundColor: "#f5f5f0" }}>
+                <p className="text-sm text-ink">
                   Total semua panitia tanpa syarat = C(10,4) =
                 </p>
                 <TextInput
@@ -1507,20 +1506,20 @@ export default function AktivitasKombinasi2() {
                   onChange={setS2_totalSemua}
                   placeholder="Hasil C(10,4)..."
                 />
-                <p className="text-[11px] text-slate-400 italic mt-1">💡 Cukup masukkan jawaban akhirnya saja.</p>
+                <p className="text-[11px] text-muted italic mt-1">💡 Cukup masukkan jawaban akhirnya saja.</p>
               </div>
 
-              <p className="text-sm font-medium text-slate-700 mb-2">
+              <p className="text-sm font-medium text-ink mb-2">
                 Panitia yang <strong>melanggar syarat</strong> (kurang dari 2 perempuan):
               </p>
-              <p className="text-[11px] text-slate-400 italic -mt-1 mb-2">💡 Kolom "Perhitungan" isi rumusnya, kolom "Subtotal" isi hasil akhirnya saja.</p>
+              <p className="text-[11px] text-muted italic -mt-1 mb-2">💡 Kolom "Perhitungan" isi rumusnya, kolom "Subtotal" isi hasil akhirnya saja.</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b" style={{ borderColor: C.border }}>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kasus</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Perhitungan</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Subtotal</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Kasus</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Perhitungan</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1563,9 +1562,9 @@ export default function AktivitasKombinasi2() {
               </div>
 
               <div className="space-y-2 mt-3">
-                <p className="text-[11px] text-slate-400 italic">💡 Cukup masukkan jawaban akhirnya saja, tidak perlu tulis cara.</p>
+                <p className="text-[11px] text-muted italic">💡 Cukup masukkan jawaban akhirnya saja, tidak perlu tulis cara.</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-700">Total yang melanggar =</span>
+                  <span className="text-sm text-ink">Total yang melanggar =</span>
                   <div className="w-32">
                     <TextInput
                       value={s2_totalMelanggar}
@@ -1575,7 +1574,7 @@ export default function AktivitasKombinasi2() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-slate-700">
+                  <span className="text-sm text-ink">
                     Total memenuhi syarat = C(10,4) − Total melanggar =
                   </span>
                   <div className="w-32">
@@ -1603,11 +1602,11 @@ export default function AktivitasKombinasi2() {
           {/* Verifikasi + Efisiensi Soal A */}
           {currentStep >= 3 && (
           <div>
-            <SoalBadge n={4} label="Soal A — Verifikasi & Efisiensi" />
+            <SoalBadge n={4} label="Soal A: Verifikasi & Efisiensi" />
             <PertanyaanCard>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-slate-700 mb-2">
+                  <p className="text-sm font-medium text-ink mb-2">
                     Apakah kedua strategi menghasilkan jawaban yang sama?
                   </p>
                   <YaTidakRadio
@@ -1617,7 +1616,7 @@ export default function AktivitasKombinasi2() {
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-700 mb-2">
+                  <p className="text-sm font-medium text-ink mb-2">
                     Strategi mana yang lebih efisien?
                   </p>
                   <StrategiSelect value={soalA_efisien} onChange={setSoalA_efisien} />
@@ -1655,34 +1654,34 @@ export default function AktivitasKombinasi2() {
 
           {/* Strategi 1 */}
           <div>
-            <SoalBadge n={5} label="Soal B — Strategi 1 (Kasus per Kasus)" />
+            <SoalBadge n={5} label="Soal B: Strategi 1 (Kasus per Kasus)" />
             <PertanyaanCard>
               {/* Simulasi (fitur baru) — sebelum tabel strategi */}
               <SimulasiSyarat
                 orangPilihan={ORANG_SOAL_B}
                 jumlahSlot={3}
                 cekSyarat={cekSyaratSoalB}
-                ringkasanInsight="Dari 3 percobaan, kamu menemukan bahwa tim yang berisi Rian dan Sinta sekaligus akan melanggar syarat — itu sebabnya soal ini perlu memisahkan kasus (Rian masuk/Sinta tidak, Sinta masuk/Rian tidak, atau keduanya tidak masuk) atau menghitung komplemen dari tim yang berisi keduanya."
+                ringkasanInsight="Dari 3 percobaan, kamu menemukan bahwa tim yang berisi Rian dan Sinta sekaligus akan melanggar syarat. Itu sebabnya soal ini perlu memisahkan kasus (Rian masuk/Sinta tidak, Sinta masuk/Rian tidak, atau keduanya tidak masuk) atau menghitung komplemen dari tim yang berisi keduanya."
                 state={simulasiB}
                 onChange={setSimulasiB}
               />
 
-              <p className="text-[11px] text-slate-400 italic mb-2 mt-3">💡 Kolom "Subtotal" dan "Total": cukup masukkan jawaban akhirnya saja.</p>
+              <p className="text-[11px] text-muted italic mb-2 mt-3">💡 Kolom "Subtotal" dan "Total": cukup masukkan jawaban akhirnya saja.</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b" style={{ borderColor: C.border }}>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kasus</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Kondisi</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Perhitungan</th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">Subtotal</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Kasus</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Kondisi</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Perhitungan</th>
+                      <th className="text-left py-2 px-2 font-semibold text-muted">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
                       <td className="py-2 px-2">Rian masuk, Sinta tidak</td>
                       <td className="py-2 px-2">Pilih 2 dari 7 sisa</td>
-                      <td className="py-2 px-2 text-xs text-slate-500">C(7,2)</td>
+                      <td className="py-2 px-2 text-xs text-muted">C(7,2)</td>
                       <td className="py-2 px-2">
                         <TextInput value={b1_rian} onChange={setB1_rian} placeholder="Subtotal..." />
                       </td>
@@ -1690,7 +1689,7 @@ export default function AktivitasKombinasi2() {
                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
                       <td className="py-2 px-2">Sinta masuk, Rian tidak</td>
                       <td className="py-2 px-2">Pilih 2 dari 7 sisa</td>
-                      <td className="py-2 px-2 text-xs text-slate-500">C(7,2)</td>
+                      <td className="py-2 px-2 text-xs text-muted">C(7,2)</td>
                       <td className="py-2 px-2">
                         <TextInput value={b1_sinta} onChange={setB1_sinta} placeholder="Subtotal..." />
                       </td>
@@ -1698,13 +1697,13 @@ export default function AktivitasKombinasi2() {
                     <tr>
                       <td className="py-2 px-2">Keduanya tidak masuk</td>
                       <td className="py-2 px-2">Pilih 3 dari 7 sisa</td>
-                      <td className="py-2 px-2 text-xs text-slate-500">C(7,3)</td>
+                      <td className="py-2 px-2 text-xs text-muted">C(7,3)</td>
                       <td className="py-2 px-2">
                         <TextInput value={b1_keduanya} onChange={setB1_keduanya} placeholder="Subtotal..." />
                       </td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-2 font-bold text-slate-700" colSpan={3}>
+                      <td className="py-2 px-2 font-bold text-ink" colSpan={3}>
                         Total
                       </td>
                       <td className="py-2 px-2">
@@ -1728,12 +1727,12 @@ export default function AktivitasKombinasi2() {
           {/* Strategi 2 */}
           {currentStep >= 5 && (
           <div>
-            <SoalBadge n={6} label="Soal B — Strategi 2 (Komplemen)" />
+            <SoalBadge n={6} label="Soal B: Strategi 2 (Komplemen)" />
             <PertanyaanCard>
-              <p className="text-[11px] text-slate-400 italic mb-3">💡 Cukup masukkan jawaban akhirnya saja, tidak perlu tulis cara panjang.</p>
+              <p className="text-[11px] text-muted italic mb-3">💡 Cukup masukkan jawaban akhirnya saja, tidak perlu tulis cara panjang.</p>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-700">Total tim tanpa syarat = C(9,3) =</span>
+                  <span className="text-sm text-ink">Total tim tanpa syarat = C(9,3) =</span>
                   <div className="w-24">
                     <TextInput
                       value={b2_totalSemua}
@@ -1743,10 +1742,10 @@ export default function AktivitasKombinasi2() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-700 mb-1">
+                  <p className="text-sm text-ink mb-1">
                     Tim yang melanggar (Rian dan Sinta keduanya masuk):
                   </p>
-                  <p className="text-xs text-slate-400 mb-2">
+                  <p className="text-xs text-muted mb-2">
                     (Jika Rian dan Sinta sudah pasti masuk, pilih 1 lagi dari sisa)
                   </p>
                   <TextInput
@@ -1756,7 +1755,7 @@ export default function AktivitasKombinasi2() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-700">Total memenuhi =</span>
+                  <span className="text-sm text-ink">Total memenuhi =</span>
                   <div className="w-24">
                     <TextInput
                       value={b2_totalMemenuhi}
@@ -1781,11 +1780,11 @@ export default function AktivitasKombinasi2() {
           {/* Verifikasi Soal B */}
           {currentStep >= 6 && (
           <div>
-            <SoalBadge n={7} label="Soal B — Verifikasi & Efisiensi" />
+            <SoalBadge n={7} label="Soal B: Verifikasi & Efisiensi" />
             <PertanyaanCard>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-slate-700 mb-2">
+                  <p className="text-sm font-medium text-ink mb-2">
                     Apakah hasilnya sama?
                   </p>
                   <YaTidakRadio
@@ -1795,7 +1794,7 @@ export default function AktivitasKombinasi2() {
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-700 mb-2">
+                  <p className="text-sm font-medium text-ink mb-2">
                     Untuk soal seperti ini (ada dua orang yang tidak boleh bersama), strategi mana yang lebih cepat?
                   </p>
                   <StrategiSelect value={soalB_cepat} onChange={setSoalB_cepat} />
@@ -1821,8 +1820,7 @@ export default function AktivitasKombinasi2() {
           {currentStep >= 7 && (
           <>
           <SectionHeader
-            icon="💬"
-            title="Diskusi Pasangan — Panduan Memilih Strategi"
+            title="Diskusi Pasangan: Panduan Memilih Strategi"
             subtitle="Berdasarkan pengalaman mengerjakan Soal A dan B, lengkapi panduan berikut:"
           />
 
@@ -1833,17 +1831,17 @@ export default function AktivitasKombinasi2() {
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b" style={{ borderColor: C.border }}>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">
+                      <th className="text-left py-2 px-2 font-semibold text-muted">
                         Kondisi Soal
                       </th>
-                      <th className="text-left py-2 px-2 font-semibold text-slate-600">
+                      <th className="text-left py-2 px-2 font-semibold text-muted">
                         Strategi yang Lebih Efisien
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
-                      <td className="py-2.5 px-2 text-slate-700">
+                      <td className="py-2.5 px-2 text-ink">
                         Syarat &quot;minimal&quot; atau &quot;paling sedikit&quot; dan kasusnya banyak
                       </td>
                       <td className="py-2.5 px-2">
@@ -1851,7 +1849,7 @@ export default function AktivitasKombinasi2() {
                       </td>
                     </tr>
                     <tr className="border-b" style={{ borderColor: `${C.border}80` }}>
-                      <td className="py-2.5 px-2 text-slate-700">
+                      <td className="py-2.5 px-2 text-ink">
                         Syarat &quot;tidak boleh bersama&quot; atau &quot;pengecualian sederhana&quot;
                       </td>
                       <td className="py-2.5 px-2">
@@ -1859,7 +1857,7 @@ export default function AktivitasKombinasi2() {
                       </td>
                     </tr>
                     <tr>
-                      <td className="py-2.5 px-2 text-slate-700">
+                      <td className="py-2.5 px-2 text-ink">
                         Syarat yang pengecualiannya lebih sedikit dari yang diminta
                       </td>
                       <td className="py-2.5 px-2">
@@ -1891,11 +1889,10 @@ export default function AktivitasKombinasi2() {
             className="mt-8 rounded-2xl border-2 p-6 text-center space-y-3"
             style={{ borderColor: C.green, backgroundColor: C.greenLight }}
           >
-            <p className="text-2xl">🎉</p>
             <p className="text-lg font-bold" style={{ color: C.green }}>
               Kamu sudah menyelesaikan aktivitas ini!
             </p>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted">
               Semua soal telah dijawab dengan benar. Kamu sudah memahami strategi
               Kasus per Kasus dan Komplemen dengan baik!
             </p>

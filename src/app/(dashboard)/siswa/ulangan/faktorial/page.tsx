@@ -474,7 +474,7 @@ export default function AsesmenFaktorialPage() {
           textAlign: "center",
         }}
       >
-        <p style={{ fontSize: 15, color: "#6b8f6d" }}>
+        <p style={{ fontSize: 15, color: "#5D7C5F" }}>
           Memeriksa akses latihan...
         </p>
       </div>
@@ -502,7 +502,7 @@ export default function AsesmenFaktorialPage() {
             textAlign: "center",
           }}
         >
-          <p style={{ fontSize: 15, color: "#6b8f6d" }}>
+          <p style={{ fontSize: 15, color: "#5D7C5F" }}>
             Memulihkan jawaban yang tersimpan...
           </p>
         </div>
@@ -629,12 +629,9 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
         </div>
         <p
           style={{
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 600,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
             color: "#b45309",
-            opacity: 0.7,
             margin: "0 0 6px",
           }}
         >
@@ -653,7 +650,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
         <p
           style={{
             fontSize: 14,
-            color: "#9a7b5c",
+            color: "#886D52",
             margin: 0,
             lineHeight: 1.7,
           }}
@@ -720,7 +717,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
           style={{
             backgroundColor: "#fff",
             borderRadius: 12,
-            border: "1.5px solid #e2ede2",
+            border: "1.5px solid #d4e8d4",
             padding: "18px 20px",
             marginBottom: 24,
           }}
@@ -731,8 +728,6 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
               fontWeight: 700,
               color: "#346739",
               margin: "0 0 12px",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
             }}
           >
             Section yang Belum Selesai
@@ -741,12 +736,10 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
             <div key={conceptId} style={{ marginBottom: 12 }}>
               <p
                 style={{
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
                   color: "#1a3d1c",
                   margin: "0 0 6px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
                 }}
               >
                 {CONCEPT_LABELS[conceptId] ?? conceptId}
@@ -766,7 +759,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
                     key={section}
                     style={{
                       fontSize: 13,
-                      color: "#5a7d5c",
+                      color: "#5d7c5f",
                       display: "flex",
                       alignItems: "center",
                       gap: 8,
@@ -841,7 +834,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
           style={{
             marginTop: 10,
             fontSize: 12,
-            color: "#9aada0",
+            color: "#5D7C5F",
           }}
         >
           Selesaikan semua section di atas, lalu kembali ke halaman ini untuk
@@ -875,12 +868,9 @@ function IntroScreen({
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "36px 24px" }}>
       <p
         style={{
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 600,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
           color: "#346739",
-          opacity: 0.7,
           margin: "0 0 6px",
         }}
       >
@@ -901,22 +891,22 @@ function IntroScreen({
       {hasAttemptedBefore && (
         <div
           style={{
-            backgroundColor: "#f0faf0",
+            backgroundColor: "#f3fff1",
             borderRadius: 12,
-            border: "1.5px solid #c3e6c3",
+            border: "1.5px solid #d4e8d4",
             padding: "14px 18px",
             marginBottom: 20,
             textAlign: "center",
           }}
         >
-          <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7d5c", margin: "0 0 4px" }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#5d7c5f", margin: "0 0 4px" }}>
              Skor Awal Kamu
           </p>
           <p style={{ fontSize: 28, fontWeight: 800, color: "#1a3d1c", margin: 0 }}>
             {initialScore}/100
           </p>
           {!isFullyMastered && displayRemaining < displayTotal && (
-            <p style={{ fontSize: 12, color: "#6b8f6d", margin: "6px 0 0" }}>
+            <p style={{ fontSize: 12, color: "#5D7C5F", margin: "6px 0 0" }}>
               {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang
             </p>
           )}
@@ -927,7 +917,7 @@ function IntroScreen({
       {isFullyMastered && (
         <div
           style={{
-            backgroundColor: "#f0faf0",
+            backgroundColor: "#f3fff1",
             borderRadius: 12,
             border: "2px solid #346739",
             padding: "18px 20px",
@@ -936,9 +926,9 @@ function IntroScreen({
           }}
         >
           <p style={{ fontSize: 16, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>
-            🎉 Semua Soal Sudah Terjawab Benar!
+            Semua Soal Sudah Terjawab Benar!
           </p>
-          <p style={{ fontSize: 13, color: "#5a7d5c", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "#5d7c5f", margin: 0 }}>
             Kamu sudah menguasai seluruh materi Faktorial. Tidak ada soal yang perlu diulang.
           </p>
         </div>
@@ -953,28 +943,24 @@ function IntroScreen({
         }}
       >
         <IntroInfoCard
-          icon="⏱"
           label="Durasi"
           value="120 Menit"
           color="#346739"
           bg="#DBFFD5"
         />
         <IntroInfoCard
-          icon="📄"
           label="Jumlah Soal"
           value={`${displayRemaining} Soal`}
           color="#346739"
           bg="#DBFFD5"
         />
         <IntroInfoCard
-          icon="✍️"
           label="Jenis"
           value="Uraian"
           color="#663362"
           bg="#f3e8f2"
         />
         <IntroInfoCard
-          icon="🔒"
           label="Pengerjaan"
           value="Dapat diulang"
           color="#663362"
@@ -984,7 +970,7 @@ function IntroScreen({
 
       <div
         style={{
-          backgroundColor: "#f8fdf8",
+          backgroundColor: "#f3fff1",
           borderRadius: 12,
           border: "1px solid #d4e8d4",
           padding: "18px 20px",
@@ -997,8 +983,6 @@ function IntroScreen({
             fontWeight: 700,
             color: "#346739",
             margin: "0 0 12px",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
           }}
         >
           Petunjuk Pengerjaan
@@ -1009,7 +993,7 @@ function IntroScreen({
               key={i}
               style={{
                 fontSize: 14,
-                color: "#3b5e3d",
+                color: "#2c5830",
                 lineHeight: 1.7,
                 marginBottom: i < PETUNJUK.length - 1 ? 6 : 0,
               }}
@@ -1059,7 +1043,7 @@ function IntroScreen({
               </svg>
               Kembali ke Materi
             </Link>
-            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#5D7C5F" }}>
               Semua soal sudah dikuasai. Tidak perlu mengulang latihan.
             </p>
           </>
@@ -1086,7 +1070,7 @@ function IntroScreen({
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
-            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#5D7C5F" }}>
               Timer akan mulai berjalan setelah kamu klik tombol di atas.
             </p>
           </>
@@ -1167,7 +1151,7 @@ function ActiveScreen({
           top: 0,
           zIndex: 50,
           backgroundColor: "#fff",
-          borderBottom: "1.5px solid #e2ede2",
+          borderBottom: "1.5px solid #d4e8d4",
           paddingTop: 10,
           marginBottom: 28,
         }}
@@ -1183,21 +1167,18 @@ function ActiveScreen({
           <div>
             <p
               style={{
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 600,
                 color: "#346739",
-                opacity: 0.7,
                 margin: 0,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
               }}
             >
-              Latihan Pemahaman — Faktorial
+              Latihan Pemahaman: Faktorial
             </p>
             <p
               style={{
                 fontSize: 12,
-                color: "#6b8f6d",
+                color: "#5D7C5F",
                 margin: "2px 0 0",
               }}
             >
@@ -1244,7 +1225,7 @@ function ActiveScreen({
         <div
           style={{
             height: 3,
-            backgroundColor: "#e2ede2",
+            backgroundColor: "#d4e8d4",
             borderRadius: 99,
             overflow: "hidden",
           }}
@@ -1265,19 +1246,17 @@ function ActiveScreen({
       <div
         style={{
           marginBottom: 24,
-          backgroundColor: "#f8fdf8",
+          backgroundColor: "#f3fff1",
           borderRadius: 12,
-          border: "1px solid #e2ede2",
+          border: "1px solid #d4e8d4",
           padding: "14px 16px",
         }}
       >
         <p
           style={{
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 700,
             color: "#346739",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
             margin: "0 0 10px",
           }}
         >
@@ -1363,7 +1342,7 @@ function ActiveScreen({
               style={{
                 backgroundColor: "#fff",
                 borderRadius: 14,
-                border: `2px solid ${answered ? "#346739" : "#e2ede2"}`,
+                border: `2px solid ${answered ? "#346739" : "#d4e8d4"}`,
                 overflow: "hidden",
                 transition: "border-color 0.2s ease",
               }}
@@ -1371,7 +1350,7 @@ function ActiveScreen({
               <div
                 style={{
                   height: 4,
-                  backgroundColor: answered ? "#346739" : "#e2ede2",
+                  backgroundColor: answered ? "#346739" : "#d4e8d4",
                   transition: "background-color 0.2s ease",
                 }}
               />
@@ -1414,7 +1393,7 @@ function ActiveScreen({
                                   onUpdateAnswer(i, "jawaban_akhir", serializeSubAnswers(subParts, newSubValues));
                                 }}
                                 placeholder="tulis jawabanmu disini"
-                                className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
+                                className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
                                 style={{ fontFamily: "inherit" }}
                               />
                             </div>
@@ -1426,7 +1405,7 @@ function ActiveScreen({
                 ) : (
                   /* Standard single answer input (fallback) */
                   <div>
-                    <input id={`jawaban-akhir-${i}`} ref={(el) => integrity.registerPasteTarget(`jawaban_akhir_${qNum}`, el)} type="text" value={answers[i].jawaban_akhir} onChange={(e) => onUpdateAnswer(i, "jawaban_akhir", e.target.value)} placeholder="tulis jawabanmu disini" className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all" style={{ fontFamily: "inherit" }} />
+                    <input id={`jawaban-akhir-${i}`} ref={(el) => integrity.registerPasteTarget(`jawaban_akhir_${qNum}`, el)} type="text" value={answers[i].jawaban_akhir} onChange={(e) => onUpdateAnswer(i, "jawaban_akhir", e.target.value)} placeholder="tulis jawabanmu disini" className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all" style={{ fontFamily: "inherit" }} />
                   </div>
                 )}
               </div>
@@ -1440,7 +1419,7 @@ function ActiveScreen({
         style={{
           marginTop: 32,
           paddingTop: 20,
-          borderTop: "1.5px solid #e2ede2",
+          borderTop: "1.5px solid #d4e8d4",
         }}
       >
         {submitError && (
@@ -1480,7 +1459,7 @@ function ActiveScreen({
             <p
               style={{
                 fontSize: 13,
-                color: "#6b8f6d",
+                color: "#5D7C5F",
                 marginBottom: 12,
               }}
             >
@@ -1544,7 +1523,7 @@ function ActiveScreen({
             <p
               style={{
                 fontSize: 13,
-                color: "#6b7280",
+                color: "#6b6b66",
                 margin: "0 0 16px",
               }}
             >
@@ -1560,11 +1539,11 @@ function ActiveScreen({
                 style={{
                   padding: "10px 24px",
                   borderRadius: 8,
-                  border: "1.5px solid #d1d5db",
+                  border: "1.5px solid #c5c5c0",
                   backgroundColor: "#fff",
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#6b7280",
+                  color: "#6b6b66",
                   cursor: isSubmitting ? "not-allowed" : "pointer",
                   opacity: isSubmitting ? 0.6 : 1,
                 }}
@@ -1634,23 +1613,23 @@ function Soal4Table({
 
   return (
     <div>
-      <div style={{ border: "1.5px solid #e2ede2", borderRadius: 10, overflow: "hidden" }}>
+      <div style={{ border: "1.5px solid #d4e8d4", borderRadius: 10, overflow: "hidden" }}>
         {/* Header */}
-        <div style={{ display: "flex", backgroundColor: "#f8fdf8", borderBottom: "1.5px solid #e2ede2", fontWeight: 700, fontSize: 11, color: "#346739", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        <div style={{ display: "flex", backgroundColor: "#f3fff1", borderBottom: "1.5px solid #d4e8d4", fontWeight: 700, fontSize: 12, color: "#346739", }}>
           <div style={{ width: 36, padding: "8px 10px", textAlign: "center", flexShrink: 0 }}>No</div>
           <div style={{ flex: 1, padding: "8px 10px", minWidth: 0 }}>Pernyataan</div>
           <div style={{ width: 110, padding: "8px 10px", textAlign: "center", flexShrink: 0 }}>Benar/Salah</div>
         </div>
         {/* Rows */}
         {SOAL4_ROWS.map((row, idx) => (
-          <div key={row.key} style={{ display: "flex", borderBottom: idx < SOAL4_ROWS.length - 1 ? "1px solid #e2ede2" : "none", alignItems: "stretch" }}>
-            <div style={{ width: 36, padding: "8px 10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#2C2C2A", flexShrink: 0, borderRight: "1px solid #f0f4f0" }}>{row.key}</div>
-            <div style={{ flex: 1, padding: "8px 10px", display: "flex", alignItems: "center", fontSize: 13, color: "#2C2C2A", minWidth: 0, borderRight: "1px solid #f0f4f0", lineHeight: 1.5 }}>{row.statement}</div>
+          <div key={row.key} style={{ display: "flex", borderBottom: idx < SOAL4_ROWS.length - 1 ? "1px solid #d4e8d4" : "none", alignItems: "stretch" }}>
+            <div style={{ width: 36, padding: "8px 10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#2C2C2A", flexShrink: 0, borderRight: "1px solid #f3fff1" }}>{row.key}</div>
+            <div style={{ flex: 1, padding: "8px 10px", display: "flex", alignItems: "center", fontSize: 13, color: "#2C2C2A", minWidth: 0, borderRight: "1px solid #f3fff1", lineHeight: 1.5 }}>{row.statement}</div>
             <div style={{ width: 110, padding: "8px 8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <select
                 value={rows[idx]?.benarSalah ?? ""}
                 onChange={(e) => updateRow(idx, e.target.value)}
-                style={{ width: "100%", padding: "6px 4px", borderRadius: 6, border: "1.5px solid #e2ede2", fontSize: 12, color: "#2C2C2A", backgroundColor: "#fff", outline: "none", fontFamily: "inherit", cursor: "pointer", textAlign: "center" }}
+                style={{ width: "100%", padding: "6px 4px", borderRadius: 6, border: "1.5px solid #d4e8d4", fontSize: 12, color: "#2C2C2A", backgroundColor: "#fff", fontFamily: "inherit", cursor: "pointer", textAlign: "center" }}
               >
                 <option value="">Pilih...</option>
                 <option value="✅">✅ Benar</option>
@@ -1717,7 +1696,7 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
         <p
           style={{
             fontSize: 15,
-            color: "#5a7d5c",
+            color: "#5d7c5f",
             margin: 0,
             lineHeight: 1.7,
           }}
@@ -1730,9 +1709,9 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
         <div
           style={{
             marginTop: 20,
-            backgroundColor: "#f0faf0",
+            backgroundColor: "#f3fff1",
             borderRadius: 10,
-            border: "1px solid #c3e6c3",
+            border: "1px solid #d4e8d4",
             padding: "14px 18px",
             textAlign: "left",
           }}
@@ -1766,7 +1745,7 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
               <p
                 style={{
                   fontSize: 12,
-                  color: "#5a7d5c",
+                  color: "#5d7c5f",
                   margin: 0,
                   lineHeight: 1.6,
                 }}
@@ -1782,11 +1761,9 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
 
       <p
         style={{
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 700,
           color: "#346739",
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
           margin: "0 0 16px",
         }}
       >
@@ -1808,7 +1785,7 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
               {answers[i].cara_hitung.trim() && (
                 <div
                   style={{
-                    backgroundColor: "#f8fdf8",
+                    backgroundColor: "#f3fff1",
                     borderRadius: "8px 8px 0 0",
                     border: "1px solid #d4e8d4",
                     borderBottom: "none",
@@ -1817,11 +1794,9 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
                 >
                   <p
                     style={{
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: 700,
                       color: "#346739",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
                       margin: "0 0 4px",
                     }}
                   >
@@ -1830,7 +1805,7 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
                   <p
                     style={{
                       fontSize: 13,
-                      color: "#3b5e3d",
+                      color: "#2c5830",
                       margin: 0,
                       lineHeight: 1.6,
                       whiteSpace: "pre-wrap",
@@ -1853,7 +1828,7 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
                   question={soal.question}
                   answer={soal.answer}
                   hideCheckButton={true}
-                  value={answered ? answers[i].jawaban_akhir || "—" : "—"}
+                  value={answered ? answers[i].jawaban_akhir || "Tidak diisi" : "Tidak diisi"}
                   onChange={() => {}}
                   checked={false}
                 />
@@ -1950,7 +1925,7 @@ function ResultsScreen({
         >
           Evaluasi Gagal
         </h1>
-        <p style={{ fontSize: 14, color: "#6b7280", margin: "0 0 20px" }}>
+        <p style={{ fontSize: 14, color: "#6b6b66", margin: "0 0 20px" }}>
           {evalError}
         </p>
         <button
@@ -1989,7 +1964,7 @@ function ResultsScreen({
         : "#fff5f5";
   const scoreBorder =
     total_score >= 75
-      ? "#c3e6c3"
+      ? "#d4e8d4"
       : total_score >= 50
         ? "#fde68a"
         : "#fecaca";
@@ -2042,17 +2017,17 @@ function ResultsScreen({
           }}
         >
           {total_score >= 90
-            ? "Luar Biasa! 🎉"
+            ? "Luar Biasa!"
             : total_score >= 75
-              ? "Kerja Bagus! 👏"
+              ? "Kerja Bagus!"
               : total_score >= 50
-                ? "Lumayan! 💪"
-                : "Tetap Semangat! 📚"}
+                ? "Lumayan!"
+                : "Tetap Semangat!"}
         </h1>
         <p
           style={{
             fontSize: 13,
-            color: "#5a7d5c",
+            color: "#5d7c5f",
             margin: 0,
             lineHeight: 1.6,
             maxWidth: 500,
@@ -2070,8 +2045,6 @@ function ResultsScreen({
           fontSize: 13,
           fontWeight: 700,
           color: "#346739",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
           margin: "0 0 14px",
         }}
       >
@@ -2105,12 +2078,12 @@ function ResultsScreen({
             ? "#fff5f0"
             : hasMistake
               ? "#fff5f5"
-              : "#f0faf0";
+              : "#f3fff1";
           const itemBorder = isUnanswered
             ? "#fde68a"
             : hasMistake
               ? "#fecaca"
-              : "#c3e6c3";
+              : "#d4e8d4";
 
           return (
             <div
@@ -2182,7 +2155,7 @@ function ResultsScreen({
                   style={{
                     marginBottom: 8,
                     fontSize: 12,
-                    color: "#5a7d5c",
+                    color: "#5d7c5f",
                     lineHeight: 1.5,
                   }}
                 >
@@ -2195,13 +2168,13 @@ function ResultsScreen({
               <p
                 style={{
                   fontSize: 13,
-                  color: "#3b5e3d",
+                  color: "#2c5830",
                   margin: "0 0 8px",
                   lineHeight: 1.6,
                   fontStyle: "italic",
                 }}
               >
-                💬 {pq.feedback}
+                {pq.feedback}
               </p>
 
               {/* Mistake / Unanswered info */}
@@ -2215,7 +2188,7 @@ function ResultsScreen({
                     padding: "6px 10px",
                   }}
                 >
-                  ⚠️ <strong>{pq.mistake_category === "tidak_memadai" ? "Jawaban terlalu singkat" : "Tidak diisi"}</strong> — {pq.mistake_category === "tidak_memadai" ? "jawaban tidak cukup untuk dievaluasi, " : "soal ini dikosongkan, "}skor
+                  ⚠️ <strong>{pq.mistake_category === "tidak_memadai" ? "Jawaban terlalu singkat" : "Tidak diisi"}</strong>: {pq.mistake_category === "tidak_memadai" ? "jawaban tidak cukup untuk dievaluasi, " : "soal ini dikosongkan, "}skor
                   otomatis 0.
                 </div>
               )}

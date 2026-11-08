@@ -79,7 +79,7 @@ export function ExampleShell({
 }) {
   if (status === "locked") {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-[#34673926] bg-[#fafafa] p-4 opacity-55">
+      <div className="flex items-center gap-3 rounded-xl border border-[#34673926] bg-[#f5f5f0] p-4 opacity-55">
         <LockIcon />
         <div>
           <DifficultyBadge level={level} />

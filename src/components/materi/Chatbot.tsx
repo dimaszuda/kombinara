@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import type { SelectionContext } from "@/lib/ai/context";
 import { RichText } from "@/components/shared/RichText";
 import { markdownToHtml } from "@/lib/markdown";
+import { useDialog } from "@/hooks/useDialog";
 
 // ─── Portal Tooltip ───────────────────────────────────────────────────────────
 function PortalTooltip({
@@ -112,7 +113,7 @@ function MessageBubble({ msg }: { msg: Message }) {
           padding: "8px 12px",
           fontSize: 13,
           lineHeight: 1.55,
-          color: "#1a1a1a",
+          color: "#2c2c2a",
           maxWidth: "80%",
           wordBreak: "break-word",
           overflowWrap: "break-word",
@@ -304,9 +305,9 @@ function ChatMessages({
           >
             <span style={{ fontSize: 13, color: "#666" }}>Kombi sedang mengetik</span>
             <span style={{ display: "inline-flex", gap: 3 }}>
-              <span className="animate-bounce" style={{ animationDelay: "0ms", width: 5, height: 5, borderRadius: "50%", background: "#79AE6F", display: "inline-block" }} />
-              <span className="animate-bounce" style={{ animationDelay: "150ms", width: 5, height: 5, borderRadius: "50%", background: "#79AE6F", display: "inline-block" }} />
-              <span className="animate-bounce" style={{ animationDelay: "300ms", width: 5, height: 5, borderRadius: "50%", background: "#79AE6F", display: "inline-block" }} />
+              <span className="animate-bounce" style={{ animationDelay: "0ms", width: 5, height: 5, borderRadius: "50%", background: "#346739", display: "inline-block" }} />
+              <span className="animate-bounce" style={{ animationDelay: "150ms", width: 5, height: 5, borderRadius: "50%", background: "#346739", display: "inline-block" }} />
+              <span className="animate-bounce" style={{ animationDelay: "300ms", width: 5, height: 5, borderRadius: "50%", background: "#346739", display: "inline-block" }} />
             </span>
           </div>
         </div>
@@ -349,11 +350,12 @@ function ChatInput({
   return (
     <div style={{ padding: "12px 14px 16px", flexShrink: 0 }}>
       <div
+        className="focus-within:ring-2 focus-within:ring-[#1A3D1C]"
         style={{
           display: "flex",
           alignItems: "flex-end",
           gap: 8,
-          background: "rgba(255,255,255,0.16)",
+          background: "rgba(0,0,0,0.15)",
           border: "0.5px solid rgba(255,255,255,0.3)",
           borderRadius: 24,
           padding: "6px 6px 6px 16px",
@@ -365,6 +367,7 @@ function ChatInput({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ketik pertanyaan kamu..."
+          className="placeholder:text-white/75"
           rows={1}
           disabled={isLoading}
           style={{
@@ -413,7 +416,7 @@ function ChatInput({
           >
             <path
               d="M7 12V2M7 2L3 6M7 2L11 6"
-              stroke="#79AE6F"
+              stroke="#346739"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -438,7 +441,7 @@ function ContextBar({
       style={{
         margin: "0 12px 4px",
         padding: "8px 12px",
-        background: "rgba(255,255,255,0.18)",
+        background: "rgba(0,0,0,0.15)",
         borderRadius: 10,
         display: "flex",
         alignItems: "flex-start",
@@ -446,13 +449,13 @@ function ContextBar({
       }}
     >
       <span style={{ fontSize: 12, flex: 1, color: "rgba(255,255,255,0.9)", lineHeight: 1.4 }}>
-        📌 <strong>Konteks:</strong> &ldquo;{ctx.selectedText.length > 60 ? ctx.selectedText.slice(0, 60) + "…" : ctx.selectedText}&rdquo;
+        <strong>Konteks:</strong> &ldquo;{ctx.selectedText.length > 60 ? ctx.selectedText.slice(0, 60) + "…" : ctx.selectedText}&rdquo;
       </span>
       <button
         type="button"
         onClick={onClear}
         style={{
-          background: "rgba(0,0,0,0.15)",
+          background: "rgba(255,255,255,0.12)",
           border: "none",
           cursor: "pointer",
           padding: "3px 8px",
@@ -626,26 +629,35 @@ function AnnouncementBanner() {
     <div
       style={{
         margin: "0 12px 4px",
-        background: "rgba(255,255,255,0.16)",
+        background: "rgba(0,0,0,0.15)",
         border: "0.5px solid rgba(255,255,255,0.28)",
         borderRadius: 10,
         overflow: "hidden",
       }}
     >
       {/* Collapsed row */}
-      <div
-        onClick={() => setExpanded(!expanded)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "10px 12px",
-          cursor: "pointer",
-          userSelect: "none",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            flex: 1,
+            minWidth: 0,
+            minHeight: 44,
+            padding: 0,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            textAlign: "left",
+            font: "inherit",
+          }}
+        >
         {/* Info icon */}
-        <div
+        <span
           style={{
             width: 24,
             height: 24,
@@ -671,21 +683,20 @@ function AnnouncementBanner() {
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-        </div>
+        </span>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 12.5,
-              fontWeight: 500,
-              color: "#ffffff",
-              lineHeight: 1.4,
-            }}
-          >
-            Update kemampuan AI — sekarang lebih kontekstual
-          </p>
-        </div>
+        <span
+          style={{
+            flex: 1,
+            minWidth: 0,
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "#ffffff",
+            lineHeight: 1.4,
+          }}
+        >
+          Update kemampuan AI: sekarang lebih kontekstual
+        </span>
 
         {/* Expand/collapse chevron */}
         <svg
@@ -705,11 +716,12 @@ function AnnouncementBanner() {
         >
           <polyline points="6 9 12 15 18 9" />
         </svg>
+        </button>
 
         {/* Dismiss button */}
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
+          onClick={handleDismiss}
           aria-label="Tutup pemberitahuan"
           style={{
             background: "rgba(0,0,0,0.12)",
@@ -751,8 +763,8 @@ function AnnouncementBanner() {
             <li>Kalau kamu minta <strong>rangkuman</strong>, AI dapat merangkum materi yang telah kamu pelajari.</li>
             <li>Percakapan jadi lebih <strong>relevan dan personal</strong> karena AI tahu persis sejauh mana progress belajar kamu.</li>
           </ul>
-          <p style={{ margin: "8px 0 0", color: "rgba(255,255,255,0.6)", fontSize: 11 }}>
-            Cukup tanya seperti biasa — Kombi akan otomatis menyesuaikan jawabannya dengan materi yang sedang kamu pelajari
+          <p style={{ margin: "8px 0 0", color: "rgba(255,255,255,0.75)", fontSize: 11 }}>
+            Cukup tanya seperti biasa. Kombi akan otomatis menyesuaikan jawabannya dengan materi yang sedang kamu pelajari
           </p>
         </div>
       </div>
@@ -777,6 +789,9 @@ export default function Chatbot({
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const sidePanelRef = useRef<HTMLDivElement>(null);
+  useDialog(isOpen, () => { setHovered(false); onClose(); }, sheetRef, sidePanelRef);
 
   // Ref untuk selalu akses messages terbaru di dalam sendToAI (hindari stale closure)
   const messagesRef = useRef(messages);
@@ -1028,7 +1043,7 @@ export default function Chatbot({
             right: 14,
             top: "50%",
             transform: "translateY(-50%)",
-            background: "#79AE6F",
+            background: "#346739",
             border: "none",
             cursor: "pointer",
             padding: 0,
@@ -1070,7 +1085,7 @@ export default function Chatbot({
             bottom: 8,
             left: "50%",
             transform: "translateX(10%)",
-            background: "#79AE6F",
+            background: "#346739",
             border: "none",
             cursor: "pointer",
             padding: "12px 20px",
@@ -1126,6 +1141,10 @@ export default function Chatbot({
 
       {/* Bottom-sheet panel */}
       <div
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tanya AI"
         className="flex md:hidden"
         style={{
           position: "fixed",
@@ -1133,7 +1152,7 @@ export default function Chatbot({
           left: 0,
           right: 0,
           height: "82vh",
-          background: "#79AE6F",
+          background: "#346739",
           flexDirection: "column",
           zIndex: 1002,
           transition: "bottom 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
@@ -1273,6 +1292,9 @@ export default function Chatbot({
           DESKTOP — right-side slide-in panel
       ══════════════════════════════════════════════════════════════ */}
       <div
+        ref={sidePanelRef}
+        role="complementary"
+        aria-label="Tanya AI"
         className="hidden md:flex"
         style={{
           position: "fixed",
@@ -1280,7 +1302,7 @@ export default function Chatbot({
           right: isOpen ? 0 : -340,
           width: 320,
           height: "calc(100vh - 64px)",
-          background: "#79AE6F",
+          background: "#346739",
           flexDirection: "column",
           zIndex: 1000,
           transition: "right 0.35s cubic-bezier(0.22, 1, 0.36, 1)",

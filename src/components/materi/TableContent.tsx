@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useDialog } from "@/hooks/useDialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface TocSection {
@@ -174,11 +175,11 @@ function TocItem({
     ? "rgba(255,255,255,0.55)"
     : "rgba(255,255,255,0.15)";
 
-  const numColor = isActive ? "#4d8444" : "white";
+  const numColor = isActive ? "#346739" : isCompleted ? "#1A3D1C" : "white";
 
-  const labelOpacity = isLocked ? 0.4 : 0.93;
-  const subOpacity   = isLocked ? 0.3 : 0.62;
-  const iconOpacity  = isLocked ? 0.3 : isActive ? 1 : 0.65;
+  const labelOpacity = isLocked ? 0.75 : 0.93;
+  const subOpacity   = isLocked ? 0.75 : 0.85;
+  const iconOpacity  = isLocked ? 0.75 : isActive ? 1 : 0.65;
 
   return (
     <div
@@ -192,7 +193,7 @@ function TocItem({
         cursor: "default",
         position: "relative",
         zIndex: 1,
-        background: isActive ? "rgba(255,255,255,0.24)" : "transparent",
+        background: isActive ? "rgba(0,0,0,0.18)" : "transparent",
         transition: "background 0.18s ease",
       }}
     >
@@ -244,7 +245,7 @@ function TocItem({
       {isLocked ? (
         <i
           className="ti ti-lock"
-          style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", flexShrink: 0 }}
+          style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", flexShrink: 0 }}
           aria-hidden="true"
         />
       ) : (
@@ -379,7 +380,7 @@ function TocList({
             marginBottom: 8,
           }}
         >
-          <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 11.5 }}>
+          <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 11.5 }}>
             Progress belajar
           </span>
           <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 11.5, fontWeight: 500 }}>
@@ -439,6 +440,9 @@ export default function TableContent({
   const completedCount = countCompleted(tocSections, completedKeys);
   const [hovered, setHovered] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const sidePanelRef = useRef<HTMLDivElement>(null);
+  useDialog(isOpen, () => { setHovered(false); onClose(); }, sheetRef, sidePanelRef);
 
   const headerContent = (
     <div style={{ flexShrink: 0 }}>
@@ -511,7 +515,7 @@ export default function TableContent({
             right: 14,
             top: "50%",
             transform: "translateY(90%)",
-            background: "#79AE6F",
+            background: "#346739",
             border: "none",
             cursor: "pointer",
             padding: 0,
@@ -550,7 +554,7 @@ export default function TableContent({
             bottom: 8,
             left: "50%",
             transform: "translateX(-110%)",
-            background: "#79AE6F",
+            background: "#346739",
             border: "none",
             cursor: "pointer",
             padding: "12px 20px",
@@ -595,6 +599,10 @@ export default function TableContent({
 
       {/* MOBILE — bottom-sheet panel */}
       <div
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Daftar Isi"
         className="flex md:hidden"
         style={{
           position: "fixed",
@@ -602,7 +610,7 @@ export default function TableContent({
           left: 0,
           right: 0,
           height: "82vh",
-          background: "#79AE6F",
+          background: "#346739",
           flexDirection: "column",
           zIndex: 1002,
           transition: "bottom 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
@@ -672,6 +680,9 @@ export default function TableContent({
 
       {/* DESKTOP — right-side slide-in panel */}
       <div
+        ref={sidePanelRef}
+        role="complementary"
+        aria-label="Daftar Isi"
         className="hidden md:flex"
         style={{
           position: "fixed",
@@ -679,7 +690,7 @@ export default function TableContent({
           right: isOpen ? 0 : -340,
           width: 320,
           height: "calc(100vh - 64px)",
-          background: "#79AE6F",
+          background: "#346739",
           flexDirection: "column",
           zIndex: 1000,
           transition: "right 0.35s cubic-bezier(0.22, 1, 0.36, 1)",

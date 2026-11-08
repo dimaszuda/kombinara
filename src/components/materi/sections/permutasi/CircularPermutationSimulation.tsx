@@ -6,7 +6,7 @@ import React, { useState, useCallback, useMemo } from "react";
 const PEOPLE = [
   { id: "A", label: "Ari", color: "#346739" },
   { id: "B", label: "Budi", color: "#663362" },
-  { id: "C", label: "Cici", color: "#C44F4F" },
+  { id: "C", label: "Cici", color: "#C24949" },
   { id: "D", label: "Dani", color: "#E5A83E" },
 ] as const;
 
@@ -98,7 +98,7 @@ export default function CircularPermutationSimulation() {
     setCurrentArrangement((prev) => rotateClockwise(prev, 1));
     setRotationCount((prev) => prev + 1);
     setMessage({
-      text: "🔄 Meja diputar searah jarum jam. Susunan tempat duduk tetap SAMA — hanya sudut pandang yang berubah!",
+      text: "Meja diputar searah jarum jam. Susunan tempat duduk tetap SAMA, hanya sudut pandang yang berubah!",
       type: "info",
     });
     // Clear message after 3 seconds
@@ -109,7 +109,7 @@ export default function CircularPermutationSimulation() {
     setCurrentArrangement((prev) => rotateCounterClockwise(prev, 1));
     setRotationCount((prev) => prev - 1);
     setMessage({
-      text: "🔄 Meja diputar berlawanan jarum jam. Susunan tempat duduk tetap SAMA!",
+      text: "Meja diputar berlawanan jarum jam. Susunan tempat duduk tetap SAMA!",
       type: "info",
     });
     setTimeout(() => setMessage(null), 3500);
@@ -134,7 +134,7 @@ export default function CircularPermutationSimulation() {
     setRotationCount(0);
     setViewedArrangements((prev) => new Set([...prev, nextIdx]));
     setMessage({
-      text: `✨ Susunan berbeda #${nextIdx + 1} dari ${TOTAL_UNIQUE}! Ini benar-benar susunan BARU yang tidak bisa didapat dari rotasi susunan sebelumnya.`,
+      text: `Susunan berbeda #${nextIdx + 1} dari ${TOTAL_UNIQUE}! Ini benar-benar susunan BARU yang tidak bisa didapat dari rotasi susunan sebelumnya.`,
       type: "success",
     });
     setTimeout(() => setMessage(null), 4000);
@@ -147,7 +147,7 @@ export default function CircularPermutationSimulation() {
     setRotationCount(0);
     setViewedArrangements((prev) => new Set([...prev, prevIdx]));
     setMessage({
-      text: `✨ Susunan berbeda #${prevIdx + 1} dari ${TOTAL_UNIQUE}!`,
+      text: `Susunan berbeda #${prevIdx + 1} dari ${TOTAL_UNIQUE}!`,
       type: "success",
     });
     setTimeout(() => setMessage(null), 4000);
@@ -158,7 +158,7 @@ export default function CircularPermutationSimulation() {
     setRotationCount(0);
     setViewedArrangements((prev) => new Set([...prev, idx]));
     setMessage({
-      text: `📌 Loncat ke susunan berbeda #${idx + 1}.`,
+      text: `Loncat ke susunan berbeda #${idx + 1}.`,
       type: "info",
     });
     setTimeout(() => setMessage(null), 2500);
@@ -180,14 +180,14 @@ export default function CircularPermutationSimulation() {
   // ── Render ───────────────────────────────────────────────────────
 
   return (
-    <div className="rounded-xl border border-[#34673933] bg-[#F7FAF6] p-4 md:p-5">
+    <div className="rounded-xl border border-[#34673933] bg-[#F3FFF1] p-4 md:p-5">
       {/* Header */}
       <div className="flex flex-col gap-2 border-b border-[#34673926] pb-4">
         <span className="text-xs font-medium text-[#663362]">
-          🔵 Simulasi Permutasi Siklis
+          Simulasi Permutasi Siklis
         </span>
         <h4 className="text-lg font-semibold text-[#346739]">
-          Susunan Duduk Melingkar — OSIS Rapat!
+          Susunan Duduk Melingkar: OSIS Rapat!
         </h4>
         <p className="max-w-2xl text-sm leading-relaxed text-[#2C2C2A]">
           Ari, Budi, Cici, dan Dani duduk mengelilingi meja bundar.
@@ -211,7 +211,7 @@ export default function CircularPermutationSimulation() {
                 cx={CENTER}
                 cy={CENTER}
                 r={TABLE_RADIUS}
-                fill="#F0EDE8"
+                fill="#F5F5F0"
                 stroke="#34673933"
                 strokeWidth="2"
               />
@@ -265,7 +265,7 @@ export default function CircularPermutationSimulation() {
                       width={32}
                       height={14}
                       rx={4}
-                      fill="#F5F0EB"
+                      fill="#F5F5F0"
                       stroke="#34673933"
                       strokeWidth="1"
                     />
@@ -335,7 +335,7 @@ export default function CircularPermutationSimulation() {
           {/* Controls */}
           <div className="rounded-xl border border-[#34673933] bg-white p-4">
             <p className="mb-3 text-xs font-medium text-[#663362]">
-              🎮 Kontrol Simulasi
+              Kontrol Simulasi
             </p>
 
             {/* Rotation buttons */}
@@ -396,9 +396,9 @@ export default function CircularPermutationSimulation() {
             {/* Rotation counter */}
             {rotationCount !== 0 && (
               <div className="mt-3 rounded-lg border border-[#E5A83E33] bg-[#E5A83E08] px-3 py-2">
-                <p className="text-xs text-[#B07D20]">
+                <p className="text-xs text-[#90661A]">
                   ⚠️ Meja sudah diputar {Math.abs(rotationCount)}×. Susunan ini{" "}
-                  <b>sama</b> dengan susunan unik #{currentUniqueIndex >= 0 ? currentUniqueIndex + 1 : "?"} —
+                  <b>sama</b> dengan susunan unik #{currentUniqueIndex >= 0 ? currentUniqueIndex + 1 : "?"},
                   hanya sudut pandang yang berbeda!
                 </p>
               </div>
@@ -421,7 +421,7 @@ export default function CircularPermutationSimulation() {
                   message.type === "success"
                     ? "text-[#346739]"
                     : message.type === "warning"
-                      ? "text-[#B07D20]"
+                      ? "text-[#90661A]"
                       : "text-[#663362]"
                 }`}
               >
@@ -434,7 +434,6 @@ export default function CircularPermutationSimulation() {
           {allViewed && (
             <div className="rounded-xl border-2 border-[#346739] bg-[#DBFFD5]/20 p-5">
               <div className="mb-3 flex items-center gap-2">
-                <span className="text-2xl">🎉</span>
                 <h4 className="text-lg font-bold text-[#346739]">
                   Kamu sudah melihat semua {TOTAL_UNIQUE} susunan berbeda!
                 </h4>
@@ -501,7 +500,7 @@ export default function CircularPermutationSimulation() {
                 onClick={handleResetAll}
                 className="mt-4 rounded-full border border-[#34673933] bg-white px-6 py-3 text-sm font-medium text-[#346739] transition-colors hover:bg-[#34673908] active:scale-95"
               >
-                🔄 Coba Lagi dari Awal
+                Coba Lagi dari Awal
               </button>
             </div>
           )}
@@ -517,7 +516,7 @@ export default function CircularPermutationSimulation() {
             <div className="mt-2 space-y-2 text-xs leading-relaxed text-[#2C2C2A]">
               <p>
                 <b>Linear (berjajar):</b> 4! ={" "}
-                <span className="font-bold text-[#C44F4F]">24</span> cara
+                <span className="font-bold text-[#C24949]">24</span> cara
               </p>
               <p>
                 <b>Siklis (melingkar):</b> (4−1)! ={" "}
@@ -595,9 +594,9 @@ export default function CircularPermutationSimulation() {
           </div>
 
           {/* Formula hint */}
-          <div className="rounded-xl border border-[#34673933] bg-[#F8FBF7] p-4">
+          <div className="rounded-xl border border-[#34673933] bg-[#F3FFF1] p-4">
             <p className="text-xs font-medium text-[#346739]">
-              📐 Rumus
+              Rumus
             </p>
             <p className="mt-2 text-center font-mono text-lg font-bold text-[#346739]">
               P<sub>siklis</sub> = (n − 1)!

@@ -282,7 +282,7 @@ export function useIntegrityMonitor({
           if (fsExitTimeRef.current !== null) {
             setActiveToast({
               message:
-                "Aktivitas terdeteksi — tercatat untuk ditinjau guru.",
+                "Aktivitas terdeteksi dan tercatat untuk ditinjau guru.",
               timestamp: Date.now(),
             });
           }
@@ -360,7 +360,7 @@ export function useIntegrityMonitor({
         if (durationMs >= TOAST_THRESHOLD_MS) {
           setActiveToast({
             message:
-              "Aktivitas terdeteksi — tercatat untuk ditinjau guru.",
+              "Aktivitas terdeteksi dan tercatat untuk ditinjau guru.",
             timestamp: Date.now(),
           });
         }

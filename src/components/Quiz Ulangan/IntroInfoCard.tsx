@@ -7,7 +7,6 @@ import React from "react";
 // ============================================================================
 
 interface IntroInfoCardProps {
-  icon: string;
   label: string;
   value: string;
   color: string;
@@ -15,7 +14,6 @@ interface IntroInfoCardProps {
 }
 
 export default function IntroInfoCard({
-  icon,
   label,
   value,
   color,
@@ -29,15 +27,11 @@ export default function IntroInfoCard({
         padding: "14px 16px",
       }}
     >
-      <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
       <div
         style={{
-          fontSize: 10,
+          fontSize: 12,
           color,
-          fontWeight: 700,
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
-          opacity: 0.7,
+          fontWeight: 600,
         }}
       >
         {label}

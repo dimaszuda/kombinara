@@ -169,7 +169,7 @@ function SectionProgress({
             <React.Fragment key={i}>
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${
-                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"
+                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"
                 }`}
                 title={SECTION_LABELS[i]}
               >
@@ -261,7 +261,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
 
       if (!jawaban || !alasan.trim()) {
         newFeedback["situasi1"] = "Jawaban belum terisi, harap jawab dulu pertanyaan ini!";
-        newColor["situasi1"] = "text-red-500";
+        newColor["situasi1"] = "text-danger-strong";
         setFeedback(newFeedback);
         setTextColor(newColor);
         setIsChecking(false);
@@ -329,51 +329,51 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
             <div className="overflow-x-auto rounded-xl border border-[#34673926]">
             <table className="w-full table-fixed border-collapse text-sm">
                 <thead>
-                    <tr className="bg-[#B8E6BC]">
-                        <th className="px-3 py-2.5 text-left font-semibold text-gray-600 w-1/4">
+                    <tr className="bg-[#D4E8D4]">
+                        <th className="px-3 py-2.5 text-left font-semibold text-muted w-1/4">
                             Kemeja
                         </th>
-                        <th className="px-3 py-2.5 text-left font-semibold text-gray-600 w-1/4">
+                        <th className="px-3 py-2.5 text-left font-semibold text-muted w-1/4">
                             Celana/Rok
                         </th>
-                        <th className="px-3 py-2.5 text-left font-semibold text-gray-600 w-1/2">
+                        <th className="px-3 py-2.5 text-left font-semibold text-muted w-1/2">
                             Kombinasi
                         </th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-[#34673915]">
                     <tr>
-                        <td className="px-3 py-2.5 text-gray-700">Putih</td>
-                        <td className="px-3 py-2.5 text-gray-700">Hitam</td>
-                        <td className="px-3 py-2.5 text-gray-700">(Putih, Hitam)</td>
+                        <td className="px-3 py-2.5 text-ink">Putih</td>
+                        <td className="px-3 py-2.5 text-ink">Hitam</td>
+                        <td className="px-3 py-2.5 text-ink">(Putih, Hitam)</td>
                     </tr>
                     <tr>
-                        <td className="px-3 py-2.5 text-gray-700">Putih</td>
-                        <td className="px-3 py-2.5 text-gray-700">Navy</td>
-                        <td className="px-3 py-2.5 text-gray-700">(Putih, Navy)</td>
+                        <td className="px-3 py-2.5 text-ink">Putih</td>
+                        <td className="px-3 py-2.5 text-ink">Navy</td>
+                        <td className="px-3 py-2.5 text-ink">(Putih, Navy)</td>
                     </tr>
                     <tr>
-                        <td className="px-3 py-2.5 text-gray-700">Biru</td>
-                        <td className="px-3 py-2.5 text-gray-700">Hitam</td>
+                        <td className="px-3 py-2.5 text-ink">Biru</td>
+                        <td className="px-3 py-2.5 text-ink">Hitam</td>
                         <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="kombinasi 3"
                                 placeholder="(..., ...)"
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                     </tr>
                     <tr>
-                        <td className="px-3 py-2.5 text-gray-700">Biru</td>
+                        <td className="px-3 py-2.5 text-ink">Biru</td>
                         <td className="px-3 py-2.5">
                             <input
                                 type="text"
                                 name="Celana/Rok 4"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                         <td className="px-3 py-2.5">
@@ -382,7 +382,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
                                 name="kombinasi 4"
                                 placeholder="(..., ...)"
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                     </tr>
@@ -393,7 +393,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
                                 name="Kemeja 5"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                         <td className="px-3 py-2.5">
@@ -402,7 +402,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
                                 name="Celana/Rok 5"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                         <td className="px-3 py-2.5">
@@ -411,7 +411,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
                                 name="kombinasi 5"
                                 placeholder="(..., ...)"
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                     </tr>
@@ -422,7 +422,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
                                 name="Kemeja 6"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                         <td className="px-3 py-2.5">
@@ -431,7 +431,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
                                 name="Celana/Rok 6"
                                 placeholder="..."
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                         <td className="px-3 py-2.5">
@@ -440,7 +440,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
                                 name="kombinasi 6"
                                 placeholder="(..., ...)"
                                 disabled={readOnly}
-                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                                className={`w-full rounded-md border border-[#34673933] px-2 py-1.5 text-xs placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default" : ""}`}
                             />
                         </td>
                     </tr>
@@ -454,22 +454,22 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
                 <ToggleButton label="Tidak" active={choice2 === "no"} onClick={() => !readOnly && setChoice2("no")} disabled={readOnly} />
             </div>
             <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#663362]">
+                <label htmlFor="perkalian-alasan-1" className="mb-1.5 block text-xs font-medium text-[#663362]">
                     Mengapa bisa begitu? Jelaskan!
                 </label>
-                <textarea
+                <textarea id="perkalian-alasan-1"
                     placeholder="Ceritakan alasanmu..."
                     value={reasoning1}
                     onChange={(e) => setReasoning1(e.target.value)}
                     disabled={readOnly}
-                    className={`w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] cursor-default resize-none" : ""}`}
+                    className={`w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] cursor-default resize-none" : ""}`}
                 />
             </div>
 
             {/* AI Feedback */}
             {feedback["situasi1"] && (
               <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
-                <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+                <p className="mb-1 text-xs font-medium text-[#663362]">Feedback Kombi</p>
                 <RichText className={`text-sm leading-relaxed ${textColor["situasi1"] || "text-[#2C2C2A]"}`}>
                   {feedback["situasi1"]}
                 </RichText>
@@ -690,7 +690,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
       {/* ============ SECTION 1: PENGISIAN TEMPAT ============ */}
       <SectionLabel>🔍 Visualisasi: Aturan Pengisian Tempat</SectionLabel>
 
-      <p className="text-slate-700 leading-relaxed mb-3">
+      <p className="text-ink leading-relaxed mb-3">
         Sebelum masuk ke prinsip umumnya, mari kita &ldquo;lihat&rdquo; kaidah perkalian secara konkret.
         Bayangkan setiap tahap keputusan sebagai sebuah kotak tempat yang harus diisi satu per satu.
       </p>
@@ -698,33 +698,33 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
       <p className="font-semibold mb-1" style={{ color: C.purple }}>
         Contoh: Kode PIN 3 digit dari angka 1–5 tanpa pengulangan.
       </p>
-      <p className="text-slate-700 mb-3">Perhatikan ilustrasi berikut!</p>
+      <p className="text-ink mb-3">Perhatikan ilustrasi berikut!</p>
 
       <ul className="space-y-2.5 mb-4 pl-1">
-        <li className="text-slate-700 leading-relaxed">
+        <li className="text-ink leading-relaxed">
           <span style={{ color: C.green }} className="font-bold mr-1">•</span>
           Digit ke-1 ada angka 1, 2, 3, 4, 5 yang bisa digunakan, misal kamu pilih angka 5 untuk
           digit ke-1, sisa angka ada berapa?
           <InputBlank answer={4} disabled={readOnly} onChange={(v, ok) => recordInline("sisa_angka_1", v, ok)} />
         </li>
-        <li className="text-slate-700 leading-relaxed">
+        <li className="text-ink leading-relaxed">
           <span style={{ color: C.green }} className="font-bold mr-1">•</span>
           Digit ke-2 berarti masih ada 4 angka yaitu 1, 2, 3, 4 yang bisa digunakan, misal kamu
           pilih angka 1, sisa angka ada berapa?
           <InputBlank answer={3} disabled={readOnly} onChange={(v, ok) => recordInline("sisa_angka_2", v, ok)} />
         </li>
-        <li className="text-slate-700 leading-relaxed">
+        <li className="text-ink leading-relaxed">
           <span style={{ color: C.green }} className="font-bold mr-1">•</span>
           Digit ke-3 berarti tinggal 3 angka yang bisa dipilih yaitu 2, 3, 4.
         </li>
       </ul>
 
-      <p className="text-slate-700 mb-2">
+      <p className="text-ink mb-2">
         Coba masukkan ilustrasi ke kerangka perhitungan berupa pengisian tempat berikut!
       </p>
 
       <div className="space-y-2 mb-2">
-        <p className="text-slate-700">
+        <p className="text-ink">
           Kotak ke-1 = Digit ke-1, ada berapa kemungkinan angka yang bisa dipakai?
           <input
             type="text"
@@ -740,10 +740,10 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             style={{
               borderColor: kotakChecked[0]
                 ? (kotak[0].trim() === expectedKotak[0] ? C.green : C.wrong)
-                : "#94a3b8",
+                : "#6B6B66",
               color: C.green,
             }}
-            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
+            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none focus:ring-2 focus:ring-[#663362]"
           />
           {kotakChecked[0] && kotak[0].trim() === expectedKotak[0] && (
             <span className="text-xs font-semibold ml-1" style={{ color: C.green }}>Kerja bagus!</span>
@@ -752,7 +752,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             <span className="text-xs font-medium ml-1" style={{ color: C.wrong }}>Jawaban: {expectedKotak[0]}</span>
           )}
         </p>
-        <p className="text-slate-700">
+        <p className="text-ink">
           Kotak ke-2 = Digit ke-2, ada berapa kemungkinan angka yang bisa dipakai?
           <input
             type="text"
@@ -768,12 +768,12 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             style={{
               borderColor: kotakChecked[1]
                 ? (kotak[1].trim() === expectedKotak[1] ? C.green : C.wrong)
-                : "#94a3b8",
+                : "#6B6B66",
               color: C.green,
             }}
-            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
+            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none focus:ring-2 focus:ring-[#663362]"
           />
-          <span className="text-slate-500"> (Ingat: satu angka sudah dipakai)</span>
+          <span className="text-muted"> (Ingat: satu angka sudah dipakai)</span>
           {kotakChecked[1] && kotak[1].trim() === expectedKotak[1] && (
             <span className="text-xs font-semibold ml-1" style={{ color: C.green }}>Kerja bagus!</span>
           )}
@@ -781,7 +781,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             <span className="text-xs font-medium ml-1" style={{ color: C.wrong }}>Jawaban: {expectedKotak[1]}</span>
           )}
         </p>
-        <p className="text-slate-700">
+        <p className="text-ink">
           Kotak ke-3 = Digit ke-3, ada berapa kemungkinan angka yang bisa dipakai?
           <input
             type="text"
@@ -797,12 +797,12 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             style={{
               borderColor: kotakChecked[2]
                 ? (kotak[2].trim() === expectedKotak[2] ? C.green : C.wrong)
-                : "#94a3b8",
+                : "#6B6B66",
               color: C.green,
             }}
-            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none"
+            className="border-2 rounded-md px-2 py-0.5 w-14 text-center font-semibold text-sm mx-1 focus:outline-none focus:ring-2 focus:ring-[#663362]"
           />
-          <span className="text-slate-500"> (Ingat: 2 angka sudah dipakai)</span>
+          <span className="text-muted"> (Ingat: 2 angka sudah dipakai)</span>
           {kotakChecked[2] && kotak[2].trim() === expectedKotak[2] && (
             <span className="text-xs font-semibold ml-1" style={{ color: C.green }}>Kerja bagus!</span>
           )}
@@ -810,7 +810,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             <span className="text-xs font-medium ml-1" style={{ color: C.wrong }}>Jawaban: {expectedKotak[2]}</span>
           )}
         </p>
-        <p className="text-slate-700">
+        <p className="text-ink">
           Jadi berapa kemungkinan PIN yang bisa dibentuk?
           <InputBlank answer={60} width={64} disabled={readOnly} onChange={(v, ok) => recordInline("total_pin", v, ok)} />
         </p>
@@ -818,7 +818,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
 
       <KotakPengisian values={kotak} labels={["Kotak ke-1", "Kotak ke-2", "Kotak ke-3"]} />
 
-      <p className="text-slate-700 leading-relaxed">
+      <p className="text-ink leading-relaxed">
         Inilah cara paling mudah &ldquo;melihat&rdquo; kaidah perkalian secara visual. Kamu cukup menggambar
         kotak sejumlah tahap, lalu isi banyaknya pilihan di tiap kotak, kemudian kalikan semuanya.
       </p>
@@ -840,7 +840,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
       <section className="bg-white rounded-2xl border-2 p-5 sm:p-7 mt-8" style={{ borderColor: C.greenLight }}>
         <SectionLabel>🔍 Eksplorasi: Diagram Pohon Keputusan</SectionLabel>
  
-        <p className="text-slate-700 leading-relaxed mb-4">
+        <p className="text-ink leading-relaxed mb-4">
           Di kantin sekolahmu tersedia 2 menu makanan yaitu soto dan sop serta 3 menu minuman yaitu
           es teh, es jeruk, es buah. Kamu ingin memesan menu paketan di kantin. Berapa macam menu
           paketan yang bisa kamu pesan?
@@ -849,12 +849,12 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
         <PohonKeputusan />
  
         <div className="space-y-3 mt-4">
-          <p className="text-slate-700">
+          <p className="text-ink">
             Hitung cabang paling ujung: ada berapa?
             <InputBlank answer={6} disabled={readOnly} onChange={(v, ok) => recordInline("cabang_ujung", v, ok)} />
           </p>
  
-          <p className="text-slate-700 leading-relaxed">
+          <p className="text-ink leading-relaxed">
             Coba perhatikan! Ketika kamu memesan menu paketan, kamu memesan
             <ChoiceToggle
               options={["makanan dan minuman", "makanan atau minuman"]}
@@ -864,12 +864,12 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             />
           </p>
  
-          <p className="text-slate-700">
+          <p className="text-ink">
             Kata kunci yang kamu pegang apa?
             <ChoiceToggle options={["dan", "atau"]} correct="dan" disabled={readOnly} onChange={(v, ok) => recordInline("kata_kunci", v, ok)} />
           </p>
  
-          <p className="text-slate-700">
+          <p className="text-ink">
             Jadi ada berapa menu paketan yang bisa kamu pesan?
             <input
               type="text"
@@ -877,8 +877,8 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
               value={makananInput}
               onChange={(e) => setMakananInput(e.target.value)}
               disabled={readOnly}
-              style={{ color: C.green, borderColor: "#94a3b8" }}
-              className="border-2 rounded-md px-2 py-0.5 w-11 text-center font-semibold text-sm mx-1 focus:outline-none"
+              style={{ color: C.green, borderColor: "#6B6B66" }}
+              className="border-2 rounded-md px-2 py-0.5 w-11 text-center font-semibold text-sm mx-1 focus:outline-none focus:ring-2 focus:ring-[#663362]"
             /> (makanan) ×
             <input
               type="text"
@@ -886,12 +886,12 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
               value={minumanInput}
               onChange={(e) => setMinumanInput(e.target.value)}
               disabled={readOnly}
-              style={{ color: C.green, borderColor: "#94a3b8" }}
-              className="border-2 rounded-md px-2 py-0.5 w-11 text-center font-semibold text-sm mx-1 focus:outline-none"
+              style={{ color: C.green, borderColor: "#6B6B66" }}
+              className="border-2 rounded-md px-2 py-0.5 w-11 text-center font-semibold text-sm mx-1 focus:outline-none focus:ring-2 focus:ring-[#663362]"
             /> (minuman) =
             <InputBlank answer={6} width={44} disabled={readOnly} onChange={(v, ok) => recordInline("total_paketan", v, ok)} />
           </p>
-          <p className="text-slate-500 text-sm italic">Sebutkan!</p>
+          <p className="text-muted text-sm italic">Sebutkan!</p>
         </div>
  
         <div
@@ -903,7 +903,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             <p className="font-bold mb-1" style={{ color: C.purple }}>
               Apa yang kamu simpulkan?
             </p>
-            <p className="text-slate-700">Apakah ini sama dengan aturan penjumlahan?</p>
+            <p className="text-ink">Apakah ini sama dengan aturan penjumlahan?</p>
             <div className="mt-2 flex items-center gap-4 border-t border-[#34673926] pt-4">
               <textarea
                 placeholder="Tulis jawabanmu di sini..."
@@ -920,7 +920,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
                   }
                 }}
                 style={{ borderColor: C.purple, color: C.green }}
-                className={`flex-1 border-2 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none ${readOnly || simpulanSubmitted ? "bg-[#F5F5F0] cursor-default" : ""}`}
+                className={`flex-1 border-2 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] resize-none ${readOnly || simpulanSubmitted ? "bg-[#F5F5F0] cursor-default" : ""}`}
               />
               {!readOnly && (
               <button
@@ -957,14 +957,14 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
                     ? "border-[#34673933] bg-[#DBFFD5]/50"
                     : dlFeedbackType === "retry"
                     ? "border-[#FFB34733] bg-[#FFF3E0]/50"
-                    : "border-[#EF444433] bg-[#FEF2F2]/50"
+                    : "border-[#EF444433] bg-[#FFF5F5]/50"
                 }`}
               >
                 <p className="mb-1 text-xs font-medium text-[#663362]">
                   {dlFeedbackType === "success"
                     ? "✅ Feedback Kombi"
                     : dlFeedbackType === "retry"
-                    ? "💬 Feedback Kombi — Yuk diperbaiki!"
+                    ? "Feedback Kombi: Yuk diperbaiki!"
                     : "⚠️ Ups, ada kendala"}
                 </p>
                 <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">
@@ -987,7 +987,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
             {simpulanSubmitted && (
               <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
                 <p className="text-sm leading-relaxed text-[#2C2C2A]">
-                  Jawaban kamu sudah benar dan tersimpan! Lanjut ke bagian berikutnya ya. 🎉
+                  Jawaban kamu sudah benar dan tersimpan! Lanjut ke bagian berikutnya ya.
                 </p>
               </div>
             )}
@@ -1107,7 +1107,7 @@ function PenjelasanKonsep({ onNext, conceptId }: ReadOnlySectionProps & { concep
       </div>
       {onNext && <NextButton onClick={handleLanjutkan} />}
       {error && (
-        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+        <p className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-3 text-sm text-[#C24949]">
           ⚠️ {error}
         </p>
       )}
@@ -1264,7 +1264,7 @@ function ContohSoal({ onComplete, readOnly = false, savedData }: SectionProps & 
 
       {passedCount === TOTAL && (
         <div className="mb-6 rounded-xl bg-[#346739] px-5 py-4 text-center text-white font-semibold text-base">
-          🎉 Semua contoh soal selesai! Kamu sudah menguasai Kaidah Perkalian.
+          Semua contoh soal selesai! Kamu sudah menguasai Kaidah Perkalian.
         </div>
       )}
 
@@ -1276,7 +1276,7 @@ function ContohSoal({ onComplete, readOnly = false, savedData }: SectionProps & 
           title="Contoh 1: Pelat Nomor Kendaraan 📝"
           illustrationSrc="/images/plat.png"
           illustrationAlt="Ilustrasi pelat nomor kendaraan"
-          lockedHint="Contoh 1: Pelat Nomor Kendaraan — selesaikan contoh sebelumnya dulu"
+          lockedHint="Contoh 1: Pelat Nomor Kendaraan (selesaikan contoh sebelumnya dulu)"
           onCheck={() => check(0, EXPECTED_PLAT, values1, setResults1, setFeedback1)}
           feedback={feedback1}
         >
@@ -1294,7 +1294,7 @@ function ContohSoal({ onComplete, readOnly = false, savedData }: SectionProps & 
           title="Contoh 2: Kode PIN 4 Digit 📝"
           illustrationSrc="/illustrations/kaidah-perkalian/pin.svg"
           illustrationAlt="Ilustrasi kode PIN 4 digit"
-          lockedHint="Contoh 2: Kode PIN 4 Digit — selesaikan Contoh 1 dulu"
+          lockedHint="Contoh 2: Kode PIN 4 Digit (selesaikan Contoh 1 dulu)"
           onCheck={() => check(1, EXPECTED_PIN, values2, setResults2, setFeedback2)}
           feedback={feedback2}
         >
@@ -1312,7 +1312,7 @@ function ContohSoal({ onComplete, readOnly = false, savedData }: SectionProps & 
           title="Contoh 3: Foto Berjajar dengan Syarat 📝"
           illustrationSrc="/illustrations/kaidah-perkalian/foto-berjajar.svg"
           illustrationAlt="Ilustrasi orang berjajar untuk foto"
-          lockedHint="Contoh 3: Foto Berjajar — selesaikan Contoh 2 dulu"
+          lockedHint="Contoh 3: Foto Berjajar (selesaikan Contoh 2 dulu)"
           onCheck={() => check(2, EXPECTED_FOTO, values3, setResults3, setFeedback3)}
           feedback={feedback3}
         >
@@ -1330,7 +1330,7 @@ function ContohSoal({ onComplete, readOnly = false, savedData }: SectionProps & 
           title="Contoh 4: Menu Restoran 📝"
           illustrationSrc="/illustrations/kaidah-perkalian/menu-restoran.svg"
           illustrationAlt="Ilustrasi pilihan menu restoran"
-          lockedHint="Contoh 4: Menu Restoran — selesaikan Contoh 3 dulu"
+          lockedHint="Contoh 4: Menu Restoran (selesaikan Contoh 3 dulu)"
           onCheck={() => check(3, EXPECTED_MENU, values4, setResults4, setFeedback4)}
           feedback={feedback4}
         >
@@ -1348,7 +1348,7 @@ function ContohSoal({ onComplete, readOnly = false, savedData }: SectionProps & 
           title="Contoh 5: Bilangan Ganjil 3 Digit < 600 📝"
           illustrationSrc="/illustrations/kaidah-perkalian/bilangan-ganjil.svg"
           illustrationAlt="Ilustrasi bilangan tiga digit"
-          lockedHint="Contoh 5: Bilangan Ganjil 3 Digit — selesaikan Contoh 4 dulu"
+          lockedHint="Contoh 5: Bilangan Ganjil 3 Digit (selesaikan Contoh 4 dulu)"
           onCheck={() => check(4, EXPECTED_BILANGAN, values5, setResults5, setFeedback5)}
           feedback={feedback5}
         >
@@ -1384,7 +1384,7 @@ function AktivitasSiswa({ onNext }: ReadOnlySectionProps) {
       <SectionBadge>Aktivitas Siswa</SectionBadge>
       <div className="mt-6 flex items-start gap-3.5 rounded-2xl bg-[#663362] p-5">
         <p className="text-xl leading-relaxed text-white">
-          🧾 JANGAN LUPA kerjakan aktivitas kamu di halaman Aktivitas yang ada di panel sebelah kiri ya! 
+          JANGAN LUPA kerjakan aktivitas kamu di halaman Aktivitas yang ada di panel sebelah kiri ya! 
         </p>
       </div>
       {onNext && <NextButton onClick={onNext} label="Aku sudah mengerjakan aktivitas" />}
@@ -1572,7 +1572,7 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
       setFeedbackMap((prev) => ({
         ...prev,
         [stepIndex]: {
-          text: "Tulis jawabanmu dulu ya! 📝",
+          text: "Tulis jawabanmu dulu ya!",
           isCorrect: false,
         },
       }));
@@ -1640,21 +1640,21 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
                 key={i}
                 className="rounded-2xl border border-[#34673920] bg-[#DBFFD5] p-4"
               >
-                <label className="mb-2 flex items-start gap-2.5">
+                <div className="mb-2 flex items-start gap-2.5">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-[#DBFFD5]">
                     {i + 1}
                   </span>
                   <span className="text-sm font-medium leading-snug text-[#2C2C2A]">
                     {q.soal}
                   </span>
-                </label>
+                </div>
                 <div className="w-full resize-y rounded-xl border border-[#34673930] bg-white px-4 py-3 text-sm leading-relaxed text-[#6B6B66]">
                   {answers[i]}
                 </div>
                 {fb && (
                   <div className="mt-2 rounded-lg border border-[#66336233] bg-[#66336208] p-2.5">
                     <p className="mb-0.5 text-xs font-medium text-[#663362]">
-                      💬 Feedback Kombi
+                      Feedback Kombi
                     </p>
                     <p className="text-sm leading-relaxed text-[#2C2C2A]">
                       {fb.text}
@@ -1670,7 +1670,7 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">
-              🎉 Refleksi selesai!
+              Refleksi selesai!
             </p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
               Kamu sudah menyelesaikan semua pertanyaan refleksi. Pemahamanmu
@@ -1720,7 +1720,7 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
                       ? "text-white"
                       : isActive
                         ? "text-[#346739]"
-                        : "text-[#9E9D99]"
+                        : "text-[#6B6B66]"
                   }`}
                   title={isLocked ? "Terkunci" : `Pertanyaan ${i + 1}`}
                 >
@@ -1754,7 +1754,7 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
               key={i}
               className="rounded-2xl border border-[#34673920] bg-[#DBFFD5] p-4"
             >
-              <label className="mb-2 flex items-start gap-2.5">
+              <label htmlFor={`perkalian-refleksi-${i}`} className="mb-2 flex items-start gap-2.5">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-[#DBFFD5]">
                   {i + 1}
                 </span>
@@ -1763,12 +1763,13 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
                 </span>
               </label>
               <textarea
+                id={`perkalian-refleksi-${i}`}
                 value={answers[i]}
                 onChange={(e) => updateAnswer(i, e.target.value)}
                 placeholder="Tuliskan jawabanmu di sini..."
                 rows={3}
                 disabled={isCompleted || readOnly}
-                className={`w-full resize-y rounded-xl border border-[#34673930] bg-white px-4 py-3 text-sm leading-relaxed text-[#2C2C2A] placeholder:text-[#34673966] focus:border-[#346739] focus:outline-none focus:ring-2 focus:ring-[#34673920] ${
+                className={`w-full resize-y rounded-xl border border-[#34673930] bg-white px-4 py-3 text-sm leading-relaxed text-[#2C2C2A] placeholder:text-[#6B6B66] focus:border-[#346739] focus:outline-none focus:ring-2 focus:ring-[#34673920] ${
                   isCompleted || readOnly
                     ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none"
                     : ""
@@ -1777,7 +1778,7 @@ function RefleksiMini({ onComplete, readOnly = false, savedData }: SectionProps 
               {fb && (
                 <div className="mt-2 rounded-lg border border-[#66336233] bg-[#66336208] p-2.5">
                   <p className="mb-0.5 text-xs font-medium text-[#663362]">
-                    💬 Feedback Kombi
+                    Feedback Kombi
                   </p>
                   <RichText className="text-sm leading-relaxed text-[#2C2C2A]">
                     {fb.text}
@@ -1894,7 +1895,7 @@ function CollapsibleJawabanSection({
 
   // Jawaban not yet fetched -- show collapsed view with button
   return (
-    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F5F5F0] p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">

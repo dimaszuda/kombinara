@@ -519,7 +519,7 @@ export function ExampleBilangan({
             <tbody>
               <tr className="bg-[#DBFFD5]/40 text-xs text-[#346739] font-medium">
                 <td className="px-3 py-1.5">{"< 6"}</td>
-                <td className="px-3 py-1.5">—</td>
+                <td className="px-3 py-1.5">-</td>
                 <td className="px-3 py-1.5">ganjil</td>
               </tr>
               <tr>
@@ -616,7 +616,7 @@ export function ExampleBilangan({
                 <tr className="text-xs text-[#34673999]">
                   <td className="px-3 py-1.5">{"{3,5}"}</td>
                   <td className="px-3 py-1.5"></td>
-                  <td className="px-3 py-1.5">—</td>
+                  <td className="px-3 py-1.5">-</td>
                 </tr>
               </tbody>
             </table>
@@ -657,7 +657,7 @@ export function ExampleBilangan({
         <textarea
           placeholder="Tulis jawabanmu di sini..."
           rows={3}
-          className="w-full resize-y rounded-xl border border-[#34673933] bg-white px-4 py-3 text-sm placeholder:text-[#34673966] focus:outline-none"
+          className="w-full resize-y rounded-xl border border-[#34673933] bg-white px-4 py-3 text-sm placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362]"
         />
       </div>
 

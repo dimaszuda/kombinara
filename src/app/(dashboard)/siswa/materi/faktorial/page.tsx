@@ -16,7 +16,7 @@ const FAKTORIAL_TOC: TocSection[] = [
   {
     key: "faktorial",
     label: "Faktorial",
-    sub: "Notasi perkalian berurutan — dasar permutasi & kombinasi",
+    sub: "Notasi perkalian berurutan, dasar permutasi & kombinasi",
     icon: "ti-math",
     children: [
       { key: "faktorial-1", label: "Eksplorasi Kontekstual", sub: "Temukan pola dari situasi nyata", icon: "ti-search" },

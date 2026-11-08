@@ -12,8 +12,8 @@
  * - percentage: 0–100 number
  * - size: diameter in px (default 120)
  * - strokeWidth: ring thickness in px (default 10)
- * - color: progress arc color (default brand-600 / #16a34a)
- * - trackColor: background ring color (default #e5e7eb)
+ * - color: progress arc color (default brand-600 / #346739)
+ * - trackColor: background ring color (default #e5e5e0)
  * - label: optional label below the percentage
  * - animated: whether to animate on mount (default true)
  *
@@ -46,8 +46,8 @@ export default function ProgressDonut({
   percentage,
   size = 120,
   strokeWidth = 10,
-  color = "#16a34a",
-  trackColor = "#e5e7eb",
+  color = "#346739",
+  trackColor = "#e5e5e0",
   label,
   animated = true,
 }: ProgressDonutProps) {
@@ -156,7 +156,7 @@ export default function ProgressDonut({
         </span>
         {label && (
           <span
-            className="leading-tight text-zinc-500"
+            className="leading-tight text-muted"
             style={{ fontSize: `${subFontSize}px` }}
           >
             {label}

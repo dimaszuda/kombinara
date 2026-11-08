@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import DownloadModulButton from "./DownloadModulButton";
+import { useDialog } from "@/hooks/useDialog";
 import type { UserRole } from "@/types";
 
 interface NavItemDef {
@@ -287,7 +288,7 @@ function LogoutButton({ expanded, onClick }: LogoutButtonProps) {
       >
         <Image
           src="/icons/logout.png"
-          alt="Logout"
+          alt=""
           width={20}
           height={20}
           style={{
@@ -324,6 +325,9 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
   const pathname = usePathname();
   const isGuru = role === "guru";
   const NAV_ITEMS = isGuru ? NAV_ITEMS_GURU : NAV_ITEMS_SISWA;
+  const drawerRef = useRef<HTMLElement>(null);
+  const drawerWrapRef = useRef<HTMLDivElement>(null);
+  useDialog(mobileOpen, () => onMobileToggle(false), drawerRef, drawerWrapRef);
 
   const desktopNav = (
     <div
@@ -399,21 +403,7 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
       </div>
 
       <div style={{ marginTop: "auto", padding: "0 8px 8px" }}>
-        <Link
-          href="/logout"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "10px 8px",
-            borderRadius: 8,
-            textDecoration: "none",
-          }}
-          onClick={() => onMobileToggle(false)}
-        >
-          <Image src="/icons/logout.png" alt="Logout" width={24} height={24} style={{ objectFit: "contain" }} />
-          <span style={{ color: "white", fontSize: 14 }}>Logout</span>
-        </Link>
+        <LogoutButton expanded />
       </div>
     </nav>
   );
@@ -484,7 +474,7 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
       </aside>
 
       {/* Mobile sidebar */}
-      <div className={`fixed inset-0 z-[1100] md:hidden ${mobileOpen ? "" : "pointer-events-none"}`}>
+      <div ref={drawerWrapRef} className={`fixed inset-0 z-[1100] md:hidden ${mobileOpen ? "" : "pointer-events-none"}`}>
         <button
           type="button"
           aria-label="Tutup menu"
@@ -492,6 +482,10 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
           className={`absolute inset-0 bg-black/40 transition-opacity ${mobileOpen ? "opacity-100" : "opacity-0"}`}
         />
         <aside
+          ref={drawerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
           className={`absolute left-0 top-0 h-full w-52 overflow-y-auto bg-brand-600 p-4 transition-transform duration-300 ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
@@ -502,10 +496,10 @@ export default function Sidebar({ expanded, onToggle, mobileOpen, onMobileToggle
             <button
               type="button"
               onClick={() => onMobileToggle(false)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10"
-              aria-label="Tutup sidebar"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10"
+              aria-label="Tutup menu"
             >
-              <Image src="/icons/collapse side bar.png" alt="Close" width={20} height={20} className="object-contain" />
+              <Image src="/icons/collapse side bar.png" alt="" width={20} height={20} className="object-contain" />
             </button>
           </div>
           {mobileNav}

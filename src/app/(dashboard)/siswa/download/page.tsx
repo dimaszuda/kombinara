@@ -65,13 +65,13 @@ function ProgressBar({ completed, total }: { completed: number; total: number })
   const pct = Math.round((completed / total) * 100);
   return (
     <div className="mt-2 flex items-center gap-2">
-      <div className="h-2 flex-1 rounded-full bg-gray-200 overflow-hidden">
+      <div className="h-2 flex-1 rounded-full bg-line overflow-hidden">
         <div
-          className="h-full rounded-full bg-green-500 transition-all duration-500"
+          className="h-full rounded-full bg-brand-600 transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs font-medium text-gray-500">
+      <span className="text-xs font-medium text-muted">
         {completed}/{total} ({pct}%)
       </span>
     </div>
@@ -107,7 +107,7 @@ function ModulCard({ modul }: { modul: ModulStatus }) {
 
   return (
     <div className={`flex flex-col rounded-[24px] bg-white p-6 shadow-sm border transition-opacity ${
-      modul.eligible ? "border-gray-100" : "border-amber-200"
+      modul.eligible ? "border-line" : "border-amber-200"
     }`}>
       {/* Header */}
       <div className="flex items-start gap-4">
@@ -116,23 +116,23 @@ function ModulCard({ modul }: { modul: ModulStatus }) {
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="m-0 text-lg font-semibold text-brand-600">{modul.name}</h3>
-          <p className="mt-1 text-sm text-gray-500">{modul.description}</p>
+          <p className="mt-1 text-sm text-muted">{modul.description}</p>
         </div>
         {/* Status badge */}
         <span
           className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
             modul.eligible
-              ? "bg-green-100 text-green-700"
+              ? "bg-brand-100 text-brand-600"
               : "bg-amber-100 text-amber-700"
           }`}
         >
-          {modul.eligible ? "✅ Bisa Download" : "🔒 Terkunci"}
+          {modul.eligible ? "✅ Bisa Download" : "Terkunci"}
         </span>
       </div>
 
       {/* Requirement summary + progress */}
-      <div className="mt-4 rounded-lg bg-gray-50 px-4 py-3">
-        <p className="m-0 text-sm text-gray-600">{modul.requirementSummary}</p>
+      <div className="mt-4 rounded-lg bg-surface px-4 py-3">
+        <p className="m-0 text-sm text-muted">{modul.requirementSummary}</p>
         <ProgressBar completed={modul.completedSections} total={modul.totalSections} />
       </div>
 
@@ -174,17 +174,17 @@ function ModulCard({ modul }: { modul: ModulStatus }) {
 
 function SkeletonCard() {
   return (
-    <div className="flex flex-col rounded-[24px] bg-white p-6 shadow-sm border border-gray-100 animate-pulse">
+    <div className="flex flex-col rounded-[24px] bg-white p-6 shadow-sm border border-line animate-pulse">
       <div className="flex items-start gap-4">
-        <div className="h-12 w-12 shrink-0 rounded-full bg-gray-200" />
+        <div className="h-12 w-12 shrink-0 rounded-full bg-line" />
         <div className="flex-1">
-          <div className="h-5 w-36 rounded bg-gray-200" />
-          <div className="mt-2 h-4 w-56 rounded bg-gray-100" />
+          <div className="h-5 w-36 rounded bg-line" />
+          <div className="mt-2 h-4 w-56 rounded bg-surface" />
         </div>
-        <div className="h-6 w-20 rounded-full bg-gray-200" />
+        <div className="h-6 w-20 rounded-full bg-line" />
       </div>
-      <div className="mt-4 h-16 rounded-lg bg-gray-100" />
-      <div className="mt-4 h-12 w-full rounded-xl bg-gray-200" />
+      <div className="mt-4 h-16 rounded-lg bg-surface" />
+      <div className="mt-4 h-12 w-full rounded-xl bg-line" />
     </div>
   );
 }
@@ -229,9 +229,9 @@ export default function DownloadPage() {
       <ScrollReveal>
         <div className="mb-8">
           <h1 className="m-0 text-2xl font-bold text-brand-600 sm:text-3xl">
-            📥 Download Modul
+            Download Modul
           </h1>
-          <p className="mt-2 text-base text-gray-500">
+          <p className="mt-2 text-base text-muted">
             Unduh modul pembelajaran dalam format PDF. Setiap modul memiliki syarat penyelesaian section yang harus dipenuhi terlebih dahulu.
           </p>
         </div>
@@ -247,9 +247,9 @@ export default function DownloadPage() {
       )}
 
       {state.kind === "error" && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-5 py-4 text-center">
-          <p className="m-0 text-sm font-semibold text-red-700">⚠️ Gagal Memuat</p>
-          <p className="m-0 mt-1 text-sm text-red-600">{state.message}</p>
+        <div className="rounded-xl bg-danger-50 border border-danger-200 px-5 py-4 text-center">
+          <p className="m-0 text-sm font-semibold text-danger-strong">⚠️ Gagal Memuat</p>
+          <p className="m-0 mt-1 text-sm text-danger">{state.message}</p>
         </div>
       )}
 

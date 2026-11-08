@@ -1,6 +1,8 @@
 "use client"
 
-import React, { useState, useMemo, useEffect, useCallback, ReactNode } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef, ReactNode } from "react";
+import { useDialog } from "@/hooks/useDialog";
+import Link from "next/link";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ScatterChart, Scatter, PieChart, Pie, Cell, Legend
@@ -60,8 +62,8 @@ const COLORS = {
   green: "#346739",
   brick: "#663733",
   purple: "#663362",
-  greenLight: "#B8E6BC",
-  brickLight: "#E6BBB8",
+  greenLight: "#D4E8D4",
+  brickLight: "#FECACA",
   white: "#ffffff",
 } as const;
 
@@ -135,7 +137,7 @@ const JOURNEY_PENDAHULUAN_COLS: Column<Record<string, unknown>>[] = [
           width: 10,
           height: 10,
           borderRadius: "50%",
-          background: row.apersepsi === "Completed" ? COLORS.green : "#E0E0E0",
+          background: row.apersepsi === "Completed" ? COLORS.green : "#E5E5E0",
         }}
       />
     ),
@@ -152,7 +154,7 @@ const JOURNEY_PENDAHULUAN_COLS: Column<Record<string, unknown>>[] = [
           width: 10,
           height: 10,
           borderRadius: "50%",
-          background: row.pemantik === "Completed" ? COLORS.green : "#E0E0E0",
+          background: row.pemantik === "Completed" ? COLORS.green : "#E5E5E0",
         }}
       />
     ),
@@ -169,7 +171,7 @@ const JOURNEY_PENDAHULUAN_COLS: Column<Record<string, unknown>>[] = [
           width: 10,
           height: 10,
           borderRadius: "50%",
-          background: row.refleksi === "Completed" ? COLORS.green : "#E0E0E0",
+          background: row.refleksi === "Completed" ? COLORS.green : "#E5E5E0",
         }}
       />
     ),
@@ -206,7 +208,7 @@ const JOURNEY_MATERI_COLS: Column<Record<string, unknown>>[] = [
             width: 10,
             height: 10,
             borderRadius: "50%",
-            background: row[key] === "completed" ? COLORS.green : "#E0E0E0",
+            background: row[key] === "completed" ? COLORS.green : "#E5E5E0",
           }}
         />
       ),
@@ -270,9 +272,9 @@ function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
         borderRadius: 4,
         fontSize: 12,
         fontWeight: 500,
-        background: ok ? COLORS.greenLight : "#EDEDED",
-        color: ok ? COLORS.green : "#8A8A8A",
-        border: `1px solid ${ok ? COLORS.green : "#D5D5D5"}`,
+        background: ok ? COLORS.greenLight : "#E5E5E0",
+        color: ok ? COLORS.green : "#6B6B66",
+        border: `1px solid ${ok ? COLORS.green : "#C5C5C0"}`,
       }}
     >
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: ok ? COLORS.green : "#B0B0B0" }} />
@@ -292,8 +294,8 @@ function CategoryHeader({ color, title, subtitle }: CategoryHeaderProps) {
     <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
       <div style={{ width: 4, alignSelf: "stretch", background: color, borderRadius: 0, minHeight: 34 }} />
       <div>
-        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: "#1F1F1F", letterSpacing: "-0.01em" }}>{title}</h2>
-        {subtitle && <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#6B6B6B" }}>{subtitle}</p>}
+        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: "#2C2C2A", letterSpacing: "-0.01em" }}>{title}</h2>
+        {subtitle && <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#6B6B66" }}>{subtitle}</p>}
       </div>
     </div>
   );
@@ -310,7 +312,7 @@ function Card({ children, span = 1, style = {} }: CardProps) {
     <div
       style={{
         background: COLORS.white,
-        border: "1px solid #E2E2E2",
+        border: "1px solid #E5E5E0",
         borderRadius: 10,
         padding: 18,
         gridColumn: `span ${span}`,
@@ -340,13 +342,13 @@ function SingleValueCard({ title, value, keterangan, icon, loading, hasData = tr
   return (
     <Card span={1}>
       {loading && !hasData ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#8A8A8A", fontSize: 13 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#6B6B66", fontSize: 13 }}>
           Memuat data...
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", textAlign: "center", gap: 6 }}>
           {/* Title */}
-          <div style={{ fontSize: 13, fontWeight: 500, color: "#6B6B6B", display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: "#6B6B66", display: "flex", alignItems: "center", gap: 6 }}>
             {icon && (
               <span style={{ color: COLORS.green, fontSize: 16, display: "inline-flex" }}>
                 {icon}
@@ -359,7 +361,7 @@ function SingleValueCard({ title, value, keterangan, icon, loading, hasData = tr
             {value}
           </div>
           {/* Keterangan kecil di bawah */}
-          <div style={{ fontSize: 11.5, color: "#8A8A8A" }}>{keterangan}</div>
+          <div style={{ fontSize: 11.5, color: "#6B6B66" }}>{keterangan}</div>
         </div>
       )}
     </Card>
@@ -403,12 +405,16 @@ function GenderDistributionCard({ genderBreakdown, loading }: GenderDistribution
     <Card span={3}>
       <CardTitle>Total siswa</CardTitle>
       {loading && !genderBreakdown ? (
-        <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "#8A8A8A", fontSize: 13 }}>
+        <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B6B66", fontSize: 13 }}>
           Memuat data...
         </div>
       ) : total === 0 ? (
-        <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "#8A8A8A", fontSize: 13 }}>
-          Belum ada data
+        <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 12px", color: "#6B6B66", fontSize: 13, lineHeight: 1.5 }}>
+          <span>
+            Belum ada siswa di kelas ini. Bagikan kode kelas dari halaman{" "}
+            <Link href="/guru/kelas" style={{ color: "#346739", fontWeight: 600 }}>Kelas Saya</Link>{" "}
+            supaya siswa bisa bergabung.
+          </span>
         </div>
       ) : (
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
@@ -431,7 +437,7 @@ function GenderDistributionCard({ genderBreakdown, loading }: GenderDistribution
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E5E5E0" }} />
               </PieChart>
             </ResponsiveContainer>
             <div
@@ -444,8 +450,8 @@ function GenderDistributionCard({ genderBreakdown, loading }: GenderDistribution
                 pointerEvents: "none",
               }}
             >
-              <div style={{ fontSize: 24, fontWeight: 600, color: "#1F1F1F", lineHeight: 1 }}>{total}</div>
-              <div style={{ fontSize: 11, color: "#8A8A8A", marginTop: 2 }}>siswa</div>
+              <div style={{ fontSize: 24, fontWeight: 600, color: "#2C2C2A", lineHeight: 1 }}>{total}</div>
+              <div style={{ fontSize: 11, color: "#6B6B66", marginTop: 2 }}>siswa</div>
             </div>
           </div>
 
@@ -461,10 +467,10 @@ function GenderDistributionCard({ genderBreakdown, loading }: GenderDistribution
                     </div>
                     <div style={{ fontSize: 13, color: "#333" }}>
                       <span style={{ fontWeight: 600 }}>{g.value}</span>
-                      <span style={{ color: "#8A8A8A", marginLeft: 5 }}>({pct}%)</span>
+                      <span style={{ color: "#6B6B66", marginLeft: 5 }}>({pct}%)</span>
                     </div>
                   </div>
-                  <div style={{ height: 6, background: "#EDEDED", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ height: 6, background: "#E5E5E0", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ width: `${pct}%`, height: "100%", background: g.color, borderRadius: 3 }} />
                   </div>
                 </div>
@@ -495,13 +501,13 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
   const selectStyle: React.CSSProperties = {
     padding: "7px 10px",
     borderRadius: 6,
-    border: "1px solid #D8D8D8",
+    border: "1px solid #C5C5C0",
     fontSize: 13,
     background: COLORS.white,
     color: "#333",
     minWidth: 140,
   };
-  const labelStyle: React.CSSProperties = { fontSize: 11, color: "#6B6B6B", fontWeight: 500, marginBottom: 4, display: "block" };
+  const labelStyle: React.CSSProperties = { fontSize: 11, color: "#6B6B66", fontWeight: 500, marginBottom: 4, display: "block" };
 
   return (
     <div
@@ -510,7 +516,7 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
         top: 64,              // tepat di bawah spacer header DashboardShell (64px)
         zIndex: 8,            // di bawah spacer shell (z-index 9), di atas konten
         background: COLORS.white,
-        borderBottom: "1px solid #ECECEC",
+        borderBottom: "1px solid #F5F5F0",
         display: "flex",
         gap: 18,
         alignItems: "flex-end",
@@ -521,11 +527,11 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
     >
       <div style={{ marginRight: 8 }}>
         <div style={{ fontSize: 15, fontWeight: 600, color: COLORS.green }}>Dashboard analitik</div>
-        <div style={{ fontSize: 11, color: "#8A8A8A" }}>Pantau performa & progres siswa</div>
+        <div style={{ fontSize: 11, color: "#6B6B66" }}>Pantau performa & progres siswa</div>
       </div>
       <div>
-        <label style={labelStyle}>Kelas</label>
-        <select
+        <label htmlFor="filter-kelas" style={labelStyle}>Kelas</label>
+        <select id="filter-kelas"
           style={selectStyle}
           value={filters.kelas}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, kelas: e.target.value })}
@@ -540,22 +546,22 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
         </select>
       </div>
       <div>
-        <label style={labelStyle}>Materi</label>
-        <select style={selectStyle} value={filters.materi} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, materi: e.target.value })}>
+        <label htmlFor="filter-materi" style={labelStyle}>Materi</label>
+        <select id="filter-materi" style={selectStyle} value={filters.materi} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, materi: e.target.value })}>
           <option value="all">Semua materi</option>
           {MATERI_LIST.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
       </div>
       <div>
-        <label style={labelStyle}>Materi Asesmen</label>
-        <select style={selectStyle} value={filters.materiAsesmen} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, materiAsesmen: e.target.value })}>
+        <label htmlFor="filter-materi-asesmen" style={labelStyle}>Materi Asesmen</label>
+        <select id="filter-materi-asesmen" style={selectStyle} value={filters.materiAsesmen} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters({ ...filters, materiAsesmen: e.target.value })}>
           <option value="all">Semua materi</option>
           {MATERI_ASESMEN_OPTIONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
       </div>
       <div>
-        <label style={labelStyle}>Percobaan diagnostik</label>
-        <select
+        <label htmlFor="filter-percobaan-diagnostik" style={labelStyle}>Percobaan diagnostik</label>
+        <select id="filter-percobaan-diagnostik"
           style={selectStyle}
           value={diagAttempt === "latest" ? "latest" : String(diagAttempt)}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -570,8 +576,8 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
         </select>
       </div>
       <div>
-        <label style={labelStyle}>Percobaan formatif</label>
-        <select
+        <label htmlFor="filter-percobaan-formatif" style={labelStyle}>Percobaan formatif</label>
+        <select id="filter-percobaan-formatif"
           style={selectStyle}
           value={formAttempt === "latest" ? "latest" : String(formAttempt)}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -654,7 +660,7 @@ function FilterBar({ filters, setFilters, kelasOptions, loading, diagAttempt, se
           style={{
             width: 20,
             height: 20,
-            border: "2.5px solid #E2E2E2",
+            border: "2.5px solid #E5E5E0",
             borderTop: `2.5px solid ${COLORS.green}`,
             borderRadius: "50%",
             animation: "spin 0.7s linear infinite",
@@ -695,6 +701,8 @@ function DetailModal({ item, type, conceptId, onClose }: DetailModalProps) {
   const [answers, setAnswers] = useState<DraftAnswerItem[]>([]);
   const [formatifAnswers, setFormatifAnswers] = useState<FormatifAnswerItem[]>([]);
   const [loadingAnswers, setLoadingAnswers] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useDialog(!!item, onClose, panelRef);
 
   useEffect(() => {
     if (!item) {
@@ -797,6 +805,10 @@ function DetailModal({ item, type, conceptId, onClose }: DetailModalProps) {
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Jawaban ${item.nama}`}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
         style={{
           background: COLORS.white,
@@ -805,13 +817,13 @@ function DetailModal({ item, type, conceptId, onClose }: DetailModalProps) {
           width: "100%",
           maxHeight: "85vh",
           overflowY: "auto",
-          border: "1px solid #E2E2E2",
+          border: "1px solid #E5E5E0",
         }}
       >
         <div
           style={{
             padding: "18px 22px",
-            borderBottom: "1px solid #E8E8E8",
+            borderBottom: "1px solid #E5E5E0",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -821,18 +833,20 @@ function DetailModal({ item, type, conceptId, onClose }: DetailModalProps) {
           }}
         >
           <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "#1F1F1F" }}>{item.nama}</div>
-            <div style={{ fontSize: 12.5, color: "#6B6B6B" }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#2C2C2A" }}>{item.nama}</div>
+            <div style={{ fontSize: 12.5, color: "#6B6B66" }}>
               {item.kelas} &middot; {isDiag ? "Asesmen diagnostik" : "Asesmen formatif"} &middot; percobaan {item.attemptNumber}
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Tutup"
             style={{
               border: "none",
-              background: "#F2F2F2",
-              width: 28,
-              height: 28,
+              background: "#F5F5F0",
+              width: 44,
+              height: 44,
               borderRadius: 6,
               cursor: "pointer",
               fontSize: 15,
@@ -845,21 +859,21 @@ function DetailModal({ item, type, conceptId, onClose }: DetailModalProps) {
         <div style={{ padding: 22 }}>
           {isDiag ? (
             loadingAnswers ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "#8A8A8A", fontSize: 13 }}>
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#6B6B66", fontSize: 13 }}>
                 Memuat jawaban...
               </div>
             ) : answers.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "#8A8A8A", fontSize: 13 }}>
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#6B6B66", fontSize: 13 }}>
                 Tidak ada data jawaban
               </div>
             ) : (
               answers.map((a, idx) => (
-                <div key={idx} style={{ marginBottom: 18, paddingBottom: 18, borderBottom: idx < answers.length - 1 ? "1px solid #EFEFEF" : "none" }}>
+                <div key={idx} style={{ marginBottom: 18, paddingBottom: 18, borderBottom: idx < answers.length - 1 ? "1px solid #F5F5F0" : "none" }}>
                   <div style={{ fontSize: 12, fontWeight: 500, color: COLORS.purple, marginBottom: 6 }}>{a.soal}</div>
                   <div style={{ fontSize: 13.5, color: "#333", marginBottom: 10, lineHeight: 1.6 }}>
                     Jawaban siswa:
                   </div>
-                  <div style={{ fontSize: 13, color: "#555", background: "#FAFAFA", padding: "10px 12px", borderRadius: 6 }}>
+                  <div style={{ fontSize: 13, color: "#555", background: "#F5F5F0", padding: "10px 12px", borderRadius: 6 }}>
                     {a.jawaban || "-"}
                   </div>
                 </div>
@@ -867,34 +881,34 @@ function DetailModal({ item, type, conceptId, onClose }: DetailModalProps) {
             )
           ) : (
             loadingAnswers ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "#8A8A8A", fontSize: 13 }}>
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#6B6B66", fontSize: 13 }}>
                 Memuat jawaban...
               </div>
             ) : formatifAnswers.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "#8A8A8A", fontSize: 13 }}>
+              <div style={{ textAlign: "center", padding: "40px 0", color: "#6B6B66", fontSize: 13 }}>
                 Tidak ada data jawaban
               </div>
             ) : (
               formatifAnswers.map((fa, idx) => (
-                <div key={idx} style={{ marginBottom: 18, paddingBottom: 18, borderBottom: idx < formatifAnswers.length - 1 ? "1px solid #EFEFEF" : "none" }}>
+                <div key={idx} style={{ marginBottom: 18, paddingBottom: 18, borderBottom: idx < formatifAnswers.length - 1 ? "1px solid #F5F5F0" : "none" }}>
                   <div style={{ fontSize: 12, fontWeight: 500, color: COLORS.purple, marginBottom: 10 }}>Soal {fa.questionNumber}</div>
                   {fa.caraMengerjakan && (
                     <div style={{ marginBottom: 10 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: "#333", marginBottom: 4 }}>Cara mengerjakan</div>
-                      <div style={{ fontSize: 13, color: "#555", background: "#FAFAFA", padding: "10px 12px", borderRadius: 6 }}>{fa.caraMengerjakan}</div>
+                      <div style={{ fontSize: 13, color: "#555", background: "#F5F5F0", padding: "10px 12px", borderRadius: 6 }}>{fa.caraMengerjakan}</div>
                     </div>
                   )}
                   {fa.jawabanAkhir && (
                     <div style={{ marginBottom: 10 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: "#333", marginBottom: 4 }}>Jawaban akhir</div>
-                      <div style={{ fontSize: 13, color: "#555", background: "#FAFAFA", padding: "10px 12px", borderRadius: 6 }}>{fa.jawabanAkhir}</div>
+                      <div style={{ fontSize: 13, color: "#555", background: "#F5F5F0", padding: "10px 12px", borderRadius: 6 }}>{fa.jawabanAkhir}</div>
                     </div>
                   )}
                   <div style={{ marginBottom: 10 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: "#333", marginBottom: 4 }}>Feedback AI</div>
                     <div style={{ fontSize: 13, color: COLORS.green, background: COLORS.greenLight, padding: "10px 12px", borderRadius: 6 }}>{fa.feedback || "Belum ada feedback"}</div>
                   </div>
-                  <div style={{ fontSize: 11, color: "#8A8A8A" }}>
+                  <div style={{ fontSize: 11, color: "#6B6B66" }}>
                     Skor: {fa.totalScore}/10
                   </div>
                 </div>
@@ -1413,7 +1427,7 @@ export default function KombinaraDashboard() {
               fontSize: 12,
               fontWeight: 500,
               color: "#991B1B",
-              background: "#FEE2E2",
+              background: "#FFF5F5",
               border: "1px solid #FECACA",
               borderRadius: 6,
               padding: "6px 14px",
@@ -1453,7 +1467,7 @@ export default function KombinaraDashboard() {
             <Card span={4}>
               <CardTitle>Distribusi kelas</CardTitle>
               {dashLoading && !dashData ? (
-                <div style={{ height: 140, display: "flex", alignItems: "center", justifyContent: "center", color: "#8A8A8A", fontSize: 13 }}>
+                <div style={{ height: 140, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B6B66", fontSize: 13 }}>
                   Memuat data...
                 </div>
               ) : (
@@ -1461,10 +1475,10 @@ export default function KombinaraDashboard() {
                   <PieChart>
                     <Pie data={realDistribusi} dataKey="total" nameKey="kelas" innerRadius={35} outerRadius={58} paddingAngle={2}>
                       {realDistribusi.map((_, i) => (
-                        <Cell key={i} fill={[COLORS.green, COLORS.purple, COLORS.greenLight, COLORS.brickLight, "#4A8A50", "#8A5387", "#D9A5D5"][i % 7]} stroke={COLORS.white} strokeWidth={2} />
+                        <Cell key={i} fill={[COLORS.green, COLORS.purple, COLORS.greenLight, COLORS.brickLight, "#346739", "#8A5387", "#D9A5D5"][i % 7]} stroke={COLORS.white} strokeWidth={2} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E5E5E0" }} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -1476,7 +1490,7 @@ export default function KombinaraDashboard() {
             <Card>
               <CardTitle>Daftar siswa</CardTitle>
               {dashLoading && !dashData ? (
-                <div style={{ padding: "20px 0", textAlign: "center", color: "#8A8A8A", fontSize: 13 }}>
+                <div style={{ padding: "20px 0", textAlign: "center", color: "#6B6B66", fontSize: 13 }}>
                   Memuat data...
                 </div>
               ) : (
@@ -1485,7 +1499,7 @@ export default function KombinaraDashboard() {
                   data={(dashData?.daftarSiswa ?? []) as unknown as Record<string, unknown>[]}
                   rowKey={(_, i) => i}
                   maxHeight={220}
-                  emptyMessage="Belum ada data siswa"
+                  emptyMessage="Belum ada siswa di kelas yang dipilih. Siswa muncul di sini setelah bergabung dengan kode kelas."
                 />
               )}
             </Card>
@@ -1494,21 +1508,21 @@ export default function KombinaraDashboard() {
               <CardTitle>Progress belajar siswa</CardTitle>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto" }}>
                 {dashLoading && !dashData ? (
-                  <div style={{ padding: "20px 0", textAlign: "center", color: "#8A8A8A", fontSize: 13 }}>
+                  <div style={{ padding: "20px 0", textAlign: "center", color: "#6B6B66", fontSize: 13 }}>
                     Memuat data...
                   </div>
                 ) : progressData.length === 0 ? (
-                  <div style={{ padding: "20px 0", textAlign: "center", color: "#8A8A8A", fontSize: 13 }}>
-                    Belum ada data progress
+                  <div style={{ padding: "20px 0", textAlign: "center", color: "#6B6B66", fontSize: 13 }}>
+                    Belum ada siswa yang mulai belajar di kelas yang dipilih.
                   </div>
                 ) : (
                   progressData.map((s) => (
                     <div key={s.studentId}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
                         <span style={{ color: "#333" }}>{s.name}</span>
-                        <span style={{ color: "#8A8A8A" }}>{s.pct}%</span>
+                        <span style={{ color: "#6B6B66" }}>{s.pct}%</span>
                       </div>
-                      <div style={{ height: 7, background: "#EDEDED", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ height: 7, background: "#E5E5E0", borderRadius: 4, overflow: "hidden" }}>
                         <div
                           style={{
                             width: `${s.pct}%`,
@@ -1527,7 +1541,7 @@ export default function KombinaraDashboard() {
         </section>
 
         {/* DIAGNOSTIK */}
-        <section style={{ marginBottom: 36, paddingTop: 28, borderTop: "1px solid #DEDEDA" }}>
+        <section style={{ marginBottom: 36, paddingTop: 28, borderTop: "1px solid #E5E5E0" }}>
           <CategoryHeader color={COLORS.purple} title="Asesmen diagnostik" subtitle="Hasil gate prasyarat sebelum siswa mulai belajar" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 14 }}>
             <Card>
@@ -1535,13 +1549,13 @@ export default function KombinaraDashboard() {
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={diagBar}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEE" vertical={false} />
-                  <XAxis dataKey="score" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Nilai", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <YAxis tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Jumlah Siswa", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
+                  <XAxis dataKey="score" tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Nilai", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <YAxis tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={false} tickLine={false} label={{ value: "Jumlah Siswa", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E5E5E0" }} />
                   <Bar dataKey="total" fill={COLORS.purple} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-              <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#8A8A8A", marginTop: 6, justifyContent: "center" }}>
+              <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#6B6B66", marginTop: 6, justifyContent: "center" }}>
                 <span>Mean <b style={{ color: "#555" }}>{diagStats.mean.toFixed(1)}</b></span>
                 <span>Median <b style={{ color: "#555" }}>{diagStats.median.toFixed(1)}</b></span>
                 <span>Std <b style={{ color: "#555" }}>{diagStats.std.toFixed(1)}</b></span>
@@ -1553,14 +1567,14 @@ export default function KombinaraDashboard() {
               <ResponsiveContainer width="100%" height={160}>
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEE" />
-                  <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={diagScatterDomain} tickCount={5} tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <YAxis dataKey="y" name="Nilai" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Nilai", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} cursor={{ strokeDasharray: "3 3" }} />
+                  <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={diagScatterDomain} tickCount={5} tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <YAxis dataKey="y" name="Nilai" tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={false} tickLine={false} label={{ value: "Nilai", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E5E5E0" }} cursor={{ strokeDasharray: "3 3" }} />
                   <Scatter data={scatterDiag.filter((d) => d.passed)} fill={COLORS.green} />
                   <Scatter data={scatterDiag.filter((d) => !d.passed)} fill={COLORS.brick} />
                 </ScatterChart>
               </ResponsiveContainer>
-              <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#8A8A8A", marginTop: 4 }}>
+              <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#6B6B66", marginTop: 4 }}>
                 <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: COLORS.green, marginRight: 4 }} />Lulus</span>
                 <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: COLORS.brick, marginRight: 4 }} />Belum lulus</span>
               </div>
@@ -1571,9 +1585,9 @@ export default function KombinaraDashboard() {
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={diagAttemptDist} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEE" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Jumlah Siswa", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <YAxis type="category" dataKey="attempt" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} width={80} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={false} tickLine={false} label={{ value: "Jumlah Siswa", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <YAxis type="category" dataKey="attempt" tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={false} tickLine={false} width={80} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E5E5E0" }} />
                   <Bar dataKey="total" fill={COLORS.green} radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -1592,8 +1606,8 @@ export default function KombinaraDashboard() {
         </section>
 
         {/* JOURNEY: PENDAHULUAN */}
-        <section style={{ marginBottom: 36, paddingTop: 28, borderTop: "1px solid #DEDEDA" }}>
-          <CategoryHeader color={COLORS.green} title="Journey siswa — Pendahuluan" subtitle="Apersepsi, Pemantik, dan Refleksi awal" />
+        <section style={{ marginBottom: 36, paddingTop: 28, borderTop: "1px solid #E5E5E0" }}>
+          <CategoryHeader color={COLORS.green} title="Journey siswa: Pendahuluan" subtitle="Apersepsi, Pemantik, dan Refleksi awal" />
           <Card>
             <SortableTable
               columns={JOURNEY_PENDAHULUAN_COLS}
@@ -1602,14 +1616,14 @@ export default function KombinaraDashboard() {
               maxHeight={400}
               fontSize={12}
               minWidth={400}
-              emptyMessage="Belum ada data journey pendahuluan"
+              emptyMessage="Belum ada siswa yang mengerjakan apersepsi, pemantik, atau refleksi awal."
             />
           </Card>
         </section>
 
         {/* JOURNEY: MATERI */}
-        <section style={{ marginBottom: 36, paddingTop: 28, borderTop: "1px solid #DEDEDA" }}>
-          <CategoryHeader color={COLORS.green} title="Journey siswa — Materi" subtitle="Progress tiap siswa per konsep materi" />
+        <section style={{ marginBottom: 36, paddingTop: 28, borderTop: "1px solid #E5E5E0" }}>
+          <CategoryHeader color={COLORS.green} title="Journey siswa: Materi" subtitle="Progress tiap siswa per konsep materi" />
           <Card>
             <SortableTable
               columns={JOURNEY_MATERI_COLS}
@@ -1618,13 +1632,13 @@ export default function KombinaraDashboard() {
               maxHeight={400}
               fontSize={12}
               minWidth={800}
-              emptyMessage="Belum ada data journey materi"
+              emptyMessage="Belum ada siswa yang membuka materi di kelas yang dipilih."
             />
           </Card>
         </section>
 
         {/* FORMATIF */}
-        <section style={{ marginBottom: 36, paddingTop: 28, borderTop: "1px solid #DEDEDA" }}>
+        <section style={{ marginBottom: 36, paddingTop: 28, borderTop: "1px solid #E5E5E0" }}>
           <CategoryHeader color={COLORS.purple} title="Asesmen formatif" subtitle="Evaluasi per modul setelah penjelasan konsep" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 14 }}>
             <Card>
@@ -1632,13 +1646,13 @@ export default function KombinaraDashboard() {
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={formBar}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEE" vertical={false} />
-                  <XAxis dataKey="score" tick={{ fontSize: 10, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Range Nilai", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <YAxis tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Jumlah Siswa", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
+                  <XAxis dataKey="score" tick={{ fontSize: 10, fill: "#6B6B66" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Range Nilai", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <YAxis tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={false} tickLine={false} label={{ value: "Jumlah Siswa", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E5E5E0" }} />
                   <Bar dataKey="total" fill={COLORS.purple} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-              <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#8A8A8A", marginTop: 6, justifyContent: "center" }}>
+              <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#6B6B66", marginTop: 6, justifyContent: "center" }}>
                 <span>Mean <b style={{ color: "#555" }}>{formStats.mean.toFixed(1)}</b></span>
                 <span>Median <b style={{ color: "#555" }}>{formStats.median.toFixed(1)}</b></span>
                 <span>Std <b style={{ color: "#555" }}>{formStats.std.toFixed(1)}</b></span>
@@ -1650,9 +1664,9 @@ export default function KombinaraDashboard() {
               <ResponsiveContainer width="100%" height={160}>
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEE" />
-                  <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={formScatterDomain} tickCount={5} tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <YAxis dataKey="y" name="Nilai" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Nilai", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} cursor={{ strokeDasharray: "3 3" }} />
+                  <XAxis type="number" dataKey="x" name="Durasi (menit)" domain={formScatterDomain} tickCount={5} tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={{ stroke: "#DDD" }} tickLine={false} label={{ value: "Durasi (menit)", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <YAxis dataKey="y" name="Nilai" tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={false} tickLine={false} label={{ value: "Nilai", angle: -90, position: "left", offset: 12, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E5E5E0" }} cursor={{ strokeDasharray: "3 3" }} />
                   <Scatter data={scatterForm} fill={COLORS.green} />
                 </ScatterChart>
               </ResponsiveContainer>
@@ -1661,16 +1675,16 @@ export default function KombinaraDashboard() {
             <Card>
               <CardTitle>Distribusi percobaan</CardTitle>
               {formAttemptDist.length === 0 ? (
-                <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "#8A8A8A", fontSize: 13 }}>
-                  Belum ada data
+                <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 12px", color: "#6B6B66", fontSize: 13, lineHeight: 1.5 }}>
+                  Belum ada siswa yang mengumpulkan asesmen formatif untuk pilihan ini.
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={formAttemptDist} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#EEE" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} label={{ value: "Jumlah", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#8A8A8A" } }} />
-                    <YAxis type="category" dataKey="attempt" tick={{ fontSize: 11, fill: "#8A8A8A" }} axisLine={false} tickLine={false} width={50} />
-                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E2E2E2" }} />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={false} tickLine={false} label={{ value: "Jumlah", position: "bottom", offset: -4, style: { fontSize: 11, fill: "#6B6B66" } }} />
+                    <YAxis type="category" dataKey="attempt" tick={{ fontSize: 11, fill: "#6B6B66" }} axisLine={false} tickLine={false} width={50} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #E5E5E0" }} />
                     <Bar dataKey="total" fill={COLORS.green} radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -1690,11 +1704,11 @@ export default function KombinaraDashboard() {
         </section>
 
         {/* INTEGRITAS */}
-        <section style={{ paddingTop: 28, borderTop: "1px solid #DEDEDA" }}>
+        <section style={{ paddingTop: 28, borderTop: "1px solid #E5E5E0" }}>
           <CategoryHeader color={COLORS.brick} title="Integritas pengerjaan" subtitle="Log tab switch dan keluar dari mode fullscreen selama asesmen" />
           <Card>
             {integrityLog.length === 0 ? (
-              <div style={{ fontSize: 13, color: "#8A8A8A", padding: "8px 0" }}>Tidak ada kejadian integritas pada filter yang dipilih.</div>
+              <div style={{ fontSize: 13, color: "#6B6B66", padding: "8px 0" }}>Tidak ada kejadian integritas pada filter yang dipilih.</div>
             ) : (
               <SortableTable
                 columns={INTEGRITY_COLS}

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Sidebar from "@/components/dashboard/Sidebar";
+import PageTitle from "@/components/shared/PageTitle";
 import { UserProfile, UserRole } from "@/types";
 import { AssesmentLockProvider, useAssesmentLock } from "@/components/dashboard/assesment-lock-context";
 
@@ -22,7 +23,7 @@ function TooltipStyles() {
         top: calc(100% + 6px);
         left: 50%;
         transform: translateX(-50%) translateY(-4px);
-        background: #1a1a1a;
+        background: #2c2c2a;
         color: #fff;
         font-size: 12px;
         font-weight: 500;
@@ -118,6 +119,7 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
   return (
     <div className="min-h-screen bg-white">
       <TooltipStyles />
+      <PageTitle />
 
       {/* ─── MOBILE HEADER ─── */}
       <header className="sticky top-0 z-30 h-20 border-b border-brand-600 bg-white px-4 md:hidden">
@@ -171,8 +173,8 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
                 />
                 {profile && (
                   <div className="flex flex-col leading-tight">
-                    <span className="whitespace-nowrap text-sm font-semibold text-zinc-900">{profile.name.split(" ").slice(0, 2).join(" ")}</span>
-                    <span className="whitespace-nowrap text-xs text-zinc-600">
+                    <span className="whitespace-nowrap text-sm font-semibold text-ink">{profile.name.split(" ").slice(0, 2).join(" ")}</span>
+                    <span className="whitespace-nowrap text-xs text-muted">
                       {profile.className ? `Kelas ${profile.className}` : "Guru"}
                     </span>
                   </div>
@@ -291,7 +293,7 @@ function DashboardShellInner({ profile, children }: DashboardShellProps) {
               />
               {profile && (
                 <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1a1a", whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#2c2c2a", whiteSpace: "nowrap" }}>
                     {profile.name}
                   </span>
                   <span style={{ fontSize: 12, color: "#555", whiteSpace: "nowrap" }}>

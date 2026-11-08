@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     const error = err instanceof Error ? err.message : String(err);
     logger.error("auth:signup", "DB error during signup - auth user rolled back", { userId: user.id, error });
     sendAlert({
-      title: "Signup DB Error — User Rolled Back",
+      title: "Signup DB Error: User Rolled Back",
       route: "POST /api/auth/signup",
       error,
       meta: { userId: user.id },

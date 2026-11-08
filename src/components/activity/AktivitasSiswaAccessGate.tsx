@@ -25,8 +25,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 // ── Concept display names ─────────────────────────────────────────────────
@@ -153,12 +153,9 @@ export default function AktivitasSiswaAccessGate({
             </div>
             <p
               style={{
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
                 color: "#b45309",
-                opacity: 0.7,
                 margin: "0 0 6px",
               }}
             >
@@ -174,7 +171,7 @@ export default function AktivitasSiswaAccessGate({
             >
               Selesaikan Materi Terlebih Dahulu
             </h1>
-            <p style={{ fontSize: 14, color: "#9a7b5c", margin: 0, lineHeight: 1.7 }}>
+            <p style={{ fontSize: 14, color: "#886D52", margin: 0, lineHeight: 1.7 }}>
               Kamu harus menyelesaikan section Contoh Soal pada materi{" "}
               {CONCEPT_NAMES[conceptId] ?? conceptId} sebelum dapat mengakses
               halaman Aktivitas Siswa ini.
@@ -284,7 +281,7 @@ export default function AktivitasSiswaAccessGate({
               </svg>
               Kembali ke Materi
             </Link>
-            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#5D7C5F" }}>
               Selesaikan Contoh Soal terlebih dahulu, lalu kembali ke halaman
               ini untuk mengerjakan aktivitas.
             </p>

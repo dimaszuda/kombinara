@@ -15,8 +15,8 @@ interface RuleBoxProps {
 export default function RuleBox({ title, items, type }: RuleBoxProps) {
   const ok = type === "allowed";
   const color = ok ? "#346739" : "#b91c1c";
-  const bg = ok ? "#f0faf0" : "#fff5f5";
-  const border = ok ? "#c3e6c3" : "#fecaca";
+  const bg = ok ? "#f3fff1" : "#fff5f5";
+  const border = ok ? "#d4e8d4" : "#fecaca";
 
   return (
     <div
@@ -29,12 +29,10 @@ export default function RuleBox({ title, items, type }: RuleBoxProps) {
     >
       <h4
         style={{
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 700,
           color,
           margin: "0 0 10px",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
         }}
       >
         {title}

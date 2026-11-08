@@ -11,8 +11,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 const ATURAN_OPTIONS = [
@@ -34,17 +34,17 @@ const STEPS: StepConfig[] = [
     index: 0,
     questionKey: "sistem_a",
     entryType: "soal",
-    label: "Sistem A — Kode Tunggal",
+    label: "Sistem A: Kode Tunggal",
     soalText:
-      "Sekolah membuat sistem kode unik untuk kartu identitas siswa. Sistem A: siswa mendapat kode berdasarkan SALAH SATU kategori — warna (merah, biru, hijau, kuning = 4 pilihan), angka romawi (I, II, III, V = 4 pilihan), atau huruf (A, B, C = 3 pilihan). Berapa total kode berbeda yang bisa dibuat? Aturan apa yang digunakan? Mengapa?",
+      "Sekolah membuat sistem kode unik untuk kartu identitas siswa. Sistem A: siswa mendapat kode berdasarkan SALAH SATU kategori: warna (merah, biru, hijau, kuning = 4 pilihan), angka romawi (I, II, III, V = 4 pilihan), atau huruf (A, B, C = 3 pilihan). Berapa total kode berbeda yang bisa dibuat? Aturan apa yang digunakan? Mengapa?",
   },
   {
     index: 1,
     questionKey: "sistem_b",
     entryType: "soal",
-    label: "Sistem B — Kode Kombinasi",
+    label: "Sistem B: Kode Kombinasi",
     soalText:
-      "Sistem B: setiap kode terdiri dari 3 bagian SEKALIGUS — warna (4 pilihan), angka romawi (4 pilihan), dan huruf (3 pilihan). Berapa total kode berbeda yang bisa dibuat? Aturan apa yang digunakan? Mengapa?",
+      "Sistem B: setiap kode terdiri dari 3 bagian SEKALIGUS: warna (4 pilihan), angka romawi (4 pilihan), dan huruf (3 pilihan). Berapa total kode berbeda yang bisa dibuat? Aturan apa yang digunakan? Mengapa?",
   },
   {
     index: 2,
@@ -78,14 +78,14 @@ function Spinner() {
 
 // ── Feedback Box ─────────────────────────────────────────────────
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
-  const borderColor = isCorrect === false ? "border-[#C44F4F33]" : "border-[#34673933]";
-  const bgColor = isCorrect === false ? "bg-[#C44F4F08]" : "bg-[#34673908]";
-  const labelColor = isCorrect === false ? "text-[#C44F4F]" : "text-[#346739]";
-  const icon = isCorrect === false ? "❌" : "💬";
+  const borderColor = isCorrect === false ? "border-[#C2494933]" : "border-[#34673933]";
+  const bgColor = isCorrect === false ? "bg-[#C2494908]" : "bg-[#34673908]";
+  const labelColor = isCorrect === false ? "text-[#C24949]" : "text-[#346739]";
+  const icon = isCorrect === false ? "❌ " : "";
 
   return (
     <div className={`mt-3 rounded-lg border ${borderColor} ${bgColor} p-3`}>
-      <p className={`mb-1 text-xs font-medium ${labelColor}`}>{icon} Feedback Kombi</p>
+      <p className={`mb-1 text-xs font-medium ${labelColor}`}>{icon}Feedback Kombi</p>
       <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{text}</RichText>
     </div>
   );
@@ -147,7 +147,7 @@ function ProgressIndicator({
 
           let dotBg = "bg-[#E5E5E0]";
           let dotBorder = "border-[#C5C5C0]";
-          let dotText = "text-[#9E9D99]";
+          let dotText = "text-[#6B6B66]";
           if (isCompleted) {
             dotBg = "bg-[#346739]";
             dotBorder = "border-[#346739]";
@@ -195,18 +195,18 @@ function AturanSelect({
 }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <label htmlFor={id} className="text-sm font-medium text-slate-600">
+      <label htmlFor={id} className="text-sm font-medium text-muted">
         Aturan:
       </label>
       <select
         id={id}
-        className="border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700"
+        className="border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362]"
         style={{ borderColor: C.border }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={readOnly}
       >
-        <option value="">— pilih aturan —</option>
+        <option value="">Pilih aturan</option>
         {ATURAN_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -235,14 +235,14 @@ function TextInput({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-500">
+        <label htmlFor={id} className="text-xs font-semibold text-muted">
           {label}
         </label>
       )}
       <input
         id={id}
         type="text"
-        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${
+        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${
           readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""
         }`}
         style={{ borderColor: C.border }}
@@ -334,7 +334,7 @@ export default function AktivitasKP3() {
               const sub = data.submissions[key];
               if (sub) {
                 preFilled[i] = {
-                  text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  text: `Jawaban kamu:\n${formatJawaban(sub.answer)}\n\nFeedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                   isCorrect: sub.isCorrect,
                 };
                 if (!sub.isCorrect && firstUnanswered > i) {
@@ -376,7 +376,7 @@ export default function AktivitasKP3() {
         setFeedbackMap((p) => ({
           ...p,
           [idx]: {
-            text: `📝 Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            text: `Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\nFeedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
             isCorrect: data.submission.isCorrect,
           },
         }));
@@ -549,18 +549,18 @@ export default function AktivitasKP3() {
     const stepIdx = 0;
     return (
       <div>
-        <StepBadge step={1} title="Pahami Sistem A — Kode Tunggal" isCompleted={readOnly} />
+        <StepBadge step={1} title="Pahami Sistem A: Kode Tunggal" isCompleted={readOnly} />
         <div
           className="rounded-xl p-4 space-y-3"
           style={{ background: C.bg, border: `1px solid ${C.greenLight}` }}
         >
           <p className="text-sm font-bold" style={{ color: C.green }}>
-            Sistem A — Kode Tunggal
+            Sistem A: Kode Tunggal
           </p>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-muted">
             Siswa mendapat kode berdasarkan <em>salah satu</em> kategori:
           </p>
-          <ul className="text-xs text-slate-600 space-y-1 list-disc pl-4">
+          <ul className="text-xs text-muted space-y-1 list-disc pl-4">
             <li>Kode warna: merah, biru, hijau, kuning (4 pilihan)</li>
             <li>Kode angka romawi: I, II, III, V (4 pilihan)</li>
             <li>Kode huruf: A, B, C (3 pilihan)</li>
@@ -580,12 +580,12 @@ export default function AktivitasKP3() {
             readOnly={readOnly}
           />
           <div className="flex flex-col gap-1">
-            <label htmlFor="sistemA-alasan" className="text-xs font-semibold text-slate-500">
+            <label htmlFor="sistemA-alasan" className="text-xs font-semibold text-muted">
               Mengapa menggunakan aturan tersebut?
             </label>
             <textarea
               id="sistemA-alasan"
-              className={`w-full border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[56px] ${
+              className={`w-full border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[56px] ${
                 readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"
               }`}
               style={{ borderColor: C.border }}
@@ -618,18 +618,18 @@ export default function AktivitasKP3() {
     const stepIdx = 1;
     return (
       <div>
-        <StepBadge step={2} title="Pahami Sistem B — Kode Kombinasi" isCompleted={readOnly} />
+        <StepBadge step={2} title="Pahami Sistem B: Kode Kombinasi" isCompleted={readOnly} />
         <div
           className="rounded-xl p-4 space-y-3"
           style={{ background: C.bg, border: `1px solid ${C.greenLight}` }}
         >
           <p className="text-sm font-bold" style={{ color: C.green }}>
-            Sistem B — Kode Kombinasi
+            Sistem B: Kode Kombinasi
           </p>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-muted">
             Setiap kode terdiri dari <em>3 bagian sekaligus</em>:
           </p>
-          <ul className="text-xs text-slate-600 space-y-1 list-disc pl-4">
+          <ul className="text-xs text-muted space-y-1 list-disc pl-4">
             <li>Bagian 1: warna (4 pilihan)</li>
             <li>Bagian 2: angka romawi (4 pilihan)</li>
             <li>Bagian 3: huruf (3 pilihan)</li>
@@ -649,12 +649,12 @@ export default function AktivitasKP3() {
             readOnly={readOnly}
           />
           <div className="flex flex-col gap-1">
-            <label htmlFor="sistemB-alasan" className="text-xs font-semibold text-slate-500">
+            <label htmlFor="sistemB-alasan" className="text-xs font-semibold text-muted">
               Mengapa menggunakan aturan tersebut?
             </label>
             <textarea
               id="sistemB-alasan"
-              className={`w-full border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[56px] ${
+              className={`w-full border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[56px] ${
                 readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"
               }`}
               style={{ borderColor: C.border }}
@@ -692,10 +692,10 @@ export default function AktivitasKP3() {
           className="rounded-xl p-4 space-y-2 mb-4"
           style={{ backgroundColor: C.greenLight }}
         >
-          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+          <p className="text-xs font-semibold text-muted">
             Ketentuan
           </p>
-          <ul className="text-sm text-slate-700 space-y-1 list-disc pl-4">
+          <ul className="text-sm text-ink space-y-1 list-disc pl-4">
             <li>Harus ada minimal satu bagian yang menggunakan aturan penjumlahan</li>
             <li>Harus ada minimal satu bagian yang menggunakan aturan perkalian</li>
             <li>Total kode harus mampu menampung minimal <strong>500 siswa</strong></li>
@@ -704,12 +704,12 @@ export default function AktivitasKP3() {
         <div className="space-y-4">
           <div className="flex gap-4">
             <div className="flex-1 flex flex-col gap-1">
-              <label htmlFor="rancangan-deskripsi" className="text-xs font-semibold text-slate-500">
+              <label htmlFor="rancangan-deskripsi" className="text-xs font-semibold text-muted">
                 Rancangan Sistem Kode Kelompok Kami:
               </label>
               <textarea
                 id="rancangan-deskripsi"
-                className={`flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[96px] ${
+                className={`flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[96px] ${
                   readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"
                 }`}
                 style={{ borderColor: C.border }}
@@ -730,7 +730,7 @@ export default function AktivitasKP3() {
               readOnly={readOnly}
             />
             <div className="flex flex-col gap-1">
-              <span className="text-xs font-semibold text-slate-500">
+              <span className="text-xs font-semibold text-muted">
                 Apakah mencukupi untuk 500 siswa?
               </span>
               <div className="flex items-center gap-4">
@@ -745,19 +745,19 @@ export default function AktivitasKP3() {
                       className="accent-green-700"
                       disabled={readOnly}
                     />
-                    <span className="text-sm capitalize font-medium text-slate-700">{opt}</span>
+                    <span className="text-sm capitalize font-medium text-ink">{opt}</span>
                   </label>
                 ))}
               </div>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="rancangan-alasan" className="text-xs font-semibold text-slate-500">
+            <label htmlFor="rancangan-alasan" className="text-xs font-semibold text-muted">
               Mengapa?
             </label>
             <textarea
               id="rancangan-alasan"
-              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[72px] ${
+              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[72px] ${
                 readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"
               }`}
               style={{ borderColor: C.border }}
@@ -795,16 +795,16 @@ export default function AktivitasKP3() {
           className="rounded-xl p-4 space-y-3"
           style={{ background: C.bg, border: `1px solid ${C.greenLight}` }}
         >
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             Setelah mengerjakan ketiga langkah di atas, jawab pertanyaan refleksi berikut:
           </p>
           <div className="flex flex-col gap-1">
-            <label htmlFor="refleksi" className="text-sm font-medium text-slate-700">
+            <label htmlFor="refleksi" className="text-sm font-medium text-ink">
               Apa perbedaan paling mendasar antara aturan penjumlahan dan aturan perkalian dalam konteks membuat sistem kode? Kapan kamu menggunakan masing-masing aturan?
             </label>
             <textarea
               id="refleksi"
-              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[100px] ${
+              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[100px] ${
                 readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"
               }`}
               style={{ borderColor: C.border }}
@@ -870,11 +870,11 @@ export default function AktivitasKP3() {
                   {ind}
                 </span>
               ))}
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#C9962B" }}>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#C9962B" }} /> Joyful
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#8E6A1E" }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#8E6A1E" }} /> Joyful
               </span>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#4CAF50" }}>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#4CAF50" }} /> Meaningful
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#377F3A" }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#377F3A" }} /> Meaningful
               </span>
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#2A5A8C" }}>
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#2A5A8C" }} /> Mindful
@@ -888,9 +888,9 @@ export default function AktivitasKP3() {
           {/* ── KONTEKS ── */}
           <div className="rounded-xl p-4 space-y-2" style={{ backgroundColor: C.greenLight }}>
             <p className="text-sm font-bold" style={{ color: C.green }}>
-              🏫 Konteks
+              Konteks
             </p>
-            <p className="text-sm text-slate-700">
+            <p className="text-sm text-ink">
               Sekolahmu akan membuat <strong>sistem kode unik</strong> untuk kartu identitas siswa
               baru. Kelompokmu bertugas merancang sistemnya dan menghitung berapa banyak kode yang
               bisa dihasilkan.
@@ -904,7 +904,7 @@ export default function AktivitasKP3() {
           {isLoadingExisting && (
             <div className="flex items-center justify-center py-12">
               <Spinner />
-              <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+              <span className="ml-3 text-sm text-muted">Memuat aktivitas...</span>
             </div>
           )}
 
@@ -918,7 +918,7 @@ export default function AktivitasKP3() {
                 <p className="font-bold text-base" style={{ color: C.green }}>
                   ✅ Kamu sudah menyelesaikan aktivitas ini!
                 </p>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-muted mt-1">
                   Klik &ldquo;Lihat jawabanku&rdquo; di setiap langkah untuk melihat jawaban dan feedback.
                 </p>
               </div>
@@ -970,9 +970,9 @@ export default function AktivitasKP3() {
               style={{ backgroundColor: C.greenLight }}
             >
               <p className="font-bold text-base" style={{ color: C.green }}>
-                🎉 Semua langkah selesai!
+                Semua langkah selesai!
               </p>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="text-sm text-muted mt-1">
                 Semua jawabanmu sudah tersimpan. Lanjutkan ke aktivitas berikutnya ya!
               </p>
             </div>

@@ -349,10 +349,10 @@ export default function MateriDetailPage({
       
       {/* Asesmen Diagnostik section */}
       <div id="asesmen-diagnostik" key="Asesmen Diagnostik" style={{ marginBottom: "40px" }}>
-        <p style={{ fontSize: "12px", color: "#888", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+        <p style={{ fontSize: "12px", color: "#6B6B66", marginBottom: "6px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
           Asesmen Diagnostik
         </p>
-        <div style={{ height: "4px", background: "#e0e0e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
+        <div style={{ height: "4px", background: "#e5e5e0", borderRadius: "4px", overflow: "hidden", marginBottom: "16px" }}>
           <div
             style={{
               height: "100%",
@@ -363,7 +363,7 @@ export default function MateriDetailPage({
           />
         </div>
         {isCheckingStatus ? (
-          <div style={{ textAlign: "center", padding: "24px", color: "#888", fontSize: "14px" }}>
+          <div style={{ textAlign: "center", padding: "24px", color: "#6B6B66", fontSize: "14px" }}>
             Memeriksa status asesmen...
           </div>
         ) : (
@@ -441,7 +441,7 @@ function LockableSection({
       <p
         style={{
           fontSize: "12px",
-          color: "#888",
+          color: "#6B6B66",
           marginBottom: "6px",
           fontFamily: "monospace",
           letterSpacing: "0.5px",
@@ -452,7 +452,7 @@ function LockableSection({
       <div
         style={{
           height: "4px",
-          background: "#e0e0e0",
+          background: "#e5e5e0",
           borderRadius: "4px",
           overflow: "hidden",
           marginBottom: "16px",
@@ -462,7 +462,7 @@ function LockableSection({
           style={{
             height: "100%",
             width: unlocked ? progressWidth : "0%",
-            background: unlocked ? "#346739" : "#e0e0e0",
+            background: unlocked ? "#346739" : "#e5e5e0",
             borderRadius: "4px",
             transition: "width 0.5s ease, background 0.5s ease",
           }}
@@ -473,25 +473,24 @@ function LockableSection({
       ) : (
         <div
           style={{
-            backgroundColor: "#f9fafb",
+            backgroundColor: "#f5f5f0",
             borderRadius: "16px",
             padding: "40px 32px",
-            border: "2px dashed #d1d5db",
+            border: "2px dashed #c5c5c0",
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "40px", marginBottom: "12px" }}>🔒</div>
           <p
             style={{
               fontSize: "16px",
               fontWeight: 600,
-              color: "#6b7280",
+              color: "#6b6b66",
               margin: "0 0 8px",
             }}
           >
             Selesaikan Asesmen Diagnostik Terlebih Dahulu
           </p>
-          <p style={{ fontSize: "13px", color: "#9ca3af", margin: 0 }}>
+          <p style={{ fontSize: "13px", color: "#6B6B66", margin: 0 }}>
             Kamu harus lulus asesmen diagnostik di atas untuk membuka section ini.
           </p>
         </div>

@@ -11,8 +11,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 // ── Step Definitions: PER NOMOR (12 steps) ──────────────────────
@@ -26,18 +26,18 @@ interface StepConfig {
 }
 
 const STEPS: StepConfig[] = [
-  { index: 0,  questionKey: "nomor_1",   entryType: "soal",     label: "Nomor 1 — 8!/6!",               soalText: "8!/6! = ?" },
-  { index: 1,  questionKey: "nomor_2",   entryType: "soal",     label: "Nomor 2 — 9!/7!",               soalText: "9!/7! = ?" },
-  { index: 2,  questionKey: "nomor_3",   entryType: "soal",     label: "Nomor 3 — 10!/8!",              soalText: "10!/8! = ?" },
-  { index: 3,  questionKey: "pola",      entryType: "soal",     label: "Pola — n!/(n-2)!",              soalText: "Dari (1)-(3), temukan pola: n!/(n-2)! = ?" },
-  { index: 4,  questionKey: "nomor_4",   entryType: "soal",     label: "Nomor 4 — 7!/(3!·4!)",          soalText: "7!/(3!·4!) = ?" },
-  { index: 5,  questionKey: "nomor_5",   entryType: "soal",     label: "Nomor 5 — 10!/(2!·8!)",         soalText: "10!/(2!·8!) = ?" },
-  { index: 6,  questionKey: "nomor_6",   entryType: "soal",     label: "Nomor 6 — n!/(n-1)!",           soalText: "n!/(n-1)! = ? (dalam bentuk n)" },
-  { index: 7,  questionKey: "nomor_7",   entryType: "soal",     label: "Nomor 7 — Cari n (n=7)",        soalText: "Jika n!/(n-2)! = 42, maka n = ?",               aiFeedbackOnly: true },
-  { index: 8,  questionKey: "nomor_8",   entryType: "soal",     label: "Nomor 8 — Cari n (n=5)",        soalText: "Jika n!/(n-3)! = 60, maka n = ?",               aiFeedbackOnly: true },
-  { index: 9,  questionKey: "diskusi_a", entryType: "refleksi", label: "Diskusi (a) — Alasan",          soalText: "Mengapa cara 'mencoret faktor yang sama' bisa dilakukan secara matematis?", aiFeedbackOnly: true },
-  { index: 10, questionKey: "diskusi_b", entryType: "refleksi", label: "Diskusi (b) — Cek Miskonsepsi", soalText: "Apakah 5!/3! = 2! ? Dan apakah 2!×3! = (2×3)! ? Cek kebenarannya!", aiFeedbackOnly: true },
-  { index: 11, questionKey: "diskusi_c", entryType: "refleksi", label: "Diskusi (c) — Tips",            soalText: "Tuliskan satu tips cara cepat menyederhanakan ekspresi faktorial.", aiFeedbackOnly: true },
+  { index: 0,  questionKey: "nomor_1",   entryType: "soal",     label: "Nomor 1: 8!/6!",               soalText: "8!/6! = ?" },
+  { index: 1,  questionKey: "nomor_2",   entryType: "soal",     label: "Nomor 2: 9!/7!",               soalText: "9!/7! = ?" },
+  { index: 2,  questionKey: "nomor_3",   entryType: "soal",     label: "Nomor 3: 10!/8!",              soalText: "10!/8! = ?" },
+  { index: 3,  questionKey: "pola",      entryType: "soal",     label: "Pola: n!/(n-2)!",              soalText: "Dari (1)-(3), temukan pola: n!/(n-2)! = ?" },
+  { index: 4,  questionKey: "nomor_4",   entryType: "soal",     label: "Nomor 4: 7!/(3!·4!)",          soalText: "7!/(3!·4!) = ?" },
+  { index: 5,  questionKey: "nomor_5",   entryType: "soal",     label: "Nomor 5: 10!/(2!·8!)",         soalText: "10!/(2!·8!) = ?" },
+  { index: 6,  questionKey: "nomor_6",   entryType: "soal",     label: "Nomor 6: n!/(n-1)!",           soalText: "n!/(n-1)! = ? (dalam bentuk n)" },
+  { index: 7,  questionKey: "nomor_7",   entryType: "soal",     label: "Nomor 7: Cari n (n=7)",        soalText: "Jika n!/(n-2)! = 42, maka n = ?",               aiFeedbackOnly: true },
+  { index: 8,  questionKey: "nomor_8",   entryType: "soal",     label: "Nomor 8: Cari n (n=5)",        soalText: "Jika n!/(n-3)! = 60, maka n = ?",               aiFeedbackOnly: true },
+  { index: 9,  questionKey: "diskusi_a", entryType: "refleksi", label: "Diskusi (a): Alasan",          soalText: "Mengapa cara 'mencoret faktor yang sama' bisa dilakukan secara matematis?", aiFeedbackOnly: true },
+  { index: 10, questionKey: "diskusi_b", entryType: "refleksi", label: "Diskusi (b): Cek Miskonsepsi", soalText: "Apakah 5!/3! = 2! ? Dan apakah 2!×3! = (2×3)! ? Cek kebenarannya!", aiFeedbackOnly: true },
+  { index: 11, questionKey: "diskusi_c", entryType: "refleksi", label: "Diskusi (c): Tips",            soalText: "Tuliskan satu tips cara cepat menyederhanakan ekspresi faktorial.", aiFeedbackOnly: true },
 ];
 
 const TOTAL_STEPS = STEPS.length;
@@ -99,13 +99,13 @@ function Spinner() {
 
 // ── Feedback Box ─────────────────────────────────────────────────
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
-  const bc = isCorrect === false ? "border-[#C44F4F33]" : "border-[#34673933]";
-  const bg = isCorrect === false ? "bg-[#C44F4F08]" : "bg-[#34673908]";
-  const lc = isCorrect === false ? "text-[#C44F4F]" : "text-[#346739]";
-  const ic = isCorrect === false ? "❌" : "💬";
+  const bc = isCorrect === false ? "border-[#C2494933]" : "border-[#34673933]";
+  const bg = isCorrect === false ? "bg-[#C2494908]" : "bg-[#34673908]";
+  const lc = isCorrect === false ? "text-[#C24949]" : "text-[#346739]";
+  const ic = isCorrect === false ? "❌ " : "";
   return (
     <div className={`mt-3 rounded-lg border ${bc} ${bg} p-3`}>
-      <p className={`mb-1 text-xs font-medium ${lc}`}>{ic} Feedback Kombi</p>
+      <p className={`mb-1 text-xs font-medium ${lc}`}>{ic}Feedback Kombi</p>
       <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{text}</RichText>
     </div>
   );
@@ -136,7 +136,7 @@ function ProgressIndicator({ currentStep, feedbackMap }: { currentStep: number; 
           const done = fb?.isCorrect === true;
           const active = step.index === currentStep;
           const locked = step.index > currentStep;
-          let dBg = "bg-[#E5E5E0]", dBd = "border-[#C5C5C0]", dTx = "text-[#9E9D99]";
+          let dBg = "bg-[#F5F5F0]", dBd = "border-[#C5C5C0]", dTx = "text-[#6B6B66]";
           if (done) { dBg = "bg-[#346739]"; dBd = "border-[#346739]"; dTx = "text-white"; }
           else if (active) { dBg = "bg-white"; dBd = "border-[#346739]"; dTx = "text-[#346739]"; }
           return (
@@ -157,9 +157,9 @@ function TextInput({ label, value, onChange, placeholder, id, readOnly = false }
   { label?: string; value: string; onChange: (v: string) => void; placeholder?: string; id?: string; readOnly?: boolean }) {
   return (
     <div className="flex flex-col gap-1">
-      {label && <label htmlFor={id} className="text-xs font-semibold text-slate-500">{label}</label>}
+      {label && <label htmlFor={id} className="text-xs font-semibold text-muted">{label}</label>}
       <input id={id} type="text"
-        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
         style={{ borderColor: C.border }} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} readOnly={readOnly} />
     </div>
   );
@@ -231,7 +231,7 @@ export default function AktivitasFaktorial1() {
               const sub = data.submissions[key];
               if (sub) {
                 preFilled[i] = {
-                  text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  text: `Jawaban kamu:\n${formatJawaban(sub.answer)}\n\nFeedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                   isCorrect: sub.isCorrect,
                 };
                 if (!sub.isCorrect && firstUnanswered > i) {
@@ -305,7 +305,7 @@ export default function AktivitasFaktorial1() {
         setFeedbackMap((p) => ({
           ...p,
           [idx]: {
-            text: `📝 Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            text: `Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\nFeedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
             isCorrect: data.submission.isCorrect,
           },
         }));
@@ -357,13 +357,13 @@ export default function AktivitasFaktorial1() {
     const fbOk = (msg: string) => ({ isCorrect: true, feedback: msg });
     const fbNo = (msg: string) => ({ isCorrect: false, feedback: msg });
     switch (idx) {
-      case 0: return checkNumeric(q1, "56") ? fbOk("🎯 Benar! 8!/6! = 8×7 = 56. Lanjut ke nomor 2!") : fbNo("🤔 8!/6! = (8×7×6!)/6! = 8×7 = ? Coba hitung lagi.");
-      case 1: return checkNumeric(q2, "72") ? fbOk("🎯 Tepat! 9!/7! = 9×8 = 72. Lanjut nomor 3!") : fbNo("🤔 9!/7! = (9×8×7!)/7! = 9×8 = ?");
-      case 2: return checkNumeric(q3, "90") ? fbOk("🎯 Mantap! 10!/8! = 10×9 = 90. Sekarang temukan polanya!") : fbNo("🤔 10!/8! = (10×9×8!)/8! = 10×9 = ?");
-      case 3: return checkPolaNMinus2(pola) ? fbOk("🎯 Keren! n!/(n-2)! = n×(n-1). Lanjut ke nomor 4!") : fbNo("🤔 Perhatikan: 8!/6!=8×7, 9!/7!=9×8, 10!/8!=10×9. Jadi n!/(n-2)! = n × (n-1). Coba lagi.");
-      case 4: return checkNumeric(q4, "35") ? fbOk("🎯 Tepat! 7!/(3!·4!) = 35. Lanjut nomor 5!") : fbNo("🤔 7!/(3!·4!) = (7×6×5×4!)/(3×2×1×4!) = 210/6 = ?");
-      case 5: return checkNumeric(q5, "45") ? fbOk("🎯 Benar! 10!/(2!·8!) = 45. Lanjut nomor 6!") : fbNo("🤔 10!/(2!·8!) = (10×9×8!)/(2×1×8!) = 90/2 = ?");
-      case 6: return checkPolaNMinus1(q6) ? fbOk("🎯 Sempurna! n!/(n-1)! = n. Lanjut ke Bagian C — cari nilai n!") : fbNo("🤔 n! = n×(n-1)!, jadi n!/(n-1)! = n. Tulis jawabannya.");
+      case 0: return checkNumeric(q1, "56") ? fbOk("Benar! 8!/6! = 8×7 = 56. Lanjut ke nomor 2!") : fbNo("8!/6! = (8×7×6!)/6! = 8×7 = ? Coba hitung lagi.");
+      case 1: return checkNumeric(q2, "72") ? fbOk("Tepat! 9!/7! = 9×8 = 72. Lanjut nomor 3!") : fbNo("9!/7! = (9×8×7!)/7! = 9×8 = ?");
+      case 2: return checkNumeric(q3, "90") ? fbOk("Mantap! 10!/8! = 10×9 = 90. Sekarang temukan polanya!") : fbNo("10!/8! = (10×9×8!)/8! = 10×9 = ?");
+      case 3: return checkPolaNMinus2(pola) ? fbOk("Keren! n!/(n-2)! = n×(n-1). Lanjut ke nomor 4!") : fbNo("Perhatikan: 8!/6!=8×7, 9!/7!=9×8, 10!/8!=10×9. Jadi n!/(n-2)! = n × (n-1). Coba lagi.");
+      case 4: return checkNumeric(q4, "35") ? fbOk("Tepat! 7!/(3!·4!) = 35. Lanjut nomor 5!") : fbNo("7!/(3!·4!) = (7×6×5×4!)/(3×2×1×4!) = 210/6 = ?");
+      case 5: return checkNumeric(q5, "45") ? fbOk("Benar! 10!/(2!·8!) = 45. Lanjut nomor 6!") : fbNo("10!/(2!·8!) = (10×9×8!)/(2×1×8!) = 90/2 = ?");
+      case 6: return checkPolaNMinus1(q6) ? fbOk("Sempurna! n!/(n-1)! = n. Lanjut ke Bagian C: cari nilai n!") : fbNo("n! = n×(n-1)!, jadi n!/(n-1)! = n. Tulis jawabannya.");
       default: return null;
     }
   }
@@ -465,8 +465,8 @@ export default function AktivitasFaktorial1() {
             <p className="text-sm font-semibold" style={{ color: C.green }}>(7) Jika n!/(n-2)! = 42, maka n = …</p>
             <TextInput label="Nilai n:" value={q7n} onChange={setQ7n} placeholder="Tulis jawabanmu di sini..." readOnly={readOnly} />
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-500">Langkah berpikirku:</label>
-              <textarea className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+              <label htmlFor="q7-langkah" className="text-xs font-semibold text-muted">Langkah berpikirku:</label>
+              <textarea id="q7-langkah" className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
                 style={{ borderColor: C.border }} value={q7langkah} onChange={(e) => setQ7langkah(e.target.value)} placeholder="Tulis langkah berpikirmu di sini..." readOnly={readOnly} />
             </div>
           </div>
@@ -482,8 +482,8 @@ export default function AktivitasFaktorial1() {
             <p className="text-sm font-semibold" style={{ color: C.green }}>(8) Jika n!/(n-3)! = 60, maka n = …</p>
             <TextInput label="Nilai n:" value={q8n} onChange={setQ8n} placeholder="Tulis jawabanmu di sini..." readOnly={readOnly} />
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-500">Langkah berpikirku:</label>
-              <textarea className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+              <label htmlFor="q8-langkah" className="text-xs font-semibold text-muted">Langkah berpikirku:</label>
+              <textarea id="q8-langkah" className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
                 style={{ borderColor: C.border }} value={q8langkah} onChange={(e) => setQ8langkah(e.target.value)} placeholder="Tulis langkah berpikirmu di sini..." readOnly={readOnly} />
             </div>
           </div>
@@ -506,12 +506,12 @@ export default function AktivitasFaktorial1() {
           <div>
             <NumBadge n={idx + 1} isCompleted={readOnly} />
             <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: C.greenLight }}>
-              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">👥 Diskusi Pasangan — Bagian D</p>
-              <p className="text-sm text-slate-700">Tulis hasil diskusi kalian dengan jelas dan lengkap.</p>
+              <p className="text-xs font-semibold text-muted mb-2">Diskusi Pasangan: Bagian D</p>
+              <p className="text-sm text-ink">Tulis hasil diskusi kalian dengan jelas dan lengkap.</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-2">{labels[d]}</label>
-              <textarea className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[72px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+              <label htmlFor={`diskusi-${d}`} className="text-sm font-medium text-ink block mb-2">{labels[d]}</label>
+              <textarea id={`diskusi-${d}`} className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[72px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
                 style={{ borderColor: C.border }} value={states[d]} onChange={(e) => setters[d](e.target.value)} placeholder="Tuliskan diskusi kalian..." readOnly={readOnly} />
             </div>
             {fb && <FeedbackBox text={fb.text} isCorrect={fb.isCorrect} />}
@@ -540,8 +540,8 @@ export default function AktivitasFaktorial1() {
                 style={{ backgroundColor: C.greenLight, color: C.green }}><IconUserSolo /> INDIVIDU & PASANGAN</span>
               <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold"
                 style={{ backgroundColor: C.green, color: C.white }}><IconClock /> 35 menit</span>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#C9962B" }}>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#C9962B" }} /> Joyful</span>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#8E6A1E" }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#8E6A1E" }} /> Joyful</span>
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "#2A5A8C" }}>
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#2A5A8C" }} /> Mindful</span>
             </div>
@@ -550,11 +550,11 @@ export default function AktivitasFaktorial1() {
 
           {/* PETUNJUK */}
           <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: C.greenLight }}>
-            <p className="text-sm font-bold" style={{ color: C.green }}>📋 Petunjuk</p>
-            <p className="text-sm text-slate-700">Faktorial tumbuh sangat cepat. Tapi dalam soal, faktorial sering muncul dalam bentuk pecahan. Jika langsung dihitung semua faktorialnya, butuh waktu lama dan rawan salah.</p>
-            <p className="text-sm text-slate-700">Aktivitas ini melatihmu menemukan cara cepat dan cermat menyederhanakan ekspresi faktorial.</p>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">🎯 Tujuan</p>
-            <p className="text-sm text-slate-700">Setelah menyelesaikan aktivitas ini, kamu mampu menjelaskan konsep faktorial sebagai notasi matematis yang muncul secara alami dari Kaidah Perkalian, menghitung nilainya secara efisien, dan memahami alasan 0! = 1 — bukan sekadar menghafalnya.</p>
+            <p className="text-sm font-bold" style={{ color: C.green }}>Petunjuk</p>
+            <p className="text-sm text-ink">Faktorial tumbuh sangat cepat. Tapi dalam soal, faktorial sering muncul dalam bentuk pecahan. Jika langsung dihitung semua faktorialnya, butuh waktu lama dan rawan salah.</p>
+            <p className="text-sm text-ink">Aktivitas ini melatihmu menemukan cara cepat dan cermat menyederhanakan ekspresi faktorial.</p>
+            <p className="text-xs font-semibold text-muted">Tujuan</p>
+            <p className="text-sm text-ink">Setelah menyelesaikan aktivitas ini, kamu mampu menjelaskan konsep faktorial sebagai notasi matematis yang muncul secara alami dari Kaidah Perkalian, menghitung nilainya secara efisien, dan memahami alasan 0! = 1, bukan sekadar menghafalnya.</p>
           </div>
 
           {/* PROGRESS */}
@@ -562,20 +562,20 @@ export default function AktivitasFaktorial1() {
 
           {/* CONTOH */}
           <div className="rounded-xl p-4" style={{ backgroundColor: C.greenLight }}>
-            <p className="text-sm font-bold mb-2" style={{ color: C.green }}>📖 Contoh</p>
-            <p className="text-sm text-slate-700">6!/4! = (6×5×4!)/4! = 6×5 = <strong>30</strong></p>
-            <p className="text-xs text-slate-500 mt-1">Tanpa menghitung 6! dan 4! secara penuh, hasilnya langsung diperoleh dengan mencoret faktor yang sama.</p>
+            <p className="text-sm font-bold mb-2" style={{ color: C.green }}>Contoh</p>
+            <p className="text-sm text-ink">6!/4! = (6×5×4!)/4! = 6×5 = <strong>30</strong></p>
+            <p className="text-xs text-muted mt-1">Tanpa menghitung 6! dan 4! secara penuh, hasilnya langsung diperoleh dengan mencoret faktor yang sama.</p>
           </div>
 
           {/* LOADING */}
-          {isLoadingExisting && <div className="flex items-center justify-center py-12"><Spinner /><span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span></div>}
+          {isLoadingExisting && <div className="flex items-center justify-center py-12"><Spinner /><span className="ml-3 text-sm text-muted">Memuat aktivitas...</span></div>}
 
           {/* ALREADY COMPLETED — Review Mode */}
           {!isLoadingExisting && hasExistingSubmissions && (
             <>
               <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
                 <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
-                <p className="text-sm text-slate-600 mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
+                <p className="text-sm text-muted mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
               </div>
               {/* Question review cards */}
               <div className="space-y-4">
@@ -594,7 +594,7 @@ export default function AktivitasFaktorial1() {
                           </div>
                           <div>
                             <p className="text-sm font-semibold" style={{ color: C.purple }}>{step.label}</p>
-                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{step.soalText}</p>
+                            <p className="text-xs text-muted mt-0.5 line-clamp-1">{step.soalText}</p>
                           </div>
                         </div>
                         {!isRevealed && (
@@ -625,8 +625,8 @@ export default function AktivitasFaktorial1() {
           {/* ALL COMPLETE */}
           {!isLoadingExisting && !hasExistingSubmissions && allComplete && (
             <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
-              <p className="font-bold text-base" style={{ color: C.green }}>🎉 Semua langkah selesai!</p>
-              <p className="text-sm text-slate-600 mt-1">Semua jawabanmu sudah tersimpan. Lanjutkan ke materi berikutnya ya!</p>
+              <p className="font-bold text-base" style={{ color: C.green }}>Semua langkah selesai!</p>
+              <p className="text-sm text-muted mt-1">Semua jawabanmu sudah tersimpan. Lanjutkan ke materi berikutnya ya!</p>
             </div>
           )}
 

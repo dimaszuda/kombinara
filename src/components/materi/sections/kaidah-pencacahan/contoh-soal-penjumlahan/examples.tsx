@@ -70,7 +70,7 @@ function DrinkChoicePicker() {
 
   return (
     <div className="rounded-xl border border-[#34673933] bg-white p-4">
-      <p className="mb-3 text-sm font-medium text-[#2C2C2A]">👇 Pilih minuman yang ingin kamu pesan</p>
+      <p className="mb-3 text-sm font-medium text-[#2C2C2A]">Pilih minuman yang ingin kamu pesan</p>
       <div className="flex flex-wrap justify-center gap-5">
         {DRINK_GROUPS.map((group) => (
           <div key={group.key}>
@@ -214,7 +214,7 @@ function BookChoicePicker() {
 
   return (
     <div className="rounded-xl border border-[#34673933] bg-white p-4">
-      <p className="mb-3 text-sm font-medium text-[#2C2C2A]">👇 Pilih 1 buku yang ingin kamu pinjam</p>
+      <p className="mb-3 text-sm font-medium text-[#2C2C2A]">Pilih 1 buku yang ingin kamu pinjam</p>
       <div className="flex flex-col gap-4">
         {BOOK_GROUPS.map((group) => (
           <div key={group.key}>
@@ -342,7 +342,7 @@ function TransportChoicePicker() {
 
   return (
     <div className="rounded-xl border border-[#34673933] bg-white p-4">
-      <p className="mb-3 text-sm font-medium text-[#2C2C2A]">👇 Pilih cara Andi berangkat ke sekolah</p>
+      <p className="mb-3 text-sm font-medium text-[#2C2C2A]">Pilih cara Andi berangkat ke sekolah</p>
       <div className="flex flex-wrap justify-center gap-5">
         {ROUTE_GROUPS.map((group) => (
           <div key={group.key}>
@@ -452,7 +452,7 @@ export function ExampleDrinks({
             value={values.alasan ?? ""}
             onChange={(e) => onChange("alasan", e.target.value)}
             placeholder="Tulis alasanmu..."
-            className="min-w-[160px] flex-1 rounded-md border border-[#34673933] px-3 py-1.5 text-sm placeholder:text-[#34673966]"
+            className="min-w-[160px] flex-1 rounded-md border border-[#34673933] px-3 py-1.5 text-sm placeholder:text-[#6B6B66]"
           />
         </div>
       </div>

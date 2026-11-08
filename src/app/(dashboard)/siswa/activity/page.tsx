@@ -32,17 +32,17 @@ export default function ActivityPage() {
     <div className="p-6 space-y-8">
       {/* Activity Cards */}
       <section>
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Pilih Aktivitas</h2>
+        <h2 className="text-xl font-bold text-ink mb-4">Pilih Aktivitas</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {ACTIVITY_CARDS.map((card, index) => (
             <div
               key={card.id}
-              className="relative rounded-2xl overflow-hidden bg-[#EDFCE7] border border-green-100 flex flex-col"
+              className="relative rounded-2xl overflow-hidden bg-[#F3FFF1] border border-brand-200 flex flex-col"
               style={{ minHeight: 340 }}
             >
               {/* Decorative bottom-left blob */}
               <div
-                className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-green-200 opacity-40 translate-y-1/2 -translate-x-1/2 pointer-events-none"
+                className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-brand-100 opacity-40 translate-y-1/2 -translate-x-1/2 pointer-events-none"
                 aria-hidden
               />
               {/* Decorative dots */}
@@ -53,7 +53,7 @@ export default function ActivityPage() {
                 {Array.from({ length: 16 }).map((_, i) => (
                   <span
                     key={i}
-                    className="w-1 h-1 rounded-full bg-green-300 opacity-60 inline-block"
+                    className="w-1 h-1 rounded-full bg-brand-200 opacity-60 inline-block"
                   />
                 ))}
               </div>
@@ -61,14 +61,14 @@ export default function ActivityPage() {
               {/* Card Body */}
               <div className="relative z-10 p-6 flex flex-col flex-1">
                 {/* Badge */}
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-white rounded-full px-3 py-1 w-fit shadow-sm mb-4">
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted bg-white rounded-full px-3 py-1 w-fit shadow-sm mb-4">
                   <span className="w-2 h-2 rounded-full bg-[#346739] inline-block" />
                   Materi {index + 1}
                 </span>
 
                 {/* Title + Icon row */}
                 <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-2xl font-extrabold text-green-800 leading-tight">
+                  <h3 className="text-2xl font-extrabold text-brand-700 leading-tight">
                     {card.title}
                   </h3>
                   <Image
@@ -83,15 +83,15 @@ export default function ActivityPage() {
                 {/* Tujuan Aktivitas */}
                 <div className="flex-1 mb-4 bg-white rounded-lg p-3">
                   <p className="text-xs font-bold mb-1" style={{ color: "#663362" }}>
-                    🎯 Tujuan Aktivitas:
+                    Tujuan Aktivitas:
                   </p>
-                  <p className="text-xs text-gray-600 leading-relaxed">{card.tujuan}</p>
+                  <p className="text-xs text-muted leading-relaxed">{card.tujuan}</p>
                 </div>
 
                 {/* CTA Button */}
                 <Link
                   href={card.activity ?? "#"}
-                  className="flex items-center justify-center gap-2 bg-green-800 hover:bg-green-900 text-white font-semibold text-sm rounded-xl py-3 px-4 transition-colors"
+                  className="flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl py-3 px-4 transition-colors"
                 >
                   Mulai Aktivitas
                   <svg

@@ -405,7 +405,7 @@ export default function AsesmenKaidahPencacahanPage() {
   if (accessAllowed === null) {
     return (
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
-        <p style={{ fontSize: 15, color: "#6b8f6d" }}>Memeriksa akses latihan...</p>
+        <p style={{ fontSize: 15, color: "#5D7C5F" }}>Memeriksa akses latihan...</p>
       </div>
     );
   }
@@ -424,7 +424,7 @@ export default function AsesmenKaidahPencacahanPage() {
     if (isRestoring) {
       return (
         <div style={{ maxWidth: 700, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
-          <p style={{ fontSize: 15, color: "#6b8f6d" }}>Memulihkan jawaban yang tersimpan...</p>
+          <p style={{ fontSize: 15, color: "#5D7C5F" }}>Memulihkan jawaban yang tersimpan...</p>
         </div>
       );
     }
@@ -520,12 +520,9 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
         </div>
         <p
           style={{
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 600,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
             color: "#b45309",
-            opacity: 0.7,
             margin: "0 0 6px",
           }}
         >
@@ -541,7 +538,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
         >
           Selesaikan Materi Terlebih Dahulu
         </h1>
-        <p style={{ fontSize: 14, color: "#9a7b5c", margin: 0, lineHeight: 1.7 }}>
+        <p style={{ fontSize: 14, color: "#886D52", margin: 0, lineHeight: 1.7 }}>
           Kamu harus menyelesaikan seluruh section pada materi Kaidah
           Penjumlahan dan Kaidah Perkalian sebelum dapat mengerjakan latihan
           formatif ini.
@@ -601,7 +598,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
           style={{
             backgroundColor: "#fff",
             borderRadius: 12,
-            border: "1.5px solid #e2ede2",
+            border: "1.5px solid #d4e8d4",
             padding: "18px 20px",
             marginBottom: 24,
           }}
@@ -612,8 +609,6 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
               fontWeight: 700,
               color: "#346739",
               margin: "0 0 12px",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
             }}
           >
             Section yang Belum Selesai
@@ -622,12 +617,10 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
             <div key={conceptId} style={{ marginBottom: 12 }}>
               <p
                 style={{
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
                   color: "#1a3d1c",
                   margin: "0 0 6px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
                 }}
               >
                 {CONCEPT_LABELS[conceptId] ?? conceptId}
@@ -647,7 +640,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
                     key={section}
                     style={{
                       fontSize: 13,
-                      color: "#5a7d5c",
+                      color: "#5d7c5f",
                       display: "flex",
                       alignItems: "center",
                       gap: 8,
@@ -722,7 +715,7 @@ function LockedScreen({ missingSections, summary }: LockedScreenProps) {
           style={{
             marginTop: 10,
             fontSize: 12,
-            color: "#9aada0",
+            color: "#5D7C5F",
           }}
         >
           Selesaikan semua section di atas, lalu kembali ke halaman ini untuk
@@ -741,7 +734,7 @@ function IntroScreen({ onStart, isFullyMastered, initialScore, remainingCount, t
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: "36px 24px" }}>
-      <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#346739", opacity: 0.7, margin: "0 0 6px" }}>
+      <p style={{ fontSize: 12, fontWeight: 600, color: "#346739", margin: "0 0 6px" }}>
         Latihan Pemahaman (Asesmen)
       </p>
       <h1 style={{ fontSize: 26, fontWeight: 700, color: "#1a3d1c", margin: "0 0 28px" }}>
@@ -750,45 +743,44 @@ function IntroScreen({ onStart, isFullyMastered, initialScore, remainingCount, t
 
       {/* Initial score banner */}
       {hasAttemptedBefore && (
-        <div style={{ backgroundColor: "#f0faf0", borderRadius: 12, border: "1.5px solid #c3e6c3", padding: "14px 18px", marginBottom: 20, textAlign: "center" }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7d5c", margin: "0 0 4px" }}> Skor Awal Kamu</p>
+        <div style={{ backgroundColor: "#f3fff1", borderRadius: 12, border: "1.5px solid #d4e8d4", padding: "14px 18px", marginBottom: 20, textAlign: "center" }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "#5d7c5f", margin: "0 0 4px" }}> Skor Awal Kamu</p>
           <p style={{ fontSize: 28, fontWeight: 800, color: "#1a3d1c", margin: 0 }}>{initialScore}/100</p>
           {!isFullyMastered && displayRemaining < displayTotal && (
-            <p style={{ fontSize: 12, color: "#6b8f6d", margin: "6px 0 0" }}> {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang</p>
+            <p style={{ fontSize: 12, color: "#5D7C5F", margin: "6px 0 0" }}> {displayRemaining} dari {displayTotal} soal masih perlu dikerjakan ulang</p>
           )}
         </div>
       )}
 
       {/* Fully mastered banner */}
       {isFullyMastered && (
-        <div style={{ backgroundColor: "#f0faf0", borderRadius: 12, border: "2px solid #346739", padding: "18px 20px", marginBottom: 20, textAlign: "center" }}>
-          <p style={{ fontSize: 16, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>🎉 Semua Soal Sudah Terjawab Benar!</p>
-          <p style={{ fontSize: 13, color: "#5a7d5c", margin: 0 }}>Kamu sudah menguasai seluruh materi Kaidah Pencacahan. Tidak ada soal yang perlu diulang.</p>
+        <div style={{ backgroundColor: "#f3fff1", borderRadius: 12, border: "2px solid #346739", padding: "18px 20px", marginBottom: 20, textAlign: "center" }}>
+          <p style={{ fontSize: 16, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>Semua Soal Sudah Terjawab Benar!</p>
+          <p style={{ fontSize: 13, color: "#5d7c5f", margin: 0 }}>Kamu sudah menguasai seluruh materi Kaidah Pencacahan. Tidak ada soal yang perlu diulang.</p>
         </div>
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
         {[
-          { icon: "⏱", label: "Durasi", value: "120 Menit", color: "#346739", bg: "#DBFFD5" },
-          { icon: "📄", label: "Jumlah Soal", value: `${displayRemaining} Soal`, color: "#346739", bg: "#DBFFD5" },
-          { icon: "✍️", label: "Jenis", value: "Uraian", color: "#663362", bg: "#f3e8f2" },
-          { icon: "🔒", label: "Pengerjaan", value: "Dapat diulang", color: "#663362", bg: "#f3e8f2" },
+          { label: "Durasi", value: "120 Menit", color: "#346739", bg: "#DBFFD5" },
+          { label: "Jumlah Soal", value: `${displayRemaining} Soal`, color: "#346739", bg: "#DBFFD5" },
+          { label: "Jenis", value: "Uraian", color: "#663362", bg: "#f3e8f2" },
+          { label: "Pengerjaan", value: "Dapat diulang", color: "#663362", bg: "#f3e8f2" },
         ].map((info) => (
           <div key={info.label} style={{ backgroundColor: info.bg, borderRadius: 12, padding: "14px 16px" }}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{info.icon}</div>
-            <div style={{ fontSize: 10, color: info.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.7 }}>{info.label}</div>
+            <div style={{ fontSize: 12, color: info.color, fontWeight: 600 }}>{info.label}</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: info.color }}>{info.value}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ backgroundColor: "#f8fdf8", borderRadius: 12, border: "1px solid #d4e8d4", padding: "18px 20px", marginBottom: 16 }}>
-        <h3 style={{ fontSize: 12, fontWeight: 700, color: "#346739", margin: "0 0 12px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+      <div style={{ backgroundColor: "#f3fff1", borderRadius: 12, border: "1px solid #d4e8d4", padding: "18px 20px", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 12, fontWeight: 700, color: "#346739", margin: "0 0 12px", }}>
           Petunjuk Pengerjaan
         </h3>
         <ol style={{ paddingLeft: 20, margin: 0 }}>
           {PETUNJUK.map((p, i) => (
-            <li key={i} style={{ fontSize: 14, color: "#3b5e3d", lineHeight: 1.7, marginBottom: i < PETUNJUK.length - 1 ? 6 : 0 }}>{p}</li>
+            <li key={i} style={{ fontSize: 14, color: "#2c5830", lineHeight: 1.7, marginBottom: i < PETUNJUK.length - 1 ? 6 : 0 }}>{p}</li>
           ))}
         </ol>
       </div>
@@ -805,7 +797,7 @@ function IntroScreen({ onStart, isFullyMastered, initialScore, remainingCount, t
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
               Kembali ke Materi
             </Link>
-            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>Semua soal sudah dikuasai. Tidak perlu mengulang latihan.</p>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#5D7C5F" }}>Semua soal sudah dikuasai. Tidak perlu mengulang latihan.</p>
           </>
         ) : (
           <>
@@ -813,7 +805,7 @@ function IntroScreen({ onStart, isFullyMastered, initialScore, remainingCount, t
               Siap, Mulai latihan
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </button>
-            <p style={{ marginTop: 10, fontSize: 12, color: "#9aada0" }}>Timer akan mulai berjalan setelah kamu klik tombol di atas.</p>
+            <p style={{ marginTop: 10, fontSize: 12, color: "#5D7C5F" }}>Timer akan mulai berjalan setelah kamu klik tombol di atas.</p>
           </>
         )}
       </div>
@@ -824,11 +816,11 @@ function IntroScreen({ onStart, isFullyMastered, initialScore, remainingCount, t
 function RuleBox({ title, items, type }: { title: string; items: string[]; type: "allowed" | "forbidden" }) {
   const ok = type === "allowed";
   const color = ok ? "#346739" : "#b91c1c";
-  const bg = ok ? "#f0faf0" : "#fff5f5";
-  const border = ok ? "#c3e6c3" : "#fecaca";
+  const bg = ok ? "#f3fff1" : "#fff5f5";
+  const border = ok ? "#d4e8d4" : "#fecaca";
   return (
     <div style={{ backgroundColor: bg, borderRadius: 12, border: `1.5px solid ${border}`, padding: "14px 16px" }}>
-      <h4 style={{ fontSize: 11, fontWeight: 700, color, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: "0.08em" }}>{title}</h4>
+      <h4 style={{ fontSize: 12, fontWeight: 700, color, margin: "0 0 10px", }}>{title}</h4>
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {items.map((item, i) => (
           <li key={i} style={{ fontSize: 13, color, display: "flex", gap: 8, marginBottom: i < items.length - 1 ? 8 : 0, alignItems: "flex-start" }}>
@@ -923,13 +915,13 @@ function ActiveScreen({
       )}
 
       {/* Sticky Timer */}
-      <div style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#fff", borderBottom: "1.5px solid #e2ede2", paddingTop: 10, marginBottom: 28 }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#fff", borderBottom: "1.5px solid #d4e8d4", paddingTop: 10, marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 8 }}>
           <div>
-            <p style={{ fontSize: 11, fontWeight: 600, color: "#346739", opacity: 0.7, margin: 0, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-              Latihan Pemahaman — Kaidah Pencacahan
+            <p style={{ fontSize: 12, fontWeight: 600, color: "#346739", margin: 0, }}>
+              Latihan Pemahaman: Kaidah Pencacahan
             </p>
-            <p style={{ fontSize: 12, color: "#6b8f6d", margin: "2px 0 0" }}>{answeredCount}/{answers.length} soal terjawab</p>
+            <p style={{ fontSize: 12, color: "#5D7C5F", margin: "2px 0 0" }}>{answeredCount}/{answers.length} soal terjawab</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, backgroundColor: color + "18", borderRadius: 10, padding: "8px 14px", border: `1.5px solid ${color}30` }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -940,14 +932,14 @@ function ActiveScreen({
             </span>
           </div>
         </div>
-        <div style={{ height: 3, backgroundColor: "#e2ede2", borderRadius: 99, overflow: "hidden" }}>
+        <div style={{ height: 3, backgroundColor: "#d4e8d4", borderRadius: 99, overflow: "hidden" }}>
           <div style={{ height: "100%", backgroundColor: color, borderRadius: 99, width: `${pct}%`, transition: "width 1s linear, background-color 0.5s" }} />
         </div>
       </div>
 
       {/* Question Navigator */}
-      <div style={{ marginBottom: 24, backgroundColor: "#f8fdf8", borderRadius: 12, border: "1px solid #e2ede2", padding: "14px 16px" }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 10px" }}>Navigasi Soal</p>
+      <div style={{ marginBottom: 24, backgroundColor: "#f3fff1", borderRadius: 12, border: "1px solid #d4e8d4", padding: "14px 16px" }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: "#346739", margin: "0 0 10px" }}>Navigasi Soal</p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {filteredSoal.map((soal, i) => {
             const answered = isAnswered(answers[i]);
@@ -982,8 +974,8 @@ function ActiveScreen({
           const lm = LEVEL_META[soal.level];
           return (
             <div key={soal.question_number} id={`soal-${soal.question_number}`}
-              style={{ backgroundColor: "#fff", borderRadius: 14, border: `2px solid ${answered ? "#346739" : "#e2ede2"}`, overflow: "hidden", transition: "border-color 0.2s ease" }}>
-              <div style={{ height: 4, backgroundColor: answered ? "#346739" : "#e2ede2", transition: "background-color 0.2s ease" }} />
+              style={{ backgroundColor: "#fff", borderRadius: 14, border: `2px solid ${answered ? "#346739" : "#d4e8d4"}`, overflow: "hidden", transition: "border-color 0.2s ease" }}>
+              <div style={{ height: 4, backgroundColor: answered ? "#346739" : "#d4e8d4", transition: "background-color 0.2s ease" }} />
               <div style={{ padding: "18px 20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                   <span style={{ width: 30, height: 30, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", backgroundColor: "#346739", flexShrink: 0 }}>
@@ -994,7 +986,7 @@ function ActiveScreen({
                 </div>
                 <p style={{ fontSize: 15, color: "#2C2C2A", lineHeight: 1.75, margin: "0 0 18px", fontWeight: 500 }}>{soal.question}</p>
                 <div style={{ marginBottom: 14 }}>
-                  <label htmlFor={`cara-hitung-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Cara Hitung</label>
+                  <label htmlFor={`cara-hitung-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#346739", display: "block", marginBottom: 6 }}>Cara Hitung</label>
                   <textarea
                     id={`cara-hitung-${i}`}
                     ref={(el) => {
@@ -1005,12 +997,12 @@ function ActiveScreen({
                     onChange={(e) => onUpdateAnswer(i, "cara_hitung", e.target.value)}
                     placeholder="Tuliskan langkah-langkah perhitunganmu di sini..."
                     rows={4}
-                    className="w-full px-3 py-2.5 rounded-lg text-sm leading-relaxed text-[#2C2C2A] resize-y border border-[#d4e8d4] bg-[#fafffe] placeholder:text-[#b0c4b1] focus:outline-none focus:ring-2 focus:ring-[#346739]/30 focus:border-[#346739] transition-all"
+                    className="w-full px-3 py-2.5 rounded-lg text-sm leading-relaxed text-[#2C2C2A] resize-y border border-[#d4e8d4] bg-[#f3fff1] placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#346739]/30 focus:border-[#346739] transition-all"
                     style={{ fontFamily: "inherit" }}
                   />
                 </div>
                 <div>
-                  <label htmlFor={`jawaban-akhir-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#663362", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Jawaban Akhir</label>
+                  <label htmlFor={`jawaban-akhir-${i}`} style={{ fontSize: 12, fontWeight: 700, color: "#663362", display: "block", marginBottom: 6 }}>Jawaban Akhir</label>
                   <NumericAnswerInput
                     id={`jawaban-akhir-${i}`}
                     ref={(el) => {
@@ -1020,7 +1012,7 @@ function ActiveScreen({
                     value={answers[i].jawaban_akhir}
                     onChange={(val) => onUpdateAnswer(i, "jawaban_akhir", val)}
                     placeholder="Tulis angka saja..."
-                    className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#c4a8c2] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
+                    className="w-full px-3 py-2.5 rounded-lg text-sm text-[#2C2C2A] border border-[#e8d4e8] bg-[#fdf8fd] placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362]/25 focus:border-[#663362] transition-all"
                     style={{ fontFamily: "inherit" }}
                   />
                 </div>
@@ -1031,7 +1023,7 @@ function ActiveScreen({
       </div>
 
       {/* Submit */}
-      <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1.5px solid #e2ede2" }}>
+      <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1.5px solid #d4e8d4" }}>
         {submitError && (
           <div style={{ backgroundColor: "#fff5f5", borderRadius: 10, border: "1.5px solid #fecaca", padding: "12px 16px", marginBottom: 16, textAlign: "center" }}>
             <p style={{ fontSize: 13, color: "#b91c1c", margin: 0 }}>{submitError}</p>
@@ -1045,7 +1037,7 @@ function ActiveScreen({
         )}
         {!showConfirm ? (
           <div style={{ textAlign: "center" }}>
-            <p style={{ fontSize: 13, color: "#6b8f6d", marginBottom: 12 }}>Sudah yakin dengan jawabanmu? Setelah submit, jawaban akan langsung dievaluasi.</p>
+            <p style={{ fontSize: 13, color: "#5D7C5F", marginBottom: 12 }}>Sudah yakin dengan jawabanmu? Setelah submit, jawaban akan langsung dievaluasi.</p>
             <button onClick={() => setShowConfirm(true)} disabled={isSubmitting} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 32px", backgroundColor: isSubmitting ? "#9aada0" : "#346739", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, border: "none", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
@@ -1056,11 +1048,11 @@ function ActiveScreen({
         ) : (
           <div style={{ textAlign: "center", backgroundColor: "#fff5f5", borderRadius: 12, border: "1.5px solid #fecaca", padding: "20px 24px" }}>
             <p style={{ fontSize: 15, fontWeight: 700, color: "#b91c1c", margin: "0 0 6px" }}>Konfirmasi Submit</p>
-            <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 16px" }}>
+            <p style={{ fontSize: 13, color: "#6b6b66", margin: "0 0 16px" }}>
               Kamu telah menjawab <strong style={{ color: "#1a3d1c" }}>{answeredCount}</strong> dari <strong>{answers.length}</strong> soal. Setelah di-submit, jawaban tidak dapat diubah.
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-              <button onClick={() => setShowConfirm(false)} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #d1d5db", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#6b7280", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.6 : 1 }}>Batal</button>
+              <button onClick={() => setShowConfirm(false)} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #c5c5c0", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#6b6b66", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.6 : 1 }}>Batal</button>
               <button onClick={onSubmit} disabled={isSubmitting} style={{ padding: "10px 24px", borderRadius: 8, border: "none", backgroundColor: "#b91c1c", fontSize: 14, fontWeight: 700, color: "#fff", cursor: isSubmitting ? "not-allowed" : "pointer", opacity: isSubmitting ? 0.7 : 1 }}>
                 {isSubmitting ? "Mengirim..." : "Ya, Submit Sekarang"}
               </button>
@@ -1089,19 +1081,19 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
           </svg>
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1a3d1c", margin: "0 0 8px" }}>Jawaban Terkirim!</h1>
-        <p style={{ fontSize: 15, color: "#5a7d5c", margin: 0, lineHeight: 1.7 }}>
+        <p style={{ fontSize: 15, color: "#5d7c5f", margin: 0, lineHeight: 1.7 }}>
           {allAnswered ? "Semua soal telah kamu jawab. Terima kasih telah menyelesaikan latihan ini!" : `Kamu menjawab ${answeredCount} dari ${answers.length} soal. Jawaban telah dikirimkan.`}
         </p>
 
         {/* Status: jawaban tersimpan & sedang dikoreksi */}
-        <div style={{ marginTop: 20, backgroundColor: "#f0faf0", borderRadius: 10, border: "1px solid #c3e6c3", padding: "14px 18px", textAlign: "left" }}>
+        <div style={{ marginTop: 20, backgroundColor: "#f3fff1", borderRadius: 10, border: "1px solid #d4e8d4", padding: "14px 18px", textAlign: "left" }}>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#346739" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
             </svg>
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: "#1a3d1c", margin: "0 0 4px" }}>Jawaban sudah tersimpan</p>
-              <p style={{ fontSize: 12, color: "#5a7d5c", margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 12, color: "#5d7c5f", margin: 0, lineHeight: 1.6 }}>
                 Jawabanmu sedang dilakukan proses koreksi. Kembali lagi ke menu latihan setelah beberapa jam untuk mendapatkan nilai hasil latihan.
               </p>
             </div>
@@ -1109,7 +1101,7 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
         </div>
       </div>
 
-      <p style={{ fontSize: 11, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 16px" }}>
+      <p style={{ fontSize: 12, fontWeight: 700, color: "#346739", margin: "0 0 16px" }}>
         Ringkasan Jawaban
       </p>
 
@@ -1119,9 +1111,9 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
           return (
             <div key={soal.question_number}>
               {answers[i].cara_hitung.trim() && (
-                <div style={{ backgroundColor: "#f8fdf8", borderRadius: "8px 8px 0 0", border: "1px solid #d4e8d4", borderBottom: "none", padding: "10px 16px" }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 4px" }}>Cara Hitung</p>
-                  <p style={{ fontSize: 13, color: "#3b5e3d", margin: 0, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{answers[i].cara_hitung}</p>
+                <div style={{ backgroundColor: "#f3fff1", borderRadius: "8px 8px 0 0", border: "1px solid #d4e8d4", borderBottom: "none", padding: "10px 16px" }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: "#346739", margin: "0 0 4px" }}>Cara Hitung</p>
+                  <p style={{ fontSize: 13, color: "#2c5830", margin: 0, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{answers[i].cara_hitung}</p>
                 </div>
               )}
               <div style={answers[i].cara_hitung.trim() ? { borderRadius: "0 0 12px 12px", overflow: "hidden" } : {}}>
@@ -1131,7 +1123,7 @@ function SubmittedScreen({ answers, remainingQuestions }: { answers: AnswerPair[
                   question={soal.question}
                   answer={soal.answer}
                   hideCheckButton={true}
-                  value={answered ? answers[i].jawaban_akhir || "—" : "—"}
+                  value={answered ? answers[i].jawaban_akhir || "Tidak diisi" : "Tidak diisi"}
                   onChange={() => {}}
                   checked={false}
                 />
@@ -1170,7 +1162,7 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
           </svg>
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#b91c1c", margin: "0 0 8px" }}>Evaluasi Gagal</h1>
-        <p style={{ fontSize: 14, color: "#6b7280", margin: "0 0 20px" }}>{evalError}</p>
+        <p style={{ fontSize: 14, color: "#6b6b66", margin: "0 0 20px" }}>{evalError}</p>
         <button onClick={onRetry} style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #d4e8d4", backgroundColor: "#fff", fontSize: 14, fontWeight: 600, color: "#346739", cursor: "pointer" }}>
           Lihat Ringkasan Jawaban
         </button>
@@ -1183,7 +1175,7 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
   const { total_score, per_question, ai_feedback } = evaluationResult;
   const scoreColor = total_score >= 75 ? "#346739" : total_score >= 50 ? "#d97706" : "#b91c1c";
   const scoreBg = total_score >= 75 ? "#DBFFD5" : total_score >= 50 ? "#FFF3CD" : "#fff5f5";
-  const scoreBorder = total_score >= 75 ? "#c3e6c3" : total_score >= 50 ? "#fde68a" : "#fecaca";
+  const scoreBorder = total_score >= 75 ? "#d4e8d4" : total_score >= 50 ? "#fde68a" : "#fecaca";
 
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 24px 48px" }}>
@@ -1207,15 +1199,15 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
           <span style={{ fontSize: 11, fontWeight: 600, color: scoreColor, opacity: 0.7 }}>dari 100</span>
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1a3d1c", margin: "0 0 6px" }}>
-          {total_score >= 90 ? "Luar Biasa! 🎉" : total_score >= 75 ? "Kerja Bagus! 👏" : total_score >= 50 ? "Lumayan! 💪" : "Tetap Semangat! 📚"}
+          {total_score >= 90 ? "Luar Biasa!" : total_score >= 75 ? "Kerja Bagus!" : total_score >= 50 ? "Lumayan!" : "Tetap Semangat!"}
         </h1>
-        <p style={{ fontSize: 13, color: "#5a7d5c", margin: 0, lineHeight: 1.6, maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>
+        <p style={{ fontSize: 13, color: "#5d7c5f", margin: 0, lineHeight: 1.6, maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>
           {ai_feedback}
         </p>
       </div>
 
       {/* Per-Question Results */}
-      <h2 style={{ fontSize: 13, fontWeight: 700, color: "#346739", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>
+      <h2 style={{ fontSize: 13, fontWeight: 700, color: "#346739", margin: "0 0 14px" }}>
         Detail Per Soal
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
@@ -1226,8 +1218,8 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
           const isUnanswered = pq.mistake_category === "tidak_diisi" || pq.mistake_category === "tidak_memadai";
           const hasMistake = pq.mistake_category !== null && pq.mistake_category !== "tidak_diisi" && pq.mistake_category !== "tidak_memadai";
           const itemColor = isUnanswered ? "#d97706" : hasMistake ? "#b91c1c" : "#346739";
-          const itemBg = isUnanswered ? "#fff5f0" : hasMistake ? "#fff5f5" : "#f0faf0";
-          const itemBorder = isUnanswered ? "#fde68a" : hasMistake ? "#fecaca" : "#c3e6c3";
+          const itemBg = isUnanswered ? "#fff5f0" : hasMistake ? "#fff5f5" : "#f3fff1";
+          const itemBorder = isUnanswered ? "#fde68a" : hasMistake ? "#fecaca" : "#d4e8d4";
 
           return (
             <div
@@ -1257,21 +1249,21 @@ function ResultsScreen({ evaluationResult, answers, evalError, onRetry, remainin
 
               {/* User's answer summary */}
               {userAnswer && (
-                <div style={{ marginBottom: 8, fontSize: 12, color: "#5a7d5c", lineHeight: 1.5 }}>
+                <div style={{ marginBottom: 8, fontSize: 12, color: "#5d7c5f", lineHeight: 1.5 }}>
                   <span style={{ fontWeight: 600 }}>Jawabanmu: </span>
                   {userAnswer.jawaban_akhir || (pq.mistake_category === "tidak_memadai" ? "(terlalu singkat)" : "(tidak diisi)")}
                 </div>
               )}
 
               {/* AI Feedback */}
-              <p style={{ fontSize: 13, color: "#3b5e3d", margin: "0 0 8px", lineHeight: 1.6, fontStyle: "italic" }}>
-                💬 {pq.feedback}
+              <p style={{ fontSize: 13, color: "#2c5830", margin: "0 0 8px", lineHeight: 1.6, fontStyle: "italic" }}>
+                {pq.feedback}
               </p>
 
               {/* Mistake / Unanswered info */}
               {isUnanswered && (
                 <div style={{ fontSize: 11, color: "#92400e", backgroundColor: "#fffbeb", borderRadius: 6, padding: "6px 10px" }}>
-                  ⚠️ <strong>{pq.mistake_category === "tidak_memadai" ? "Jawaban terlalu singkat" : "Tidak diisi"}</strong> — {pq.mistake_category === "tidak_memadai" ? "jawaban tidak cukup untuk dievaluasi, " : "soal ini dikosongkan, "}skor otomatis 0.
+                  ⚠️ <strong>{pq.mistake_category === "tidak_memadai" ? "Jawaban terlalu singkat" : "Tidak diisi"}</strong>: {pq.mistake_category === "tidak_memadai" ? "jawaban tidak cukup untuk dievaluasi, " : "soal ini dikosongkan, "}skor otomatis 0.
                 </div>
               )}
               {hasMistake && (

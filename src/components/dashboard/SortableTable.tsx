@@ -33,12 +33,12 @@ interface SortableTableProps<T> {
 // Pastel alternating colors
 // ═══════════════════════════════════════════════════════════════
 
-const ROW_EVEN = "#F4FAF5";
+const ROW_EVEN = "#F3FFF1";
 const ROW_ODD = "#ffffff";
 const HEADER_BG = "#ffffff";
-const BORDER_COLOR = "#F2F2F2";
-const HEADER_BORDER = "#E8E8E8";
-const TEXT_MUTED = "#8A8A8A";
+const BORDER_COLOR = "#F5F5F0";
+const HEADER_BORDER = "#E5E5E0";
+const TEXT_MUTED = "#6B6B66";
 const TEXT_PRIMARY = "#333";
 const TEXT_SECONDARY = "#666";
 

@@ -30,7 +30,7 @@ type LoadState =
 
 function PanelTitle() {
   return (
-    <p className="m-0 text-xs font-semibold uppercase tracking-wide text-brand-500">
+    <p className="m-0 text-xs font-semibold text-brand-500">
       Aktivitas kelas
     </p>
   );
@@ -92,7 +92,7 @@ export default function AktivitasKelasPanel() {
             className="h-auto w-[120px]"
           />
           <p
-            className="m-0 text-zinc-600"
+            className="m-0 text-muted"
             style={{ fontSize: "var(--right-card-text-size)" }}
           >
             Belum ada yang mulai minggu ini
@@ -127,7 +127,7 @@ export default function AktivitasKelasPanel() {
             className="h-auto w-[120px]"
           />
           <p
-            className="m-0 text-zinc-600"
+            className="m-0 text-muted"
             style={{ fontSize: "var(--right-card-text-size)" }}
           >
             Belum ada yang mengumpulkan
@@ -160,12 +160,12 @@ export default function AktivitasKelasPanel() {
           <span className="text-4xl font-bold leading-none text-brand-600">
             {data.completedCount}
           </span>
-          <span className="text-base font-medium leading-none text-zinc-400">
+          <span className="text-base font-medium leading-none text-muted">
             / {data.totalStudents} siswa
           </span>
         </div>
 
-        <div className="h-4 w-full overflow-hidden rounded-full bg-zinc-100">
+        <div className="h-4 w-full overflow-hidden rounded-full bg-surface">
           <div
             className="h-full rounded-full bg-brand-500 transition-all duration-700 ease-out"
             style={{ width: `${pct}%` }}
@@ -173,11 +173,11 @@ export default function AktivitasKelasPanel() {
         </div>
 
         <p
-          className="m-0 leading-relaxed text-zinc-600"
+          className="m-0 leading-relaxed text-muted"
           style={{ fontSize: "var(--right-card-text-size)" }}
         >
           Siswa telah menyelesaikan Asesmen Formatif{" "}
-          <span className="font-semibold text-zinc-800">
+          <span className="font-semibold text-ink">
             {data.moduleName}
           </span>
         </p>

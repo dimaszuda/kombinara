@@ -56,11 +56,8 @@ export default function UlanganListPage() {
           style={{
             fontSize: "11px",
             fontWeight: "600",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
             color: "#346739",
             margin: "0 0 6px 0",
-            opacity: 0.7,
           }}
         >
           Latihan Pemahaman (Asesmen)
@@ -92,7 +89,7 @@ export default function UlanganListPage() {
               style={{
                 backgroundColor: "#ffffff",
                 borderRadius: "16px",
-                border: "1.5px solid #e2ede2",
+                border: "1.5px solid #d4e8d4",
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
@@ -142,8 +139,6 @@ export default function UlanganListPage() {
                     style={{
                       fontSize: "10px",
                       fontWeight: "700",
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
                       backgroundColor: m.badge,
                       color: m.badgeText,
                       padding: "3px 9px",
@@ -170,7 +165,7 @@ export default function UlanganListPage() {
                   <p
                     style={{
                       fontSize: "12px",
-                      color: "#6b8f6d",
+                      color: "#5D7C5F",
                       margin: "0",
                       lineHeight: "1.5",
                     }}
@@ -185,7 +180,7 @@ export default function UlanganListPage() {
                     display: "flex",
                     gap: "12px",
                     fontSize: "12px",
-                    color: "#5a7d5c",
+                    color: "#5d7c5f",
                   }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>

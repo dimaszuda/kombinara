@@ -85,10 +85,10 @@ export const SOAL_DATA: Array<{
     level: "menengah",
     question: "Manakah pernyataan berikut yang benar? Pilih ✅ jika pernyataan benar atau ❌ jika salah!",
     answer:
-      "a) Salah — 0! = 1, bukan 0\n" +
-      "b) Salah — 5!/3! = 20, bukan 2! (=2)\n" +
-      "c) Benar — sesuai sifat rekursif n!=n×(n-1)!\n" +
-      "d) Benar — n!/(n-1)! = n",
+      "a) Salah: 0! = 1, bukan 0\n" +
+      "b) Salah: 5!/3! = 20, bukan 2! (=2)\n" +
+      "c) Benar: sesuai sifat rekursif n!=n×(n-1)!\n" +
+      "d) Benar: n!/(n-1)! = n",
     cara:
       "a) Salah. Berdasarkan definisi, 0! = 1.\n" +
       "b) Salah. 5!/3! = (5×4×3!)/3! = 20, bukan 2! (= 2).\n" +
@@ -141,7 +141,7 @@ export const SOAL_DATA: Array<{
     answer:
       "a) 5! = 120 cara\n" +
       "b) 4! = 24 cara (Aldi tetap di kiri)\n" +
-      "c) Perbandingan a:b = 120:24 = 5:1. Artinya hanya 1/5 dari seluruh kemungkinan yang memenuhi syarat Aldi di posisi kiri — masuk akal karena Aldi hanya menempati 1 dari 5 posisi yang mungkin.",
+      "c) Perbandingan a:b = 120:24 = 5:1. Artinya hanya 1/5 dari seluruh kemungkinan yang memenuhi syarat Aldi di posisi kiri. Ini masuk akal karena Aldi hanya menempati 1 dari 5 posisi yang mungkin.",
     cara:
       "a) Menyusun 5 orang berjajar = permutasi 5 objek = 5!\n" +
       "5! = 5 × 4 × 3 × 2 × 1 = 120\n" +
@@ -220,7 +220,7 @@ export function SoalKepahaman({
       style={{
         backgroundColor: "#fff",
         borderRadius: 14,
-        border: `2px solid ${checked ? (isCorrect ? "#346739" : "#b91c1c") : "#e2ede2"}`,
+        border: `2px solid ${checked ? (isCorrect ? "#346739" : "#b91c1c") : "#d4e8d4"}`,
         overflow: "hidden",
       }}
     >
@@ -231,7 +231,7 @@ export function SoalKepahaman({
             ? isCorrect
               ? "#346739"
               : "#b91c1c"
-            : "#e2ede2",
+            : "#d4e8d4",
         }}
       />
       <div style={{ padding: "18px 20px" }}>
@@ -309,15 +309,14 @@ export function SoalKepahaman({
                 flex: 1,
                 padding: "8px 12px",
                 borderRadius: 8,
-                border: `1.5px solid ${checked ? (isCorrect ? "#c3e6c3" : "#fecaca") : "#e8d4e8"}`,
+                border: `1.5px solid ${checked ? (isCorrect ? "#d4e8d4" : "#fecaca") : "#e8d4e8"}`,
                 backgroundColor: checked
                   ? isCorrect
-                    ? "#f0faf0"
+                    ? "#f3fff1"
                     : "#fff5f5"
                   : "#fdf8fd",
                 fontSize: 14,
                 color: "#2C2C2A",
-                outline: "none",
                 fontFamily: "inherit",
               }}
             />

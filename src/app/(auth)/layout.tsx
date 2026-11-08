@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
+import PageTitle from "@/components/shared/PageTitle";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <>
+      <PageTitle />
       <div
         className="fixed top-0 left-0 z-50 p-4 w-full lg:w-1/2 h-24"
         style={{ background: "linear-gradient(to bottom, white 0%, white 60%, transparent 100%)" }}

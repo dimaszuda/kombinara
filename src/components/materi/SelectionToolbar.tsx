@@ -103,7 +103,7 @@ export default function SelectionToolbar({ contentRef, onAskAI }: SelectionToolb
         top: pos.y,
         transform: "translateX(-50%) translateY(calc(-100% - 10px))",
         zIndex: 9999,
-        backgroundColor: "#79AE6F",
+        backgroundColor: "#346739",
         borderRadius: "10px",
         padding: "5px 6px",
         display: "flex",
@@ -126,12 +126,11 @@ export default function SelectionToolbar({ contentRef, onAskAI }: SelectionToolb
           height: 0,
           borderLeft: "6px solid transparent",
           borderRight: "6px solid transparent",
-          borderTop: "6px solid #79AE6F",
+          borderTop: "6px solid #346739",
         }}
       />
 
       <ToolbarButton
-        icon="✨"
         label="Tanya AI"
         onClick={handleAskAI}
       />
@@ -140,11 +139,9 @@ export default function SelectionToolbar({ contentRef, onAskAI }: SelectionToolb
 }
 
 function ToolbarButton({
-  icon,
   label,
   onClick,
 }: {
-  icon: string;
   label: string;
   onClick: () => void;
 }) {
@@ -152,17 +149,19 @@ function ToolbarButton({
 
   return (
     <button
+      type="button"
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: hovered ? "#346739" : "transparent",
+        background: hovered ? "#2C5830" : "transparent",
         border: "none",
-        color: "black",
+        color: "white",
         cursor: "pointer",
         fontSize: "13px",
         fontWeight: 500,
-        padding: "5px 12px",
+        padding: "0 14px",
+        minHeight: 44,
         borderRadius: "7px",
         display: "flex",
         alignItems: "center",
@@ -172,7 +171,6 @@ function ToolbarButton({
         lineHeight: 1,
       }}
     >
-      <span style={{ fontSize: "14px" }}>{icon}</span>
       {label}
     </button>
   );

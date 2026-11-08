@@ -11,8 +11,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 // ── Types ──
@@ -157,11 +157,11 @@ const STEPS: StepConfig[] = [
   // ── RANCANG SENDIRI ─────────────────────────────────────────
   { index: 5, questionKey: "rancang_sendiri", entryType: "soal", label: "Rancang Sendiri", soalText: getSoalTextRancang(), section: "rancang" },
   // ── KENALI JENISNYA (5 situasi) ─────────────────────────────
-  { index: 6, questionKey: "kj_situasi_1", entryType: "soal", label: "Kenali Jenis — Situasi 1", soalText: getSoalTextKJ(0), section: "kj", kjIdx: 0 },
-  { index: 7, questionKey: "kj_situasi_2", entryType: "soal", label: "Kenali Jenis — Situasi 2", soalText: getSoalTextKJ(1), section: "kj", kjIdx: 1 },
-  { index: 8, questionKey: "kj_situasi_3", entryType: "soal", label: "Kenali Jenis — Situasi 3", soalText: getSoalTextKJ(2), section: "kj", kjIdx: 2 },
-  { index: 9, questionKey: "kj_situasi_4", entryType: "soal", label: "Kenali Jenis — Situasi 4", soalText: getSoalTextKJ(3), section: "kj", kjIdx: 3 },
-  { index: 10, questionKey: "kj_situasi_5", entryType: "soal", label: "Kenali Jenis — Situasi 5", soalText: getSoalTextKJ(4), section: "kj", kjIdx: 4 },
+  { index: 6, questionKey: "kj_situasi_1", entryType: "soal", label: "Kenali Jenis: Situasi 1", soalText: getSoalTextKJ(0), section: "kj", kjIdx: 0 },
+  { index: 7, questionKey: "kj_situasi_2", entryType: "soal", label: "Kenali Jenis: Situasi 2", soalText: getSoalTextKJ(1), section: "kj", kjIdx: 1 },
+  { index: 8, questionKey: "kj_situasi_3", entryType: "soal", label: "Kenali Jenis: Situasi 3", soalText: getSoalTextKJ(2), section: "kj", kjIdx: 2 },
+  { index: 9, questionKey: "kj_situasi_4", entryType: "soal", label: "Kenali Jenis: Situasi 4", soalText: getSoalTextKJ(3), section: "kj", kjIdx: 3 },
+  { index: 10, questionKey: "kj_situasi_5", entryType: "soal", label: "Kenali Jenis: Situasi 5", soalText: getSoalTextKJ(4), section: "kj", kjIdx: 4 },
 ];
 
 const TOTAL_STEPS = STEPS.length;
@@ -181,14 +181,14 @@ function Spinner() {
 
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
   const isWrong = isCorrect === false;
-  const bc = isWrong ? "border-[#C44F4F33]" : "border-[#34673933]";
-  const bg = isWrong ? "bg-[#C44F4F08]" : "bg-[#34673908]";
-  const lc = isWrong ? "text-[#C44F4F]" : "text-[#346739]";
-  const ic = isWrong ? "❌" : "💬";
+  const bc = isWrong ? "border-[#C2494933]" : "border-[#34673933]";
+  const bg = isWrong ? "bg-[#C2494908]" : "bg-[#34673908]";
+  const lc = isWrong ? "text-[#C24949]" : "text-[#346739]";
+  const ic = isWrong ? "❌ " : "";
   const label = isWrong ? "Jawaban Kurang Tepat" : "Feedback Kombi";
   return (
     <div className={`mt-3 rounded-lg border ${bc} ${bg} p-3`}>
-      <p className={`mb-1 text-xs font-medium ${lc}`}>{ic} {label}</p>
+      <p className={`mb-1 text-xs font-medium ${lc}`}>{ic}{label}</p>
       <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{text}</RichText>
     </div>
   );
@@ -221,7 +221,7 @@ function ProgressIndicator({ currentStep, feedbackMap }: { currentStep: number; 
           const done = fb?.isCorrect === true;
           const active = step.index === currentStep;
           const locked = step.index > currentStep;
-          let dBg = "bg-[#E5E5E0]", dBd = "border-[#C5C5C0]", dTx = "text-[#9E9D99]";
+          let dBg = "bg-[#F5F5F0]", dBd = "border-[#C5C5C0]", dTx = "text-[#6B6B66]";
           if (done) { dBg = "bg-[#346739]"; dBd = "border-[#346739]"; dTx = "text-white"; }
           else if (active) { dBg = "bg-white"; dBd = "border-[#346739]"; dTx = "text-[#346739]"; }
           return (
@@ -257,23 +257,24 @@ function YaTidakRadio({ name, value, onChange, readOnly = false }: { name: strin
             className="accent-green-700"
             disabled={readOnly}
           />
-          <span className="text-sm font-medium capitalize text-slate-700">{opt}</span>
+          <span className="text-sm font-medium capitalize text-ink">{opt}</span>
         </label>
       ))}
     </div>
   );
 }
 
-function ContohSelect({ value, onChange, readOnly = false }: { value: ContohNonContoh; onChange: (v: ContohNonContoh) => void; readOnly?: boolean }) {
+function ContohSelect({ id, value, onChange, readOnly = false }: { id?: string; value: ContohNonContoh; onChange: (v: ContohNonContoh) => void; readOnly?: boolean }) {
   return (
     <select
-      className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+      id={id}
+      className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
       style={{ borderColor: C.border }}
       value={value}
       onChange={(e) => onChange(e.target.value as ContohNonContoh)}
       disabled={readOnly}
     >
-      <option value="">— pilih —</option>
+      <option value="">Pilih jawaban</option>
       <option value="contoh">Contoh</option>
       <option value="noncontoh">Non-contoh</option>
     </select>
@@ -285,10 +286,10 @@ function TextInput({ label, value, onChange, placeholder, id, readOnly = false, 
 }) {
   return (
     <div className="flex flex-col gap-1">
-      {label && <label htmlFor={id} className="text-xs font-semibold text-slate-500">{label}</label>}
+      {label && <label htmlFor={id} className="text-xs font-semibold text-muted">{label}</label>}
       <input
         id={id} type={type}
-        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
         style={{ borderColor: C.border }}
         value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} readOnly={readOnly}
       />
@@ -301,10 +302,10 @@ function TextArea({ label, value, onChange, placeholder, id, readOnly = false, r
 }) {
   return (
     <div className="flex flex-col gap-1">
-      {label && <label htmlFor={id} className="text-xs font-semibold text-slate-500">{label}</label>}
+      {label && <label htmlFor={id} className="text-xs font-semibold text-muted">{label}</label>}
       <textarea
         id={id} rows={rows}
-        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
         style={{ borderColor: C.border }}
         value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} readOnly={readOnly}
       />
@@ -324,11 +325,11 @@ function SoalBadge({ n, label, isCompleted }: { n: number; label: string; isComp
   );
 }
 
-function SectionHeader({ icon, title, subtitle }: { icon: string; title: string; subtitle?: string }) {
+function SectionHeader({ icon, title, subtitle }: { icon?: string; title: string; subtitle?: string }) {
   return (
     <div className="rounded-xl p-4 mb-5" style={{ backgroundColor: C.greenLight }}>
-      <p className="text-base font-bold" style={{ color: C.green }}>{icon} {title}</p>
-      {subtitle && <p className="text-sm text-slate-600 mt-1">{subtitle}</p>}
+      <p className="text-base font-bold" style={{ color: C.green }}>{icon && `${icon} `}{title}</p>
+      {subtitle && <p className="text-sm text-muted mt-1">{subtitle}</p>}
     </div>
   );
 }
@@ -404,7 +405,7 @@ export default function AktivitasPermutasi1() {
               const sub = data.submissions[key];
               if (sub) {
                 preFilled[i] = {
-                  text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  text: `Jawaban kamu:\n${formatJawaban(sub.answer)}\n\nFeedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                   isCorrect: sub.isCorrect,
                 };
                 if (!sub.isCorrect && firstUnanswered > i) {
@@ -599,7 +600,7 @@ export default function AktivitasPermutasi1() {
         setFeedbackMap((p) => ({
           ...p,
           [idx]: {
-            text: `📝 Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            text: `Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\nFeedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
             isCorrect: data.submission.isCorrect,
           },
         }));
@@ -633,7 +634,7 @@ export default function AktivitasPermutasi1() {
           <div key={`sec-a1`}>
             <SectionHeader
               icon="📝"
-              title="AKTIVITAS 1 — INDIVIDU"
+              title="Aktivitas 1: Individu"
               subtitle={`Petunjuk: Kelima situasi berikut SEMUA mengandung kata yang terdengar seperti permutasi ("susun", "urutkan", "atur"). Tugasmu: tentukan mana yang benar-benar permutasi (Contoh) dan mana yang sebenarnya bukan (Non-contoh), lalu jelaskan alasannya.`}
             />
           </div>
@@ -642,7 +643,6 @@ export default function AktivitasPermutasi1() {
         return (
           <div className="pt-6 mt-2 border-t-2" style={{ borderColor: C.greenLight }} key="sec-rancang">
             <SectionHeader
-              icon="✏️"
               title="Rancang Sendiri"
               subtitle="Buatlah satu contoh dan satu non-contoh permutasi versimu sendiri (bukan dari soal yang sudah ada di modul ini). Non-contohmu harus sengaja mengandung kata yang terdengar seperti permutasi, padahal sebenarnya bukan."
             />
@@ -654,27 +654,27 @@ export default function AktivitasPermutasi1() {
             <SectionHeader
               icon="🔍"
               title="&ldquo;Kenali Jenisnya Dulu!&rdquo;"
-              subtitle="Durasi: 15 menit &nbsp;|&nbsp; Pilar: 🔵 Mindful"
+              subtitle="Durasi: 15 menit &nbsp;|&nbsp; Pilar: Mindful"
             />
             <div className="rounded-xl p-4 mb-5 space-y-3" style={{ backgroundColor: C.greenLight }}>
-              <p className="text-sm font-bold" style={{ color: C.green }}>📋 Petunjuk</p>
-              <p className="text-sm text-slate-700">
+              <p className="text-sm font-bold" style={{ color: C.green }}>Petunjuk</p>
+              <p className="text-sm text-ink">
                 Sebelum menghitung, <strong>identifikasi dulu</strong> jenis permutasi yang digunakan. Jawab tiga pertanyaan panduan, baru tentukan jenis dan rumusnya.
               </p>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">🤔 Pertanyaan Panduan</p>
+              <p className="text-xs font-semibold text-muted">🤔 Pertanyaan Panduan</p>
               <div className="space-y-2">
                 <div className="rounded-lg bg-white p-3 border-l-4" style={{ borderLeftColor: C.green }}>
-                  <p className="text-sm text-slate-700">
+                  <p className="text-sm text-ink">
                     1. <em>Apakah susunannya melingkar tanpa titik referensi?</em> → <strong>YA</strong> → Permutasi Siklis
                   </p>
                 </div>
                 <div className="rounded-lg bg-white p-3 border-l-4" style={{ borderLeftColor: "#2A5A8C" }}>
-                  <p className="text-sm text-slate-700">
+                  <p className="text-sm text-ink">
                     2. <em>Apakah ada objek yang identik/tidak bisa dibedakan?</em> → <strong>YA</strong> → Permutasi Unsur Sama
                   </p>
                 </div>
-                <div className="rounded-lg bg-white p-3 border-l-4" style={{ borderLeftColor: "#C9962B" }}>
-                  <p className="text-sm text-slate-700">
+                <div className="rounded-lg bg-white p-3 border-l-4" style={{ borderLeftColor: "#8E6A1E" }}>
+                  <p className="text-sm text-ink">
                     3. <em>Apakah urutan penting dan semua objek berbeda?</em> → <strong>YA</strong> → Permutasi P(n,r)
                   </p>
                 </div>
@@ -712,19 +712,19 @@ export default function AktivitasPermutasi1() {
         <div>
           {/* ⚠️ Warning khusus Situasi ke-3 */}
           {idx === 2 && (
-            <div className="rounded-lg p-3 mb-4 border-l-4" style={{ borderLeftColor: "#C9962B", backgroundColor: "#FFF8E8" }}>
-              <p className="text-sm text-slate-600">
-                <strong>⚠️ Perhatikan:</strong> Situasi ke-3 sengaja mengandung kata &ldquo;menyusun&rdquo; tetapi sebenarnya adalah kombinasi, karena tidak ada perbedaan jabatan/urutan antaranggota panitia. Kata kerja dalam soal TIDAK menentukan jenis kaidah pencacahan — yang menentukan adalah apakah pertukaran posisi menghasilkan hasil yang berbeda atau tidak.
+            <div className="rounded-lg p-3 mb-4 border-l-4" style={{ borderLeftColor: "#8E6A1E", backgroundColor: "#FFF8E8" }}>
+              <p className="text-sm text-muted">
+                <strong>⚠️ Perhatikan:</strong> Situasi ke-3 sengaja mengandung kata &ldquo;menyusun&rdquo; tetapi sebenarnya adalah kombinasi, karena tidak ada perbedaan jabatan/urutan antaranggota panitia. Kata kerja dalam soal TIDAK menentukan jenis kaidah pencacahan. Yang menentukan adalah apakah pertukaran posisi menghasilkan hasil yang berbeda atau tidak.
               </p>
             </div>
           )}
           <SoalBadge n={ai + 1} label={step.label} isCompleted={readOnly} />
           <div className="rounded-xl p-4 space-y-3" style={{ background: readOnly ? "#F5F5F0" : C.bg, border: `1px solid ${C.greenLight}` }}>
             <p className="text-sm font-semibold" style={{ color: C.green }}>Situasi:</p>
-            <p className="text-sm text-slate-700">{SITUASI_A1[ai]}</p>
+            <p className="text-sm text-ink">{SITUASI_A1[ai]}</p>
             <div>
-              <label className="text-xs font-semibold text-slate-500 block mb-1">Contoh / Non-contoh?</label>
-              <ContohSelect value={row.contoh} onChange={(v) => updateA1Row(ai, "contoh", v)} readOnly={readOnly} />
+              <label htmlFor={`a1-contoh-${ai}`} className="text-xs font-semibold text-muted block mb-1">Contoh / Non-contoh?</label>
+              <ContohSelect id={`a1-contoh-${ai}`} value={row.contoh} onChange={(v) => updateA1Row(ai, "contoh", v)} readOnly={readOnly} />
             </div>
             <TextArea
               label="Alasan:"
@@ -784,13 +784,13 @@ export default function AktivitasPermutasi1() {
           <SoalBadge n={7 + ki} label={situasi.judul} isCompleted={readOnly} />
           <PertanyaanCard readOnly={readOnly}>
             <p className="text-sm font-semibold mb-1" style={{ color: C.green }}>{situasi.judul}:</p>
-            <p className="text-sm text-slate-700 mb-3">{situasi.deskripsi}</p>
+            <p className="text-sm text-ink mb-3">{situasi.deskripsi}</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <tbody>
                   {situasi.fields.map((field) => (
-                    <tr key={field.key} className="border-b" style={{ borderColor: "#f1f5f9" }}>
-                      <td className="py-2.5 pr-3 font-medium text-slate-600" style={{ width: "45%" }}>
+                    <tr key={field.key} className="border-b" style={{ borderColor: "#f5f5f0" }}>
+                      <td className="py-2.5 pr-3 font-medium text-muted" style={{ width: "45%" }}>
                         {field.label}
                       </td>
                       <td className="py-2.5">
@@ -804,7 +804,7 @@ export default function AktivitasPermutasi1() {
                         ) : (
                           <input
                             type="text"
-                            className={`border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full max-w-xs ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+                            className={`border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full max-w-xs ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
                             style={{ borderColor: C.border }}
                             value={data[field.key] || ""}
                             onChange={(e) => updateKJField(ki, field.key, e.target.value)}
@@ -868,8 +868,8 @@ export default function AktivitasPermutasi1() {
 
           {/* ── TUJUAN ── */}
           <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: C.greenLight }}>
-            <p className="text-sm font-bold" style={{ color: C.green }}>🎯 Tujuan Aktivitas</p>
-            <p className="text-sm text-slate-700">
+            <p className="text-sm font-bold" style={{ color: C.green }}>Tujuan Aktivitas</p>
+            <p className="text-sm text-ink">
               Setelah menyelesaikan aktivitas ini, siswa mampu mengenali non contoh permutasi, membedakan dan menerapkan ketiga jenis permutasi, memilih strategi penyelesaian yang tepat, serta menjelaskan alasan penggunaan setiap jenis permutasi berdasarkan konteks soal.
             </p>
           </div>
@@ -881,7 +881,7 @@ export default function AktivitasPermutasi1() {
           {isLoadingExisting && (
             <div className="flex items-center justify-center py-12">
               <Spinner />
-              <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+              <span className="ml-3 text-sm text-muted">Memuat aktivitas...</span>
             </div>
           )}
 
@@ -890,7 +890,7 @@ export default function AktivitasPermutasi1() {
             <>
               <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
                 <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
-                <p className="text-sm text-slate-600 mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
+                <p className="text-sm text-muted mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
               </div>
               <div className="space-y-4">
                 {STEPS.map((step) => {
@@ -909,7 +909,7 @@ export default function AktivitasPermutasi1() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold" style={{ color: C.purple }}>{step.label}</p>
-                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{step.soalText}</p>
+                              <p className="text-xs text-muted mt-0.5 line-clamp-1">{step.soalText}</p>
                             </div>
                           </div>
                           {!isRevealed && (
@@ -940,8 +940,8 @@ export default function AktivitasPermutasi1() {
           {/* ── ALL COMPLETE ── */}
           {!isLoadingExisting && !hasExistingSubmissions && allComplete && (
             <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
-              <p className="font-bold text-base" style={{ color: C.green }}>🎉 Kamu sudah menyelesaikan Aktivitas Permutasi!</p>
-              <p className="text-sm text-slate-600 mt-1">Semua jawabanmu sudah tersimpan. Sekarang kamu bisa lanjut ke step selanjutnya.</p>
+              <p className="font-bold text-base" style={{ color: C.green }}>Kamu sudah menyelesaikan Aktivitas Permutasi!</p>
+              <p className="text-sm text-muted mt-1">Semua jawabanmu sudah tersimpan. Sekarang kamu bisa lanjut ke step selanjutnya.</p>
             </div>
           )}
 

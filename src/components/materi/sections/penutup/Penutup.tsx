@@ -124,7 +124,7 @@ function AnswerInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className="w-full rounded-xl border border-[#34673933] bg-white px-4 py-2.5 text-sm placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66]"
+      className="w-full rounded-xl border border-[#34673933] bg-white px-4 py-2.5 text-sm placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66]"
     />
   );
 }
@@ -153,7 +153,7 @@ function AnswerTextarea({
       placeholder={placeholder}
       disabled={disabled}
       rows={rows}
-      className="w-full rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966] focus:outline-none focus:ring-2 focus:ring-[#34673933] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66] disabled:resize-none"
+      className="w-full rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:cursor-default disabled:bg-[#F5F5F0] disabled:text-[#6B6B66] disabled:resize-none"
     />
   );
 }
@@ -198,7 +198,7 @@ function LihatJawabankuCollapsed({
   onClick: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F5F5F0] p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
@@ -296,12 +296,12 @@ function TantanganFeedback({ feedback, isCorrect }: { feedback: string; isCorrec
         isCorrect === true
           ? "border-[#34673933] bg-[#DBFFD5]/40 text-[#2C2C2A]"
           : isCorrect === false
-            ? "border-[#E8B4B4] bg-[#FFF0F0] text-[#2C2C2A]"
+            ? "border-[#FECACA] bg-[#FFF5F5] text-[#2C2C2A]"
             : "border-[#34673926] bg-[#DBFFD5]/20 text-[#2C2C2A]"
       }`}
     >
       <p className="text-xs font-semibold mb-1 text-[#346739]">
-        💬 {isCorrect === true ? "Feedback — Jawabanmu tepat!" : isCorrect === false ? "Feedback — Perlu diperbaiki" : "Feedback"}
+        {isCorrect === true ? "Feedback: Jawabanmu tepat!" : isCorrect === false ? "Feedback: Perlu diperbaiki" : "Feedback"}
       </p>
       <p className="whitespace-pre-wrap">{feedback}</p>
     </div>
@@ -529,7 +529,7 @@ function TantanganSection({
 
               {isCorrect && (
                 <p className="mt-4 text-center text-sm text-[#346739] font-medium">
-                  ✅ Jawaban benar — lanjut ke soal berikutnya!
+                  ✅ Jawaban benar. Lanjut ke soal berikutnya!
                 </p>
               )}
             </div>
@@ -556,6 +556,8 @@ const ASESMEN_DIRI_ITEMS = [
   "Saya dapat menjelaskan mengapa C(n,r) = P(n,r)÷r!",
   "Saya dapat menghubungkan materi ini dengan kehidupan nyata",
 ];
+
+const OPSI_ASESMEN = { ya: "Ya", belum: "Belum", ragu: "Ragu" } as const;
 
 function AsesmenDiriSection({
   onSaved,
@@ -632,14 +634,14 @@ function AsesmenDiriSection({
           icon={ClipboardCheckIcon}
           badge="ASESMEN DIRI"
           title="Asesmen Diri Siswa"
-          subtitle="✅ Checklist Pemahaman — Isi dengan jujur setelah menyelesaikan seluruh modul"
+          subtitle="✅ Checklist Pemahaman: isi dengan jujur setelah menyelesaikan seluruh modul"
         />
 
         <div className="rounded-xl bg-white p-5">
           <div className="overflow-x-auto rounded-xl border border-[#34673926]">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="bg-[#B8E6BC]">
+                <tr className="bg-[#D4E8D4]">
                   <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A] w-12">
                     No.
                   </th>
@@ -671,9 +673,10 @@ function AsesmenDiriSection({
                       <td className="px-4 py-3 text-[#2C2C2A]">{item}</td>
                       {(["ya", "belum", "ragu"] as const).map((val) => (
                         <td key={val} className="px-4 py-3 text-center">
-                          <label className="inline-flex items-center justify-center cursor-default">
+                          <label className="inline-flex min-h-11 min-w-11 items-center justify-center cursor-default">
                             <input
                               type="radio"
+                              aria-label={`${item}: ${OPSI_ASESMEN[val]}`}
                               name={`asesmen-readonly-${idx}`}
                               value={val}
                               checked={savedVal === val}
@@ -709,7 +712,7 @@ function AsesmenDiriSection({
           icon={ClipboardCheckIcon}
           badge="ASESMEN DIRI"
           title="Asesmen Diri Siswa"
-          subtitle="✅ Checklist Pemahaman — Isi dengan jujur setelah menyelesaikan seluruh modul"
+          subtitle="✅ Checklist Pemahaman: isi dengan jujur setelah menyelesaikan seluruh modul"
         />
         <LihatJawabankuCollapsed
           label="Asesmen Diri sudah selesai"
@@ -727,14 +730,14 @@ function AsesmenDiriSection({
         icon={ClipboardCheckIcon}
         badge="ASESMEN DIRI"
         title="Asesmen Diri Siswa"
-        subtitle="✅ Checklist Pemahaman — Isi dengan jujur setelah menyelesaikan seluruh modul"
+        subtitle="✅ Checklist Pemahaman: isi dengan jujur setelah menyelesaikan seluruh modul"
       />
 
       <div className="rounded-xl bg-white p-5">
         <div className="overflow-x-auto rounded-xl border border-[#34673926]">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-[#B8E6BC]">
+              <tr className="bg-[#D4E8D4]">
                 <th className="px-4 py-3 text-center font-semibold text-[#2C2C2A] w-12">
                   No.
                 </th>
@@ -765,9 +768,10 @@ function AsesmenDiriSection({
                     <td className="px-4 py-3 text-[#2C2C2A]">{item}</td>
                     {(["ya", "belum", "ragu"] as const).map((val) => (
                       <td key={val} className="px-4 py-3 text-center">
-                        <label className="inline-flex items-center justify-center cursor-pointer">
+                        <label className="inline-flex min-h-11 min-w-11 items-center justify-center cursor-pointer">
                           <input
                             type="radio"
+                            aria-label={`${item}: ${OPSI_ASESMEN[val]}`}
                             name={`asesmen-${idx}`}
                             value={val}
                             checked={selections[idx] === val}
@@ -1149,14 +1153,14 @@ function RangkumanKonsepSection() {
         icon={BookOpenIcon}
         badge="RANGKUMAN"
         title="Rangkuman Konsep"
-        subtitle="📌 Poin-Poin Penting"
+        subtitle="Poin-Poin Penting"
       />
 
       <div className="rounded-xl bg-white p-5 space-y-4">
         {RANGKUMAN_POINTS.map((point, idx) => (
           <div
             key={idx}
-            className="rounded-xl border border-[#34673926] bg-[#F9FAF6] p-4"
+            className="rounded-xl border border-[#34673926] bg-[#F5F5F0] p-4"
           >
             <h3 className="text-base font-bold text-[#346739] mb-2">
               {idx + 1}. {point.title}
@@ -1224,7 +1228,7 @@ const GLOSARIUM_ENTRIES = [
     definisi:
       "Dua kejadian yang tidak dapat terjadi bersamaan",
     contoh:
-      "Dadu menunjukkan 1 atau 2 secara bersamaan — tidak mungkin",
+      "Dadu menunjukkan 1 atau 2 secara bersamaan (tidak mungkin)",
   },
   {
     istilah: "Unsur yang Sama (Identik)",
@@ -1268,7 +1272,7 @@ function GlosariumSection() {
         <div className="overflow-x-auto rounded-xl border border-[#34673926]">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-[#B8E6BC]">
+              <tr className="bg-[#D4E8D4]">
                 <th className="px-4 py-3 text-left font-semibold text-[#2C2C2A] w-1/5">
                   Istilah
                 </th>
@@ -1475,19 +1479,18 @@ export default function PenutupContent() {
 
           {/* Completion message */}
           <section className="mt-12 text-center">
-            <div className="rounded-2xl bg-gradient-to-br from-[#DBFFD5]/60 via-[#B8E6BC]/40 to-[#DBFFD5]/60 border-2 border-[#346739] p-8 sm:p-10">
-              <div className="text-5xl mb-4">🎉</div>
+            <div className="rounded-2xl bg-gradient-to-br from-[#DBFFD5]/60 via-[#D4E8D4]/40 to-[#DBFFD5]/60 border-2 border-[#346739] p-8 sm:p-10">
               <h2 className="text-2xl font-bold text-[#346739] mb-3">
-                Selamat, ya! 🏆
+                Selamat, ya!
               </h2>
               <p className="text-base leading-relaxed text-[#2C2C2A] max-w-lg mx-auto">
-                Kamu telah <strong>menyelesaikan seluruh materi Kombinatorika</strong> — mulai dari Kaidah Pencacahan, Faktorial, Permutasi, hingga Kombinasi.
+                Kamu telah <strong>menyelesaikan seluruh materi Kombinatorika</strong>, mulai dari Kaidah Pencacahan, Faktorial, Permutasi, hingga Kombinasi.
               </p>
               <p className="text-sm leading-relaxed text-[#6B6B66] max-w-md mx-auto mt-3">
-                Setiap soal tantangan yang kamu pecahkan, setiap refleksi yang kamu tulis, dan setiap konsep yang kamu pahami adalah bukti nyata dari <strong>usaha keras dan ketekunanmu</strong>. Ini bukan akhir, justru awal dari perjalananmu menguasai matematika yang lebih dalam. Teruslah bertanya, teruslah mencoba, dan jangan pernah takut salah — karena dari situlah pemahaman sejati lahir.
+                Setiap soal tantangan yang kamu pecahkan, setiap refleksi yang kamu tulis, dan setiap konsep yang kamu pahami adalah bukti nyata dari <strong>usaha keras dan ketekunanmu</strong>. Ini bukan akhir, justru awal dari perjalananmu menguasai matematika yang lebih dalam. Teruslah bertanya, teruslah mencoba, dan jangan pernah takut salah, karena dari situlah pemahaman sejati lahir.
               </p>
               <p className="text-sm font-semibold text-[#346739] mt-4">
-                Kamu hebat. Sampai jumpa di modul berikutnya! 🚀
+                Kamu hebat. Sampai jumpa di modul berikutnya!
               </p>
             </div>
           </section>

@@ -16,10 +16,10 @@ const KOMBINASI_TOC: TocSection[] = [
   {
     key: "kombinasi",
     label: "Kombinasi",
-    sub: "Pemilihan tanpa urutan — tim, kelompok, komite",
+    sub: "Pemilihan tanpa urutan: tim, kelompok, komite",
     icon: "ti-math",
     children: [
-      { key: "kombinasi-1", label: "Eksplorasi Kontekstual", sub: "Tim basket — urutan penting?", icon: "ti-search" },
+      { key: "kombinasi-1", label: "Eksplorasi Kontekstual", sub: "Tim basket: urutan penting?", icon: "ti-search" },
       { key: "kombinasi-2", label: "Aktivitas Deep Learning", sub: "Hilangkan urutan berlebihan", icon: "ti-brain" },
       { key: "kombinasi-3", label: "Penjelasan Konsep", sub: "Rumus & sifat kombinasi", icon: "ti-book" },
       { key: "kombinasi-4", label: "Contoh Soal Bertahap", sub: "Latihan dari mudah ke HOTS", icon: "ti-stairs-up" },

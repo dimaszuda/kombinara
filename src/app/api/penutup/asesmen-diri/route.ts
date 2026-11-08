@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     if (!body || !Array.isArray(body.checklist) || body.checklist.length === 0) {
       return NextResponse.json(
-        { error: "Invalid request body — required: checklist (non-empty array)" },
+        { error: "Invalid request body: required: checklist (non-empty array)" },
         { status: 400 }
       );
     }
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
         !validStatuses.includes(item.status)
       ) {
         return NextResponse.json(
-          { error: "Invalid checklist item — each must have: indicator_number (number), pernyataan (string), status (ya|belum|ragu)" },
+          { error: "Invalid checklist item: each must have: indicator_number (number), pernyataan (string), status (ya|belum|ragu)" },
           { status: 400 }
         );
       }

@@ -30,8 +30,8 @@ const C = {
 
 const PILAR = {
   mindful: { label: "Mindful", color: "#2A5A8C" },
-  joyful: { label: "Joyful", color: "#C9962B" },
-  meaningful: { label: "Meaningful", color: "#4CAF50" },
+  joyful: { label: "Joyful", color: "#8E6A1E" },
+  meaningful: { label: "Meaningful", color: "#377F3A" },
 };
 
 const GROUP_ICON: Record<GroupingType, React.FC> = {
@@ -68,7 +68,7 @@ function ActivityCard({ data }: ActivityCardProps) {
         >
           {data.nomor}
         </div>
-        <span className="text-xs font-bold uppercase tracking-wide" style={{ color: C.green }}>
+        <span className="text-xs font-bold" style={{ color: C.green }}>
           Aktivitas {data.nomor}
         </span>
       </div>
@@ -109,8 +109,8 @@ function ActivityCard({ data }: ActivityCardProps) {
       </div>
 
       {/* Pilar */}
-      <div className="flex items-center gap-3 flex-wrap pt-3 border-t" style={{ borderColor: "#f1f5f9" }}>
-        <span className="text-xs font-semibold text-slate-500">Pilar:</span>
+      <div className="flex items-center gap-3 flex-wrap pt-3 border-t" style={{ borderColor: "#f5f5f0" }}>
+        <span className="text-xs font-semibold text-muted">Pilar:</span>
         {data.pilar.map((key: PilarKey) => (
           <span
             key={key}

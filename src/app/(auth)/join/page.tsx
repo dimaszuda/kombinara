@@ -45,7 +45,7 @@ export default function JoinPage() {
     <div className="flex flex-col lg:flex-row w-full min-h-screen">
       <div className="w-full lg:flex-1 flex flex-col items-center justify-center px-4 md:px-8 lg:px-16 py-8">
         <h1 className="text-3xl font-bold">Masukkan Kode Kelas</h1>
-        <p className="text-gray-500 mt-2 text-center">
+        <p className="text-muted mt-2 text-center">
           Minta kode kelas kepada guru kamu untuk mulai bergabung.
         </p>
 
@@ -64,14 +64,14 @@ export default function JoinPage() {
               type="text"
               value={kodeKelas}
               onChange={(e) => setKodeKelas(e.target.value.toUpperCase())}
-              className="w-full py-2.5 pl-11 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none uppercase tracking-widest"
+              className="w-full py-2.5 pl-11 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362] uppercase tracking-widest"
               placeholder="Contoh: K7M2QX9A"
               autoComplete="off"
               autoFocus
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          {error && <p role="alert" className="text-[#B91C1C] text-sm mt-2">{error}</p>}
 
           <button
             type="submit"

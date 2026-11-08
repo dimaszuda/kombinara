@@ -150,14 +150,14 @@ function Spinner() {
 
 // ── Feedback Box (reusable) ────────────────────────────────────────
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
-  const borderColor = isCorrect === false ? "border-[#C44F4F33]" : "border-[#66336233]";
-  const bgColor = isCorrect === false ? "bg-[#C44F4F08]" : "bg-[#66336208]";
-  const labelColor = isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]";
+  const borderColor = isCorrect === false ? "border-[#C2494933]" : "border-[#66336233]";
+  const bgColor = isCorrect === false ? "bg-[#C2494908]" : "bg-[#66336208]";
+  const labelColor = isCorrect === false ? "text-[#C24949]" : "text-[#663362]";
 
   return (
     <div className={`mt-3 rounded-lg border ${borderColor} ${bgColor} p-3`}>
       <p className={`mb-1 text-xs font-medium ${labelColor}`}>
-        {isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+        {isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
       </p>
       <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{text}</RichText>
     </div>
@@ -235,7 +235,7 @@ function ProgressIndicator({
             <React.Fragment key={step.index}>
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${
-                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"
+                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"
                 }`}
                 title={isLocked ? `Terkunci: ${step.label}` : step.label}
               >
@@ -317,7 +317,7 @@ function CollapsibleStepWrapper({
 
   // Step was pre-completed but jawaban not yet fetched — show collapsed view
   return (
-    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F5F5F0] p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
@@ -371,7 +371,7 @@ export default function ApersepsiSection({
     for (let i = 0; i < TOTAL_STEPS; i++) {
       if (initialCompletedSteps[i]) {
         fb[i] = {
-          text: "Jawaban benar! 🎉",
+          text: "Jawaban benar!",
           isCorrect: true,
         };
       }
@@ -508,7 +508,7 @@ export default function ApersepsiSection({
         );
         if (matchingEntry?.isCorrect === true) {
           newFb[i] = {
-            text: matchingEntry.feedback ?? "Jawaban benar! 🎉",
+            text: matchingEntry.feedback ?? "Jawaban benar!",
             isCorrect: true,
           };
         }
@@ -751,10 +751,10 @@ export default function ApersepsiSection({
 
         <div className="mt-3 grid grid-rows gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-[#663362]">
+            <label htmlFor={`${cfg.questionKey}-perkiraan`} className="mb-1 block text-xs font-medium text-[#663362]">
               Perkiraanmu
             </label>
-            <input
+            <input id={`${cfg.questionKey}-perkiraan`}
               type="text"
               placeholder="tulis dugaan jumlahnya"
               value={ans.perkiraan}
@@ -768,10 +768,10 @@ export default function ApersepsiSection({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-[#663362]">
+            <label htmlFor={`${cfg.questionKey}-cara`} className="mb-1 block text-xs font-medium text-[#663362]">
               Cara hitungnya
             </label>
-            <textarea
+            <textarea id={`${cfg.questionKey}-cara`}
               placeholder="ceritain logikamu"
               value={ans.caraHitung}
               disabled={readOnly}
@@ -821,10 +821,10 @@ export default function ApersepsiSection({
 
         <div className="mt-3 grid grid-rows-[1fr_4fr] gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-[#663362]">
+            <label htmlFor="pemantik-password-perkiraan" className="mb-1 block text-xs font-medium text-[#663362]">
               Perkiraanmu
             </label>
-            <input
+            <input id="pemantik-password-perkiraan"
               type="text"
               placeholder="tulis dugaan jumlahnya"
               value={passwordGuess}
@@ -836,10 +836,10 @@ export default function ApersepsiSection({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-[#663362]">
+            <label htmlFor="pemantik-password-cara" className="mb-1 block text-xs font-medium text-[#663362]">
               Cara hitungmu
             </label>
-            <textarea
+            <textarea id="pemantik-password-cara"
               placeholder="ceritain logikamu"
               value={passwordReasoning}
               disabled={readOnly}
@@ -1027,7 +1027,7 @@ export default function ApersepsiSection({
           Coba pikir lagi, caramu biasanya cukup nggak?
         </p>
         <p className="mt-1 text-[13px] leading-relaxed">
-          🟡 <b>Tujuan</b>: Membangun rasa ingin tahu dan menyadarkan bahwa cara berpikir
+          <b>Tujuan</b>: Membangun rasa ingin tahu dan menyadarkan bahwa cara berpikir
           biasa belum cukup untuk menjawab pertanyaan-pertanyaan ini.
         </p>
       </>
@@ -1112,7 +1112,7 @@ export default function ApersepsiSection({
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">
-              🎉 Semua langkah selesai!
+              Semua langkah selesai!
             </p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
               Kamu sudah menyelesaikan Apersepsi, Pemantik, dan Refleksi. Bagus sekali!

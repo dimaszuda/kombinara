@@ -27,20 +27,20 @@ import {
 function KataPengantar() {
   return (
     <article className="kp-wrap">
-        <p className="kp-badge">📒 Modul Pembelajaran Matematika</p>
+        <p className="kp-badge">Modul Pembelajaran Matematika</p>
         <h2 className="kp-subtitle">Kaidah Pencacahan (Kombinatorika)</h2>
         <p className="kp-tagline">&ldquo;Menghitung Tanpa Bingung, Berpikir Tanpa Batas&rdquo;</p>
         <p className="kp-meta">Matematika &nbsp;·&nbsp; Kelas XII SMA &nbsp;·&nbsp; Kurikulum Merdeka</p>
 
 
         <blockquote className="kp-quote">
-          &ldquo;Matematika bukan tentang menghafal rumus — melainkan tentang memahami pola, bernalar dengan logika, dan melihat keajaiban angka dalam kehidupan nyata.&rdquo;
+          &ldquo;Matematika bukan tentang menghafal rumus, melainkan tentang memahami pola, bernalar dengan logika, dan melihat keajaiban angka dalam kehidupan nyata.&rdquo;
         </blockquote>
 
         <hr className="kp-divider" />
 
         <p className="kp-section-label">Kata Pengantar</p>
-        <h3 className="kp-greeting">Halo, Pelajar Hebat! 👋</h3>
+        <h3 className="kp-greeting">Halo, Pelajar Hebat!</h3>
 
         <p className="kp-body">
           Pernahkah kamu bertanya-tanya: <b>berapa banyak kemungkinan password yang bisa kamu buat?</b> Atau{' '}
@@ -62,9 +62,9 @@ function KataPengantar() {
           bukan rasa takut.
         </p>
 
-        <p className="kp-body">Selamat belajar, dan nikmati prosesnya! 🎉</p>
+        <p className="kp-body">Selamat belajar, dan nikmati prosesnya!</p>
 
-        <p className="kp-sign">— Penyusun</p>
+        <p className="kp-sign">Penyusun</p>
         <hr className="kp-divider" />
       </article>
   );
@@ -98,21 +98,21 @@ function DaftarIsi() {
 function PetunjukPenggunaan() {
   return (
     <article className="kp-wrap">
-      <h3 className="kp-greeting">🎓 Untuk Siswa</h3>
+      <h3 className="kp-greeting">Untuk Siswa</h3>
       <ol className="kp-list">
         {PETUNJUK_SISWA.map((item, i) => (
           <li key={i}>{item}</li>
         ))}
       </ol>
 
-      <h3 className="kp-greeting">👩‍🏫 Untuk Guru</h3>
+      <h3 className="kp-greeting">Untuk Guru</h3>
       <ol className="kp-list">
         {PETUNJUK_GURU.map((item, i) => (
           <li key={i}>{item}</li>
         ))}
       </ol>
 
-      <h3 className="kp-greeting">📖 Cara Belajar Mandiri</h3>
+      <h3 className="kp-greeting">Cara Belajar Mandiri</h3>
       <ul className="kp-list">
         {CARA_BELAJAR_MANDIRI.map((item, i) => (
           <li key={i}>{item}</li>
@@ -177,7 +177,7 @@ function PetaKonsep() {
         className="mt-8"
       />
       <blockquote className="kp-quote text-justify">
-        🔗 <b>Koneksi Kunci</b>: Faktorial bukan kaidah pencacahan — ia adalah <b>alat matematis</b> yang mempersingkat penulisan perkalian berurutan. Tanpa faktorial, rumus permutasi dan kombinasi tidak bisa ditulis secara ringkas. Itulah mengapa ia dipelajari sebagai <b>jembatan</b>, bukan sebagai aturan pencacahan tersendiri.
+        🔗 <b>Koneksi Kunci</b>: Faktorial bukan kaidah pencacahan. Ia adalah <b>alat matematis</b> yang mempersingkat penulisan perkalian berurutan. Tanpa faktorial, rumus permutasi dan kombinasi tidak bisa ditulis secara ringkas. Itulah mengapa ia dipelajari sebagai <b>jembatan</b>, bukan sebagai aturan pencacahan tersendiri.
       </blockquote>
       <hr className="kp-divider" />
     </article>

@@ -56,10 +56,10 @@ export function InputBlank({
         disabled={disabled}
         style={{
           width,
-          borderColor: checked ? (isCorrect ? C.green : C.wrong) : "#94a3b8",
+          borderColor: checked ? (isCorrect ? C.green : C.wrong) : "#6B6B66",
           color: C.green,
         }}
-        className="border-2 rounded-md px-2 py-0.5 text-center font-semibold text-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="border-2 rounded-md px-2 py-0.5 text-center font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] disabled:opacity-50 disabled:cursor-not-allowed"
       />
       <button
         onClick={handleCheck}

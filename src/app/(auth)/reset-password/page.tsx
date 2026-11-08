@@ -44,7 +44,7 @@ function ResetPasswordForm() {
     <div className="flex flex-col lg:flex-row w-full min-h-screen">
       <div className="w-full lg:flex-1 flex flex-col items-center justify-center px-4 md:px-8 lg:px-16 py-8">
         <h1 className="text-3xl font-bold">Reset Password</h1>
-        <p className="text-gray-500 mt-2 text-center">
+        <p className="text-muted mt-2 text-center">
           Buat password baru untuk akunmu.
         </p>
 
@@ -54,85 +54,90 @@ function ResetPasswordForm() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="w-full max-w-[450px] mt-8">
-            <label className="block text-sm mb-1">Email</label>
+            <label htmlFor="email" className="block text-sm mb-1">Email</label>
             <div className="relative">
               <Image
                 src="/icons/username-icon.png"
-                alt="email icon"
+                alt=""
                 width={20}
                 height={20}
                 className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
               />
               <input
+                id="email"
                 type="email"
                 value={email}
                 readOnly
-                className="w-full py-2.5 pl-11 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none text-gray-400 cursor-not-allowed"
+                className="w-full py-2.5 pl-11 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362] text-muted cursor-not-allowed"
               />
             </div>
 
-            <label className="block text-sm mb-1 mt-5">Password Baru</label>
+            <label htmlFor="password-baru" className="block text-sm mb-1 mt-5">Password Baru</label>
             <div className="relative">
               <Image
                 src="/icons/password-icon.png"
-                alt="password icon"
+                alt=""
                 width={20}
                 height={20}
                 className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+              />
+              <input
+                id="password-baru"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full py-2.5 pl-11 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
+                placeholder="Masukkan password baru"
+                autoFocus
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                 className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center bg-transparent border-0 p-0 cursor-pointer"
               >
                 <Image
                   src={showPassword ? "/icons/open-eye.png" : "/icons/closed-eye.png"}
-                  alt="toggle password visibility"
+                  alt=""
                   width={20}
                   height={20}
                 />
               </button>
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full py-2.5 pl-11 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none"
-                placeholder="Masukkan password baru"
-                autoFocus
-              />
             </div>
 
-            <label className="block text-sm mb-1 mt-5">Konfirmasi Password</label>
+            <label htmlFor="konfirmasi-password" className="block text-sm mb-1 mt-5">Konfirmasi Password</label>
             <div className="relative">
               <Image
                 src="/icons/password-icon.png"
-                alt="password icon"
+                alt=""
                 width={20}
                 height={20}
                 className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
               />
+              <input
+                id="konfirmasi-password"
+                type={showConfirm ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full py-2.5 pl-11 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
+                placeholder="Ulangi password baru"
+              />
               <button
                 type="button"
                 onClick={() => setShowConfirm(!showConfirm)}
+                aria-label={showConfirm ? "Sembunyikan password" : "Tampilkan password"}
                 className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center bg-transparent border-0 p-0 cursor-pointer"
               >
                 <Image
                   src={showConfirm ? "/icons/open-eye.png" : "/icons/closed-eye.png"}
-                  alt="toggle confirm visibility"
+                  alt=""
                   width={20}
                   height={20}
                 />
               </button>
-              <input
-                type={showConfirm ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full py-2.5 pl-11 pr-10 rounded-full border border-brand-600 bg-brand-50 outline-none"
-                placeholder="Ulangi password baru"
-              />
             </div>
 
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            {error && <p role="alert" className="text-[#B91C1C] text-sm mt-2">{error}</p>}
 
             <button
               type="submit"

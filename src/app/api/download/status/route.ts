@@ -98,7 +98,7 @@ function formatRequirement(r: { conceptId: string; section: string }) {
   return {
     conceptId: r.conceptId,
     section: r.section,
-    label: `${CONCEPT_LABELS[r.conceptId] ?? r.conceptId} — ${SECTION_LABELS[r.section] ?? r.section}`,
+    label: `${CONCEPT_LABELS[r.conceptId] ?? r.conceptId}: ${SECTION_LABELS[r.section] ?? r.section}`,
   };
 }
 

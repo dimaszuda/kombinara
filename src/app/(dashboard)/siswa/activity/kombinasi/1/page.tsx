@@ -10,8 +10,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 // ── Types ──
@@ -60,7 +60,7 @@ function YaTidakRadio({
             disabled={readOnly}
             className="accent-green-700"
           />
-          <span className="text-sm font-medium capitalize text-slate-700">{opt}</span>
+          <span className="text-sm font-medium capitalize text-ink">{opt}</span>
         </label>
       ))}
     </div>
@@ -94,7 +94,7 @@ function JenisRadio({
             disabled={readOnly}
             className="accent-green-700"
           />
-          <span className="text-sm font-medium text-slate-700">{opt.label}</span>
+          <span className="text-sm font-medium text-ink">{opt.label}</span>
         </label>
       ))}
     </div>
@@ -121,14 +121,14 @@ function TextInput({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-500">
+        <label htmlFor={id} className="text-xs font-semibold text-muted">
           {label}
         </label>
       )}
       <input
         id={id}
         type={type}
-        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
         style={{ borderColor: C.border }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -159,14 +159,14 @@ function TextArea({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-500">
+        <label htmlFor={id} className="text-xs font-semibold text-muted">
           {label}
         </label>
       )}
       <textarea
         id={id}
         rows={rows}
-        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
         style={{ borderColor: C.border }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -202,9 +202,9 @@ function SaveButton({ onClick, isSaving, isCorrect }: { onClick: () => void; isS
 
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
   const isWrong = isCorrect === false;
-  const bc = isWrong ? "border-[#C44F4F33]" : "border-[#34673933]";
-  const bg = isWrong ? "bg-[#C44F4F08]" : "bg-[#34673908]";
-  const lc = isWrong ? "text-[#C44F4F]" : "text-[#346739]";
+  const bc = isWrong ? "border-[#C2494933]" : "border-[#34673933]";
+  const bg = isWrong ? "bg-[#C2494908]" : "bg-[#34673908]";
+  const lc = isWrong ? "text-[#C24949]" : "text-[#346739]";
   const ic = isWrong ? "❌" : "✅";
   const title = isWrong ? "Jawaban Kurang Tepat" : "Jawaban Benar!";
   return (
@@ -236,16 +236,16 @@ function SectionHeader({
   title,
   subtitle,
 }: {
-  icon: string;
+  icon?: string;
   title: string;
   subtitle?: string;
 }) {
   return (
     <div className="rounded-xl p-4 mb-5" style={{ backgroundColor: C.greenLight }}>
       <p className="text-base font-bold" style={{ color: C.green }}>
-        {icon} {title}
+        {icon && `${icon} `}{title}
       </p>
-      {subtitle && <p className="text-sm text-slate-600 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-sm text-muted mt-1">{subtitle}</p>}
     </div>
   );
 }
@@ -336,7 +336,7 @@ function SimulasiPilihan({
     >
       <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="text-xs font-bold" style={{ color: "#2A5A8C" }}>
-          🎮 Simulasi: Coba Sendiri Dulu
+          Simulasi: Coba Sendiri Dulu
         </p>
         {!state.selesai && (
           <span
@@ -350,7 +350,7 @@ function SimulasiPilihan({
 
       {!state.selesai && (
         <>
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             Klik {jumlahSlot} objek di bawah ini secara berurutan.
           </p>
 
@@ -367,7 +367,7 @@ function SimulasiPilihan({
                   className="rounded-lg px-3 py-1.5 text-sm font-medium border transition-colors disabled:cursor-not-allowed"
                   style={{
                     backgroundColor: sudahDipilih ? C.green : C.white,
-                    color: sudahDipilih ? C.white : "#334155",
+                    color: sudahDipilih ? C.white : "#2C2C2A",
                     borderColor: sudahDipilih ? C.green : C.border,
                     opacity: !sudahDipilih && slotPenuh ? 0.4 : 1,
                   }}
@@ -384,10 +384,10 @@ function SimulasiPilihan({
               className="rounded-lg p-3 text-sm"
               style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}
             >
-              <p className="text-xs font-semibold text-slate-500 mb-1">
+              <p className="text-xs font-semibold text-muted mb-1">
                 Hasil Pilihanmu{state.ditukar ? " (setelah ditukar)" : ""}:
               </p>
-              <p className="font-medium text-slate-800">{hasilSaatIni}</p>
+              <p className="font-medium text-ink">{hasilSaatIni}</p>
             </div>
           )}
 
@@ -398,7 +398,7 @@ function SimulasiPilihan({
                 type="button"
                 onClick={handleHapusPilihan}
                 className="rounded-full px-4 py-1.5 text-xs font-medium border"
-                style={{ borderColor: C.border, color: "#334155" }}
+                style={{ borderColor: C.border, color: "#2C2C2A" }}
               >
                 Ulangi Pilih
               </button>
@@ -410,7 +410,7 @@ function SimulasiPilihan({
                 className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
                 style={{ backgroundColor: "#2A5A8C" }}
               >
-                🔄 Tukar Urutan
+                Tukar Urutan
               </button>
             )}
             {slotPenuh && (
@@ -426,7 +426,7 @@ function SimulasiPilihan({
           </div>
 
           {slotPenuh && (
-            <p className="text-xs text-slate-500 italic">
+            <p className="text-xs text-muted italic">
               Tips: tekan &quot;Tukar Urutan&quot; dulu untuk melihat apakah hasilnya berubah,
               baru tekan &quot;Selesai, Coba Lagi&quot;.
             </p>
@@ -443,14 +443,14 @@ function SimulasiPilihan({
           <p className="text-sm font-bold" style={{ color: C.green }}>
             ✅ Kamu sudah mencoba 3 kali!
           </p>
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             Setiap kali kamu menukar urutan pilihan, hasilnya{" "}
             <strong>{urutanPenting ? "berubah" : "tetap dianggap sama"}</strong>.
             Ini adalah ciri khas dari{" "}
             <strong>{urutanPenting ? "Permutasi" : "Kombinasi"}</strong>: urutan{" "}
             {urutanPenting ? "sangat penting" : "tidak penting"}.
           </p>
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             Gunakan pengalaman ini untuk menjawab tabel analisis di bawah.
           </p>
           <button
@@ -459,7 +459,7 @@ function SimulasiPilihan({
             className="rounded-full px-4 py-1.5 text-xs font-medium border mt-1"
             style={{ borderColor: C.green, color: C.green, backgroundColor: C.white }}
           >
-            🔁 Reset Simulasi
+            Reset Simulasi
           </button>
         </div>
       )}
@@ -645,7 +645,7 @@ export default function AktivitasKombinasi1() {
               const sub = data.submissions[key];
               if (sub) {
                 preFilled[key] = {
-                  text: `📝 Jawaban kamu:\n${sub.answer}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  text: `Jawaban kamu:\n${sub.answer}\n\nFeedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                   isCorrect: sub.isCorrect,
                 };
                 if (!sub.isCorrect && firstUnanswered > i) {
@@ -727,9 +727,9 @@ export default function AktivitasKombinasi1() {
         const jawabanBenar = /720|10\s*[×xX*·]\s*9\s*[×xX*·]\s*8|P\s*\(\s*10\s*,\s*3\s*\)/.test(s.jawaban.replace(/\s/g, ""));
         const allOk = ok1 && ok2 && okJenis && jawabanBenar;
         if (allOk) {
-          return { isCorrect: true, feedback: "🎯 Tepat! Jabatan (Ketua/Wakil/Sekretaris) membuat urutan penting → Permutasi. Banyak cara = P(10,3) = 10×9×8 = 720." };
+          return { isCorrect: true, feedback: "Tepat! Jabatan (Ketua/Wakil/Sekretaris) membuat urutan penting → Permutasi. Banyak cara = P(10,3) = 10×9×8 = 720." };
         }
-        let fb = "🤔 Belum tepat. Coba cek lagi:\n";
+        let fb = "Belum tepat. Coba cek lagi:\n";
         if (!ok1) fb += "• Ari=Ketua & Budi=Wakil ≠ Budi=Ketua & Ari=Wakil → jawab 'Tidak'.\n";
         if (!ok2) fb += "• Karena jabatan berbeda, urutan itu penting → jawab 'Ya'.\n";
         if (!okJenis) fb += "• Karena urutan penting, ini adalah Permutasi.\n";
@@ -744,9 +744,9 @@ export default function AktivitasKombinasi1() {
         const jawabanBenar = /120|C\s*\(\s*10\s*,\s*3\s*\)/.test(s.jawaban.replace(/\s/g, ""));
         const allOk = ok1 && ok2 && okJenis && jawabanBenar;
         if (allOk) {
-          return { isCorrect: true, feedback: "🎯 Tepat! Perwakilan tanpa jabatan → urutan tidak penting → Kombinasi. Banyak cara = C(10,3) = 120." };
+          return { isCorrect: true, feedback: "Tepat! Perwakilan tanpa jabatan → urutan tidak penting → Kombinasi. Banyak cara = C(10,3) = 120." };
         }
-        let fb = "🤔 Belum tepat. Coba cek lagi:\n";
+        let fb = "Belum tepat. Coba cek lagi:\n";
         if (!ok1) fb += "• {Ari, Budi, Cici} sama saja dengan {Cici, Ari, Budi} → jawab 'Ya'.\n";
         if (!ok2) fb += "• Karena hanya perwakilan (tanpa jabatan), urutan tidak penting → jawab 'Tidak'.\n";
         if (!okJenis) fb += "• Karena urutan tidak penting, ini adalah Kombinasi.\n";
@@ -760,9 +760,9 @@ export default function AktivitasKombinasi1() {
         const jawabanBenar = /56|C\s*\(\s*8\s*,\s*5\s*\)/.test(s.jawaban.replace(/\s/g, ""));
         const allOk = ok1 && okJenis && jawabanBenar;
         if (allOk) {
-          return { isCorrect: true, feedback: "🎯 Tepat! Mengerjakan soal {1,2,3,4,5} sama saja dengan {5,4,3,2,1} → urutan tidak penting → Kombinasi. C(8,5) = 56." };
+          return { isCorrect: true, feedback: "Tepat! Mengerjakan soal {1,2,3,4,5} sama saja dengan {5,4,3,2,1} → urutan tidak penting → Kombinasi. C(8,5) = 56." };
         }
-        let fb = "🤔 Belum tepat. Coba cek lagi:\n";
+        let fb = "Belum tepat. Coba cek lagi:\n";
         if (!ok1) fb += "• Soal yang dikerjakan tetap sama walau urutan beda → jawab 'Tidak'.\n";
         if (!okJenis) fb += "• Karena urutan pengerjaan tidak penting, ini adalah Kombinasi.\n";
         if (!jawabanBenar) fb += "• Gunakan rumus kombinasi: C(n,r). n = total soal, r = jumlah yang dipilih.\n• Coba hitung ulang dengan teliti.\n";
@@ -775,9 +775,9 @@ export default function AktivitasKombinasi1() {
         const jawabanBenar = /15|C\s*\(\s*6\s*,\s*2\s*\)/.test(s.jawaban.replace(/\s/g, ""));
         const allOk = ok1 && okJenis && jawabanBenar;
         if (allOk) {
-          return { isCorrect: true, feedback: "🎯 Tepat! Mencampur merah+biru = biru+merah → urutan tidak penting → Kombinasi. C(6,2) = 15." };
+          return { isCorrect: true, feedback: "Tepat! Mencampur merah+biru = biru+merah → urutan tidak penting → Kombinasi. C(6,2) = 15." };
         }
-        let fb = "🤔 Belum tepat. Coba cek lagi:\n";
+        let fb = "Belum tepat. Coba cek lagi:\n";
         if (!ok1) fb += "• Mencampur merah+biru hasilnya sama dengan biru+merah → jawab 'Ya'.\n";
         if (!okJenis) fb += "• Karena urutan pencampuran tidak penting, ini adalah Kombinasi.\n";
         if (!jawabanBenar) fb += "• Gunakan rumus kombinasi: C(n,r). n = total warna, r = jumlah yang dipilih.\n• Coba hitung ulang dengan teliti.\n";
@@ -790,9 +790,9 @@ export default function AktivitasKombinasi1() {
         const jawabanBenar = /1860480|1\.?860\.?480|P\s*\(\s*20\s*,\s*5\s*\)/.test(s.jawaban.replace(/\s/g, ""));
         const allOk = ok1 && okJenis && jawabanBenar;
         if (allOk) {
-          return { isCorrect: true, feedback: "🎯 Tepat! Urutan lagu dalam playlist penting → Permutasi. P(20,5) = 20×19×18×17×16 = 1.860.480." };
+          return { isCorrect: true, feedback: "Tepat! Urutan lagu dalam playlist penting → Permutasi. P(20,5) = 20×19×18×17×16 = 1.860.480." };
         }
-        let fb = "🤔 Belum tepat. Coba cek lagi:\n";
+        let fb = "Belum tepat. Coba cek lagi:\n";
         if (!ok1) fb += "• Playlist [A,B,C,D,E] berbeda dengan [E,D,C,B,A] → jawab 'Tidak'.\n";
         if (!okJenis) fb += "• Karena urutan lagu diperhatikan, ini adalah Permutasi.\n";
         if (!jawabanBenar) fb += "• Gunakan rumus permutasi: P(n,r). n = total lagu, r = jumlah lagu dalam playlist.\n• Coba hitung ulang dengan teliti.\n";
@@ -883,7 +883,7 @@ export default function AktivitasKombinasi1() {
                   isCorrect = true;
                 }
               }
-              setFeedbackMap((p) => ({ ...p, [key]: { text: data.feedback ?? "💬 Jawaban sudah tersimpan.", isCorrect } }));
+              setFeedbackMap((p) => ({ ...p, [key]: { text: data.feedback ?? "Jawaban sudah tersimpan.", isCorrect } }));
               showToast("Jawaban tersimpan! ✅");
               if (isCorrect) {
                 const idx = getQuestionIndex(key);
@@ -893,7 +893,7 @@ export default function AktivitasKombinasi1() {
               setFeedbackMap((p) => ({ ...p, [key]: { text: "⚠️ Gagal menyimpan. Coba lagi nanti.", isCorrect: false } }));
             }
           } catch {
-            setFeedbackMap((p) => ({ ...p, [key]: { text: "💬 Jawabanmu sudah tercatat. Feedback AI akan muncul setelah guru memeriksa.", isCorrect: true } }));
+            setFeedbackMap((p) => ({ ...p, [key]: { text: "Jawabanmu sudah tercatat. Feedback AI akan muncul setelah guru memeriksa.", isCorrect: true } }));
             showToast("Jawaban tersimpan! ✅");
             const idx = getQuestionIndex(key);
             if (idx >= 0) setCurrentStep((prev) => Math.max(prev, idx + 1));
@@ -951,7 +951,7 @@ export default function AktivitasKombinasi1() {
         setFeedbackMap((p) => ({
           ...p,
           [key]: {
-            text: `📝 Jawaban kamu:\n${data.submission.answer}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            text: `Jawaban kamu:\n${data.submission.answer}\n\nFeedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
             isCorrect: data.submission.isCorrect,
           },
         }));
@@ -964,16 +964,16 @@ export default function AktivitasKombinasi1() {
 
   // ── Question labels for review mode ────────────────────────────
   const QUESTION_LABELS: Record<string, string> = {
-    situasi_1: "Situasi 1 — Pemilihan Ketua, Wakil, Sekretaris",
-    situasi_2: "Situasi 2 — Perwakilan Lomba",
-    situasi_3: "Situasi 3 — Soal Pilihan",
-    situasi_4: "Situasi 4 — Campuran Warna",
-    situasi_5: "Situasi 5 — Playlist Lagu",
-    refleksi_1: "Refleksi — Perbedaan Permutasi & Kombinasi",
-    refleksi_2: "Refleksi — Situasi Pengecoh",
-    bagian_a_1: "Bagian A — Analisis Jawaban Siswa",
-    bagian_a_2: "Bagian A — Hitung Jawaban Benar",
-    bagian_b: "Bagian B — Rancang Sendiri",
+    situasi_1: "Situasi 1: Pemilihan Ketua, Wakil, Sekretaris",
+    situasi_2: "Situasi 2: Perwakilan Lomba",
+    situasi_3: "Situasi 3: Soal Pilihan",
+    situasi_4: "Situasi 4: Campuran Warna",
+    situasi_5: "Situasi 5: Playlist Lagu",
+    refleksi_1: "Refleksi: Perbedaan Permutasi & Kombinasi",
+    refleksi_2: "Refleksi: Situasi Pengecoh",
+    bagian_a_1: "Bagian A: Analisis Jawaban Siswa",
+    bagian_a_2: "Bagian A: Hitung Jawaban Benar",
+    bagian_b: "Bagian B: Rancang Sendiri",
   };
 
   // ── Question full text for review mode ─────────────────────────
@@ -998,7 +998,7 @@ export default function AktivitasKombinasi1() {
           <button type="button" onClick={() => setRevealedSteps(p => ({ ...p, [qKey]: true }))}
             className="rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
             style={{ backgroundColor: C.green }}>
-            💬 Lihat jawabanku
+            Lihat jawabanku
           </button>
         </div>
       );
@@ -1040,10 +1040,10 @@ export default function AktivitasKombinasi1() {
             className="text-2xl font-bold mb-2"
             style={{ color: C.purple }}
           >
-            Aktivitas 1 — “Permutasi atau Kombinasi? Aku yang Menentukan!”
+            Aktivitas 1: “Permutasi atau Kombinasi? Aku yang Menentukan!”
           </h1>
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs font-semibold text-slate-500">Pilar:</span>
+            <span className="text-xs font-semibold text-muted">Pilar:</span>
             <span
               className="inline-flex items-center gap-1.5 text-xs font-semibold"
               style={{ color: "#2A5A8C" }}
@@ -1061,7 +1061,7 @@ export default function AktivitasKombinasi1() {
         {isLoadingExisting && (
           <div className="flex items-center justify-center py-12">
             <Spinner />
-            <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+            <span className="ml-3 text-sm text-muted">Memuat aktivitas...</span>
           </div>
         )}
 
@@ -1070,7 +1070,7 @@ export default function AktivitasKombinasi1() {
           <>
             <div className="rounded-xl p-4 text-center mb-6" style={{ backgroundColor: C.greenLight }}>
               <p className="font-bold text-base" style={{ color: C.green }}>✅ Kamu sudah menyelesaikan aktivitas ini!</p>
-              <p className="text-sm text-slate-600 mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
+              <p className="text-sm text-muted mt-1">Klik &ldquo;Lihat jawabanku&rdquo; di setiap nomor untuk melihat jawaban dan feedback.</p>
             </div>
             <div className="space-y-6">
               {QUESTION_KEYS.map((key, idx) => {
@@ -1092,7 +1092,7 @@ export default function AktivitasKombinasi1() {
                           <div>
                             <p className="text-sm font-semibold" style={{ color: C.purple }}>{QUESTION_LABELS[key] ?? key}</p>
                             {soalText && (
-                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{soalText}</p>
+                              <p className="text-xs text-muted mt-0.5 line-clamp-2">{soalText}</p>
                             )}
                           </div>
                         </div>
@@ -1121,23 +1121,23 @@ export default function AktivitasKombinasi1() {
                             <>
                               <SoalBadge n={s.nomor} label={`Situasi ${s.nomor}`} />
                               <PertanyaanCard readOnly>
-                                <p className="text-sm font-medium text-slate-800">{s.deskripsi}</p>
-                                <div className="rounded-lg p-3" style={{ backgroundColor: "#f1f5f9" }}>
-                                  <p className="text-xs font-semibold text-slate-500 mb-1">Pertanyaan Panduan:</p>
-                                  <p className="text-sm text-slate-700 italic">{s.pertanyaanPanduan}</p>
+                                <p className="text-sm font-medium text-ink">{s.deskripsi}</p>
+                                <div className="rounded-lg p-3" style={{ backgroundColor: "#f5f5f0" }}>
+                                  <p className="text-xs font-semibold text-muted mb-1">Pertanyaan Panduan:</p>
+                                  <p className="text-sm text-ink italic">{s.pertanyaanPanduan}</p>
                                 </div>
                                 <div className="overflow-x-auto">
                                   <table className="w-full text-sm">
                                     <thead>
                                       <tr className="border-b" style={{ borderColor: C.border }}>
-                                        <th className="text-left py-2 pr-4 font-semibold text-slate-600">Analisis</th>
-                                        <th className="text-left py-2 font-semibold text-slate-600">Jawaban</th>
+                                        <th className="text-left py-2 pr-4 font-semibold text-muted">Analisis</th>
+                                        <th className="text-left py-2 font-semibold text-muted">Jawaban</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {s.analisis.map((a) => (
                                         <tr key={a.key} className="border-b" style={{ borderColor: `${C.border}80` }}>
-                                          <td className="py-2.5 pr-4 text-slate-700 align-top">{a.label}</td>
+                                          <td className="py-2.5 pr-4 text-ink align-top">{a.label}</td>
                                           <td className="py-2.5 align-top">
                                             {a.type === "yaTidak" ? (
                                               <YaTidakRadio
@@ -1177,7 +1177,7 @@ export default function AktivitasKombinasi1() {
                           <>
                             <SoalBadge n={6} label="Refleksi Individu" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-800">
+                              <p className="text-sm font-medium text-ink">
                                 Dari kelima situasi, tuliskan dalam kalimatmu sendiri: apa <strong>perbedaan paling mendasar</strong> antara permutasi dan kombinasi?
                               </p>
                               <TextArea value={refleksi1} onChange={setRefleksi1} rows={4} readOnly />
@@ -1188,9 +1188,9 @@ export default function AktivitasKombinasi1() {
                         {/* ── Refleksi 2 ── */}
                         {key === "refleksi_2" && (
                           <>
-                            <SoalBadge n={7} label="Refleksi Individu — Situasi Pengecoh" />
+                            <SoalBadge n={7} label="Refleksi Individu: Situasi Pengecoh" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-800">Situasi mana yang paling mengecoh? Mengapa?</p>
+                              <p className="text-sm font-medium text-ink">Situasi mana yang paling mengecoh? Mengapa?</p>
                               <TextArea value={refleksi2} onChange={setRefleksi2} rows={3} readOnly />
                             </PertanyaanCard>
                           </>
@@ -1199,9 +1199,9 @@ export default function AktivitasKombinasi1() {
                         {/* ── Bagian A1 ── */}
                         {key === "bagian_a_1" && (
                           <>
-                            <SoalBadge n={8} label="Bagian A — Pertanyaan 1" />
+                            <SoalBadge n={8} label="Bagian A: Pertanyaan 1" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-800">
+                              <p className="text-sm font-medium text-ink">
                                 Menurutmu, benarkah jawaban siswa tersebut? Jelaskan alasannya!
                               </p>
                               <TextArea value={bagianA1} onChange={setBagianA1} rows={4} readOnly />
@@ -1212,9 +1212,9 @@ export default function AktivitasKombinasi1() {
                         {/* ── Bagian A2 ── */}
                         {key === "bagian_a_2" && (
                           <>
-                            <SoalBadge n={9} label="Bagian A — Pertanyaan 2" />
+                            <SoalBadge n={9} label="Bagian A: Pertanyaan 2" />
                             <PertanyaanCard readOnly>
-                              <p className="text-sm font-medium text-slate-800">Berapa jawaban yang benar? Tuliskan cara menghitungnya!</p>
+                              <p className="text-sm font-medium text-ink">Berapa jawaban yang benar? Tuliskan cara menghitungnya!</p>
                               <TextArea value={bagianA2} onChange={setBagianA2} rows={3} readOnly />
                             </PertanyaanCard>
                           </>
@@ -1223,7 +1223,7 @@ export default function AktivitasKombinasi1() {
                         {/* ── Bagian B ── */}
                         {key === "bagian_b" && (
                           <>
-                            <SoalBadge n={10} label="Bagian B — Rancang Sendiri" />
+                            <SoalBadge n={10} label="Bagian B: Rancang Sendiri" />
                             <PertanyaanCard readOnly>
                               <div className="space-y-4">
                                 <TextArea label="Contoh kombinasi buatanku:" value={contohBuatanku} onChange={setContohBuatanku} rows={3} readOnly />
@@ -1257,7 +1257,6 @@ export default function AktivitasKombinasi1() {
               PETUNJUK + PANDUAN
               ═══════════════════════════════════════════════ */}
           <SectionHeader
-            icon="🧭"
             title="Petunjuk"
             subtitle="Ini adalah aktivitas paling kritis dalam seluruh materi kaidah pencacahan yaitu kemampuan membedakan permutasi dan kombinasi. Jangan terburu-buru. Baca setiap situasi dengan cermat, jawab pertanyaan panduan, baru tentukan jenisnya."
           />
@@ -1273,7 +1272,7 @@ export default function AktivitasKombinasi1() {
             <p className="text-sm font-bold mb-2" style={{ color: "#2A5A8C" }}>
               🤔 Pertanyaan Panduan:
             </p>
-            <p className="text-sm text-slate-700 mb-3">
+            <p className="text-sm text-ink mb-3">
               Tanyakan satu pertanyaan kunci ini:{" "}
               <em>
                 &quot;Jika saya menukar posisi dua objek yang terpilih, apakah
@@ -1302,16 +1301,16 @@ export default function AktivitasKombinasi1() {
               <SoalBadge n={s.nomor} label={`Situasi ${s.nomor}`} />
               <PertanyaanCard>
                 {/* Deskripsi */}
-                <p className="text-sm font-medium text-slate-800">
+                <p className="text-sm font-medium text-ink">
                   {s.deskripsi}
                 </p>
 
                 {/* Pertanyaan Panduan */}
-                <div className="rounded-lg p-3" style={{ backgroundColor: "#f1f5f9" }}>
-                  <p className="text-xs font-semibold text-slate-500 mb-1">
+                <div className="rounded-lg p-3" style={{ backgroundColor: "#f5f5f0" }}>
+                  <p className="text-xs font-semibold text-muted mb-1">
                     Pertanyaan Panduan:
                   </p>
-                  <p className="text-sm text-slate-700 italic">
+                  <p className="text-sm text-ink italic">
                     {s.pertanyaanPanduan}
                   </p>
                 </div>
@@ -1330,10 +1329,10 @@ export default function AktivitasKombinasi1() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b" style={{ borderColor: C.border }}>
-                        <th className="text-left py-2 pr-4 font-semibold text-slate-600">
+                        <th className="text-left py-2 pr-4 font-semibold text-muted">
                           Analisis
                         </th>
-                        <th className="text-left py-2 font-semibold text-slate-600">
+                        <th className="text-left py-2 font-semibold text-muted">
                           Jawaban
                         </th>
                       </tr>
@@ -1345,7 +1344,7 @@ export default function AktivitasKombinasi1() {
                           className="border-b"
                           style={{ borderColor: `${C.border}80` }}
                         >
-                          <td className="py-2.5 pr-4 text-slate-700 align-top">
+                          <td className="py-2.5 pr-4 text-ink align-top">
                             {a.label}
                           </td>
                           <td className="py-2.5 align-top">
@@ -1374,7 +1373,7 @@ export default function AktivitasKombinasi1() {
                                   }
                                   placeholder="Tulis jawaban akhir saja..."
                                 />
-                                <p className="text-[11px] text-slate-400 italic">
+                                <p className="text-[11px] text-muted italic">
                                   💡 Cukup masukkan jawaban akhir, tidak perlu tulis cara panjang.
                                 </p>
                               </div>
@@ -1406,7 +1405,7 @@ export default function AktivitasKombinasi1() {
           <div>
             <SoalBadge n={6} label="Refleksi Individu" />
             <PertanyaanCard>
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-ink">
                 Dari kelima situasi, tuliskan dalam kalimatmu sendiri: apa{" "}
                 <strong>perbedaan paling mendasar</strong> antara permutasi dan
                 kombinasi?
@@ -1431,9 +1430,9 @@ export default function AktivitasKombinasi1() {
 
           {currentStep >= 6 && (
           <div>
-            <SoalBadge n={7} label="Refleksi Individu — Situasi Pengecoh" />
+            <SoalBadge n={7} label="Refleksi Individu: Situasi Pengecoh" />
             <PertanyaanCard>
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-ink">
                 Situasi mana yang paling mengecoh? Mengapa?
               </p>
               <TextArea
@@ -1461,14 +1460,14 @@ export default function AktivitasKombinasi1() {
           <>
           <SectionHeader
             icon="🔍"
-            title="Bagian A — Analisis Situasi"
+            title="Bagian A: Analisis Situasi"
             subtitle="Soal: Dari 6 kandidat, akan dipilih Ketua dan Wakil Ketua OSIS. Jawaban siswa: 'Ini kombinasi, karena kita memilih 2 orang dari 6. Jawabannya C(6,2) = 15.'"
           />
 
           <div>
-            <SoalBadge n={8} label="Bagian A — Pertanyaan 1" />
+            <SoalBadge n={8} label="Bagian A: Pertanyaan 1" />
             <PertanyaanCard>
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-ink">
                 Menurutmu, benarkah jawaban siswa tersebut? Jelaskan alasannya!
               </p>
               <TextArea
@@ -1492,9 +1491,9 @@ export default function AktivitasKombinasi1() {
 
           {currentStep >= 8 && (
           <div>
-            <SoalBadge n={9} label="Bagian A — Pertanyaan 2" />
+            <SoalBadge n={9} label="Bagian A: Pertanyaan 2" />
             <PertanyaanCard>
-              <p className="text-sm font-medium text-slate-800">
+              <p className="text-sm font-medium text-ink">
                 Berapa jawaban yang benar? Tuliskan cara menghitungnya!
               </p>
               <TextArea
@@ -1521,13 +1520,12 @@ export default function AktivitasKombinasi1() {
           {currentStep >= 9 && (
           <>
           <SectionHeader
-            icon="✏️"
-            title="Bagian B — Rancang Sendiri"
+            title="Bagian B: Rancang Sendiri"
             subtitle="Buatlah SATU contoh dan SATU non-contoh orisinal (bukan dari soal manapun di modul ini) untuk konsep KOMBINASI. Non-contohmu boleh berupa situasi yang sebenarnya permutasi, atau situasi yang bukan keduanya."
           />
 
           <div>
-            <SoalBadge n={10} label="Bagian B — Rancang Sendiri" />
+            <SoalBadge n={10} label="Bagian B: Rancang Sendiri" />
             <PertanyaanCard>
               <div className="space-y-4">
                 <TextArea
@@ -1574,11 +1572,10 @@ export default function AktivitasKombinasi1() {
             className="mt-8 rounded-2xl border-2 p-6 text-center space-y-3"
             style={{ borderColor: C.green, backgroundColor: C.greenLight }}
           >
-            <p className="text-2xl">🎉</p>
             <p className="text-lg font-bold" style={{ color: C.green }}>
               Kamu sudah menyelesaikan aktivitas ini!
             </p>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted">
               Semua soal telah dijawab dengan benar. Hebat! Kamu sudah memahami
               perbedaan permutasi dan kombinasi dengan baik.
             </p>

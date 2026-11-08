@@ -153,7 +153,7 @@ function SectionProgress({
             <React.Fragment key={i}>
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${
-                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"
+                  isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"
                 }`}
                 title={SECTION_LABELS[i]}
               >
@@ -426,22 +426,22 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
           <ToggleButton label="Tidak" active={choice1 === "no"} disabled={readOnlyStep} onClick={readOnlyStep ? () => {} : () => setChoice1("no")} />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-[#663362]">
+          <label htmlFor="penjumlahan-alasan-1" className="mb-1.5 block text-xs font-medium text-[#663362]">
             Ceritakan Alasanmu!
           </label>
-          <textarea
+          <textarea id="penjumlahan-alasan-1"
             placeholder="Ceritakan alasanmu..."
             value={reasoning1}
             disabled={readOnlyStep}
             onChange={(e) => setReasoning1(e.target.value)}
-            className={`w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966] ${readOnlyStep ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : ""}`}
+            className={`w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] ${readOnlyStep ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : ""}`}
           />
         </div>
 
         {fb && (
-          <div className={`mt-3 rounded-lg border p-3 ${fb.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-            <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-              {fb.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+          <div className={`mt-3 rounded-lg border p-3 ${fb.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+            <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+              {fb.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
             </p>
             <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</RichText>
           </div>
@@ -486,22 +486,22 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
           <ToggleButton label="Tidak" active={choice2 === "no"} disabled={readOnlyStep} onClick={readOnlyStep ? () => {} : () => setChoice2("no")} />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-[#663362]">
+          <label htmlFor="penjumlahan-alasan-2" className="mb-1.5 block text-xs font-medium text-[#663362]">
             Ceritakan Alasanmu!
           </label>
-          <textarea
+          <textarea id="penjumlahan-alasan-2"
             placeholder="Ceritakan alasanmu..."
             value={reasoning2}
             disabled={readOnlyStep}
             onChange={(e) => setReasoning2(e.target.value)}
-            className={`w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#34673966] ${readOnlyStep ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : ""}`}
+            className={`w-full min-h-[100px] rounded-xl border border-[#34673933] px-4 py-3 text-sm resize-y placeholder:text-[#6B6B66] ${readOnlyStep ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : ""}`}
           />
         </div>
 
         {fb && (
-          <div className={`mt-3 rounded-lg border p-3 ${fb.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-            <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-              {fb.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+          <div className={`mt-3 rounded-lg border p-3 ${fb.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+            <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+              {fb.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
             </p>
             <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</RichText>
           </div>
@@ -529,22 +529,22 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
 
     return (
       <div className="rounded-xl border border-[#34673926] bg-[#DBFFD5]/50 p-5">
-        <label className="mb-2 block text-base font-semibold text-[#346739]">
+        <label htmlFor="penjumlahan-operasi" className="mb-2 block text-base font-semibold text-[#346739]">
           Jadi, operasi matematika apa yang paling tepat digunakan?
         </label>
-        <input
+        <input id="penjumlahan-operasi"
           type="text"
           placeholder="Tulis jawabanmu..."
           value={operasiMatematika}
           disabled={readOnlyStep}
           onChange={(e) => setOperasiMatematika(e.target.value)}
-          className={`w-full rounded-lg border border-[#34673933] bg-white px-4 py-2.5 text-sm placeholder:text-[#34673966] ${readOnlyStep ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+          className={`w-full rounded-lg border border-[#34673933] bg-white px-4 py-2.5 text-sm placeholder:text-[#6B6B66] ${readOnlyStep ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
         />
 
         {fb && (
-          <div className={`mt-3 rounded-lg border p-3 ${fb.isCorrect === false ? "border-[#C44F4F33] bg-[#C44F4F08]" : "border-[#66336233] bg-[#66336208]"}`}>
-            <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C44F4F]" : "text-[#663362]"}`}>
-              {fb.isCorrect === false ? "❌ Feedback Kombi" : "💬 Feedback Kombi"}
+          <div className={`mt-3 rounded-lg border p-3 ${fb.isCorrect === false ? "border-[#C2494933] bg-[#C2494908]" : "border-[#66336233] bg-[#66336208]"}`}>
+            <p className={`mb-1 text-xs font-medium ${fb.isCorrect === false ? "text-[#C24949]" : "text-[#663362]"}`}>
+              {fb.isCorrect === false ? "❌ Feedback Kombi" : "Feedback Kombi"}
             </p>
             <RichText className="text-sm leading-relaxed text-[#2C2C2A]">{fb.text}</RichText>
           </div>
@@ -602,7 +602,7 @@ function EksplorasiKontekstual({ readOnly = false, onComplete, savedData }: Sect
             else if (isActive) { dotBg = "bg-white"; dotBorder = "border-[#346739]"; }
             return (
               <React.Fragment key={i}>
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#9E9D99]"}`}>
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${dotBorder} ${dotBg} text-[10px] font-bold transition-colors ${isCompleted ? "text-white" : isActive ? "text-[#346739]" : "text-[#6B6B66]"}`}>
                   {isCompleted ? "✓" : i + 1}
                 </div>
                 {i < 2 && <div className={`h-0.5 flex-1 rounded transition-colors ${subStepFeedback[i]?.isCorrect ? "bg-[#346739]" : "bg-[#E5E5E0]"}`} />}
@@ -844,7 +844,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
         value={operasiMatematika}
         disabled={readOnly}
         onChange={(e) => setOperasiMatematika(e.target.value)}
-        className={`mt-2 w-full rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
+        className={`mt-2 w-full rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#6B6B66] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""}`}
       />
       {!readOnly && (
         <div className="flex flex-col items-center gap-4 border-t border-[#34673926] pt-4">
@@ -874,8 +874,8 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
 
           {/* Error message */}
           {dlError && (
-            <div className="w-full rounded-lg border border-[#EF444433] bg-[#FEF2F2]/50 p-3">
-              <p className="text-sm leading-relaxed text-[#EF4444]">⚠️ {dlError}</p>
+            <div className="w-full rounded-lg border border-[#EF444433] bg-[#FFF5F5]/50 p-3">
+              <p className="text-sm leading-relaxed text-[#B91C1C]">⚠️ {dlError}</p>
             </div>
           )}
 
@@ -891,7 +891,7 @@ function DeepLearning({ readOnly = false, onComplete, savedData }: SectionProps 
       {/* Show saved AI feedback when readOnly */}
       {readOnly && savedFeedback && (
         <div className="mt-3 rounded-lg border border-[#66336233] bg-[#66336208] p-3">
-          <p className="mb-1 text-xs font-medium text-[#663362]">💬 Feedback Kombi</p>
+          <p className="mb-1 text-xs font-medium text-[#663362]">Feedback Kombi</p>
           <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{savedFeedback}</RichText>
         </div>
       )}
@@ -1007,7 +1007,7 @@ function PenjelasanKonsep({ onNext, conceptId }: ReadOnlySectionProps & { concep
       </div>
       {onNext && <NextButton onClick={handleLanjutkan} />}
       {error && (
-        <p className="mt-3 rounded-lg border border-[#C44F4F33] bg-[#C44F4F08] p-3 text-sm text-[#C44F4F]">
+        <p className="mt-3 rounded-lg border border-[#C2494933] bg-[#C2494908] p-3 text-sm text-[#C24949]">
           ⚠️ {error}
         </p>
       )}
@@ -1184,7 +1184,7 @@ function ContohSoal({ onComplete, readOnly = false, savedData }: SectionProps & 
             title="Contoh 2: Buku Perpustakaan"
             illustrationSrc="/illustrations/floating-book.svg"
             illustrationAlt="Ilustrasi rak buku perpustakaan"
-            lockedHint="Contoh 2: Buku Perpustakaan — selesaikan Contoh 1 dulu"
+            lockedHint="Contoh 2: Buku Perpustakaan (selesaikan Contoh 1 dulu)"
             onCheck={checkBooks}
             feedback={feedbackBooks}
           >
@@ -1201,7 +1201,7 @@ function ContohSoal({ onComplete, readOnly = false, savedData }: SectionProps & 
             title="Contoh 3: Rute Andi ke Sekolah"
             illustrationSrc="/illustrations/car.svg"
             illustrationAlt="Ilustrasi pilihan transportasi ke sekolah"
-            lockedHint="Contoh 3: Rute Andi ke Sekolah — selesaikan Contoh 2 dulu"
+            lockedHint="Contoh 3: Rute Andi ke Sekolah (selesaikan Contoh 2 dulu)"
             onCheck={checkTransport}
             feedback={feedbackTransport}
           >
@@ -1354,7 +1354,7 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
       setFeedbackMap((prev) => ({
         ...prev,
         [stepIndex]: {
-          text: "Tulis jawabanmu dulu ya! 📝",
+          text: "Tulis jawabanmu dulu ya!",
           isCorrect: false,
         },
       }));
@@ -1419,16 +1419,16 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
             const fb = feedbackMap[i];
             return (
               <div key={i} className="rounded-xl bg-white p-4">
-                <label className="mb-2 block text-sm font-medium text-[#663362]">
+                <p className="mb-2 block text-sm font-medium text-[#663362]">
                   {i + 1}. {q.soal}
-                </label>
+                </p>
                 <div className="w-full rounded-lg border border-[#34673933] bg-[#F5F5F0] px-4 py-2.5 text-sm text-[#6B6B66]">
                   {answers[i]}
                 </div>
                 {fb && (
                   <div className="mt-2 rounded-lg border border-[#66336233] bg-[#66336208] p-2.5">
                     <p className="mb-0.5 text-xs font-medium text-[#663362]">
-                      💬 Feedback Kombi
+                      Feedback Kombi
                     </p>
                     <RichText className="text-sm leading-relaxed text-[#2C2C2A]">
                       {fb.text}
@@ -1444,7 +1444,7 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">
-              🎉 Refleksi selesai!
+              Refleksi selesai!
             </p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
               Kamu sudah menyelesaikan semua pertanyaan refleksi. Pemahamanmu
@@ -1490,7 +1490,7 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
                       ? "text-white"
                       : isActive
                         ? "text-[#346739]"
-                        : "text-[#9E9D99]"
+                        : "text-[#6B6B66]"
                   }`}
                   title={isLocked ? "Terkunci" : `Pertanyaan ${i + 1}`}
                 >
@@ -1522,16 +1522,16 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
 
           return (
             <div key={i} className="rounded-xl bg-white p-4">
-              <label className="mb-2 block text-sm font-medium text-[#663362]">
+              <label htmlFor={`penjumlahan-refleksi-${i}`} className="mb-2 block text-sm font-medium text-[#663362]">
                 {i + 1}. {q.soal}
               </label>
-              <textarea
+              <textarea id={`penjumlahan-refleksi-${i}`}
                 placeholder="Tulis jawabanmu..."
                 value={answers[i]}
                 disabled={disabled}
                 onChange={(e) => updateAnswer(i, e.target.value)}
                 rows={3}
-                className={`w-full resize-y rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#34673966] ${
+                className={`w-full resize-y rounded-lg border border-[#34673933] px-4 py-2.5 text-sm placeholder:text-[#6B6B66] ${
                   disabled
                     ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none"
                     : ""
@@ -1540,7 +1540,7 @@ function RefleksiMini({ readOnly = false, onComplete, savedData }: SectionProps 
               {fb && (
                 <div className="mt-2 rounded-lg border border-[#66336233] bg-[#66336208] p-2.5">
                   <p className="mb-0.5 text-xs font-medium text-[#663362]">
-                    💬 Feedback Kombi
+                    Feedback Kombi
                   </p>
                   <RichText className="text-sm leading-relaxed text-[#2C2C2A]">
                     {fb.text}
@@ -1706,7 +1706,7 @@ function CollapsibleJawabanSection({
   }
 
   return (
-    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F9FAF6] p-5">
+    <div className="rounded-xl border border-dashed border-[#34673940] bg-[#F5F5F0] p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#346739] text-[10px] font-bold text-white">
@@ -1973,7 +1973,7 @@ export default function KaidahPenjumlahan({
           <CheckIcon />
           <div>
             <p className="text-lg font-semibold text-white">
-              🎉 Semua bagian Kaidah Penjumlahan selesai!
+              Semua bagian Kaidah Penjumlahan selesai!
             </p>
             <p className="mt-1 text-sm leading-relaxed text-white/90">
               Kamu sudah menyelesaikan Eksplorasi, Deep Learning, Penjelasan Konsep, Contoh Soal, Mengapa Corner, dan Refleksi. Lanjutkan ke materi berikutnya!

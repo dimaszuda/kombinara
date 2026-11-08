@@ -70,6 +70,7 @@ const NumericAnswerInput = React.forwardRef<
       />
       {warning && (
         <div
+          role="alert"
           style={{
             marginTop: 6,
             fontSize: 12,

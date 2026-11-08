@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       !body.jawaban.trim()
     ) {
       return NextResponse.json(
-        { error: "Invalid request body — required: question_number, question_text, jawaban (non-empty)" },
+        { error: "Invalid request body: required: question_number, question_text, jawaban (non-empty)" },
         { status: 400 }
       );
     }

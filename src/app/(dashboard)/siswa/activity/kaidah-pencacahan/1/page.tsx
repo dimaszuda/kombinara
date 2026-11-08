@@ -11,8 +11,8 @@ const C = {
   greenLight: "#DBFFD5",
   white: "#ffffff",
   purple: "#663362",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
+  border: "#e5e5e0",
+  bg: "#f5f5f0",
 };
 
 // ── Step Definitions (6 sequential questions) ────────────────────
@@ -29,7 +29,7 @@ const STEPS: StepConfig[] = [
     index: 0,
     questionKey: "situasi_1",
     entryType: "soal",
-    label: "Situasi 1 — Alat Tulis",
+    label: "Situasi 1: Alat Tulis",
     soalText:
       "Di koperasi sekolah tersedia 4 jenis pensil dan 3 jenis pulpen. Seorang siswa ingin membeli SATU ALAT TULIS SAJA. Apakah siswa membeli pensil dan pulpen sekaligus? Aturan apa yang digunakan? Berapa banyak kemungkinan pilihan siswa?",
   },
@@ -37,7 +37,7 @@ const STEPS: StepConfig[] = [
     index: 1,
     questionKey: "situasi_2",
     entryType: "soal",
-    label: "Situasi 2 — Seragam",
+    label: "Situasi 2: Seragam",
     soalText:
       "Siswa harus membeli 1 kemeja (dari 3 pilihan warna) dan 1 celana (dari 2 pilihan warna). Apakah siswa harus memilih kemeja dan celana sekaligus? Aturan apa yang digunakan? Berapa banyak pasangan baju dan celana yang bisa dikenakan?",
   },
@@ -45,7 +45,7 @@ const STEPS: StepConfig[] = [
     index: 2,
     questionKey: "situasi_3",
     entryType: "soal",
-    label: "Situasi 3 — Ekskul",
+    label: "Situasi 3: Ekskul",
     soalText:
       "Ekskul sekolah: ada 5 ekskul olahraga dan 4 ekskul seni. Seorang siswa HANYA BOLEH MEMILIH SATU ekskul. Aturan apa yang digunakan? Berapa banyak kemungkinan ekskul yang dipilih?",
   },
@@ -53,7 +53,7 @@ const STEPS: StepConfig[] = [
     index: 3,
     questionKey: "situasi_4",
     entryType: "soal",
-    label: "Situasi 4 — Bioskop",
+    label: "Situasi 4: Bioskop",
     soalText:
       "Rina ingin memesan tiket. Bioskop A: 3 film × 2 jadwal. Bioskop B: 2 film × 3 jadwal. Rina hanya pergi ke SATU bioskop. Hitung pilihan di Bioskop A, Bioskop B, lalu gabungkan. Aturan apa yang digunakan di setiap langkah? Berapa total pilihan tontonan Rina?",
   },
@@ -61,7 +61,7 @@ const STEPS: StepConfig[] = [
     index: 4,
     questionKey: "situasi_5",
     entryType: "soal",
-    label: "Situasi 5 — Soal Ujian",
+    label: "Situasi 5: Soal Ujian",
     soalText:
       "Soal ujian terdiri dari 2 bagian. Bagian A: pilih 5 dari 6 soal. Bagian B: pilih 2 dari 3 soal. Berapa banyak kombinasi soal yang bisa dipilih siswa? Hitung masing-masing bagian, lalu gabungkan.",
   },
@@ -94,14 +94,14 @@ function Spinner() {
 
 // ── Feedback Box ─────────────────────────────────────────────────
 function FeedbackBox({ text, isCorrect }: { text: string; isCorrect?: boolean }) {
-  const borderColor = isCorrect === false ? "border-[#C44F4F33]" : "border-[#34673933]";
-  const bgColor = isCorrect === false ? "bg-[#C44F4F08]" : "bg-[#34673908]";
-  const labelColor = isCorrect === false ? "text-[#C44F4F]" : "text-[#346739]";
-  const icon = isCorrect === false ? "❌" : "💬";
+  const borderColor = isCorrect === false ? "border-[#C2494933]" : "border-[#34673933]";
+  const bgColor = isCorrect === false ? "bg-[#C2494908]" : "bg-[#34673908]";
+  const labelColor = isCorrect === false ? "text-[#C24949]" : "text-[#346739]";
+  const icon = isCorrect === false ? "❌ " : "";
 
   return (
     <div className={`mt-3 rounded-lg border ${borderColor} ${bgColor} p-3`}>
-      <p className={`mb-1 text-xs font-medium ${labelColor}`}>{icon} Feedback Kombi</p>
+      <p className={`mb-1 text-xs font-medium ${labelColor}`}>{icon}Feedback Kombi</p>
       <RichText className="text-sm leading-relaxed text-[#2C2C2A] whitespace-pre-wrap">{text}</RichText>
     </div>
   );
@@ -163,7 +163,7 @@ function ProgressIndicator({
 
           let dotBg = "bg-[#E5E5E0]";
           let dotBorder = "border-[#C5C5C0]";
-          let dotText = "text-[#9E9D99]";
+          let dotText = "text-[#6B6B66]";
           if (isCompleted) {
             dotBg = "bg-[#346739]";
             dotBorder = "border-[#346739]";
@@ -213,12 +213,12 @@ function AturanSelect({
 }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <label htmlFor={id} className="text-sm font-medium text-slate-600">
+      <label htmlFor={id} className="text-sm font-medium text-muted">
         Aturan yang digunakan:
       </label>
       <select
         id={id}
-        className={`border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 ${
+        className={`border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] ${
           readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""
         }`}
         style={{ borderColor: C.border }}
@@ -226,7 +226,7 @@ function AturanSelect({
         onChange={(e) => onChange(e.target.value)}
         disabled={readOnly}
       >
-        <option value="">— pilih aturan —</option>
+        <option value="">Pilih aturan</option>
         {ATURAN_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -255,14 +255,14 @@ function TextInput({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-slate-500">
+        <label htmlFor={id} className="text-xs font-semibold text-muted">
           {label}
         </label>
       )}
       <input
         id={id}
         type="text"
-        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-700 w-full ${
+        className={`border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#663362] w-full ${
           readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default" : ""
         }`}
         style={{ borderColor: C.border }}
@@ -290,7 +290,7 @@ function YaTidak({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3 text-sm">
-      <span className="text-slate-600 italic">{question}</span>
+      <span className="text-muted italic">{question}</span>
       {["ya", "tidak"].map((opt) => (
         <label key={opt} className="flex items-center gap-1.5 cursor-pointer">
           <input
@@ -302,7 +302,7 @@ function YaTidak({
             className="accent-green-700"
             disabled={readOnly}
           />
-          <span className="capitalize font-medium text-slate-700">{opt}</span>
+          <span className="capitalize font-medium text-ink">{opt}</span>
         </label>
       ))}
     </div>
@@ -397,7 +397,7 @@ export default function AktivitasKP1() {
               const sub = data.submissions[key];
               if (sub) {
                 preFilled[i] = {
-                  text: `📝 Jawaban kamu:\n${formatJawaban(sub.answer)}\n\n💬 Feedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
+                  text: `Jawaban kamu:\n${formatJawaban(sub.answer)}\n\nFeedback:\n${sub.feedback ?? "Jawaban sudah tersimpan."}`,
                   isCorrect: sub.isCorrect,
                 };
                 if (!sub.isCorrect && firstUnanswered > i) {
@@ -439,7 +439,7 @@ export default function AktivitasKP1() {
         setFeedbackMap((p) => ({
           ...p,
           [idx]: {
-            text: `📝 Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\n💬 Feedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
+            text: `Jawaban kamu:\n${formatJawaban(data.submission.answer)}\n\nFeedback:\n${data.submission.feedback ?? "Jawaban sudah tersimpan."}`,
             isCorrect: data.submission.isCorrect,
           },
         }));
@@ -634,7 +634,7 @@ export default function AktivitasKP1() {
         <SituasiLabel nomor={1} isCompleted={readOnly} />
         <div className="flex gap-4">
           <div className="flex-1 space-y-3">
-            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               Di koperasi sekolah tersedia <strong>4 jenis pensil</strong> dan{" "}
               <strong>3 jenis pulpen</strong>. Seorang siswa ingin membeli{" "}
               <em>satu alat tulis saja</em>. Berapa banyak kemungkinan pilihan siswa?
@@ -666,7 +666,7 @@ export default function AktivitasKP1() {
         <SituasiLabel nomor={2} isCompleted={readOnly} />
         <div className="flex gap-4">
           <div className="flex-1 space-y-3">
-            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               Koperasi yang sama menjual <strong>seragam lengkap</strong>. Siswa harus membeli
               1 kemeja (dari <strong>3 pilihan warna</strong>) dan 1 celana (dari{" "}
               <strong>2 pilihan warna</strong>). Berapa banyak pasangan baju dan celana yang
@@ -699,7 +699,7 @@ export default function AktivitasKP1() {
         <SituasiLabel nomor={3} isCompleted={readOnly} />
         <div className="flex gap-4">
           <div className="flex-1 space-y-3">
-            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               Ekskul sekolah membuka pendaftaran: ada <strong>5 ekskul olahraga</strong> dan{" "}
               <strong>4 ekskul seni</strong>. Seorang siswa{" "}
               <em>hanya boleh memilih satu ekskul</em>. Berapa banyak kemungkinan ekskul
@@ -726,14 +726,14 @@ export default function AktivitasKP1() {
         <SituasiLabel nomor={4} isCompleted={readOnly} />
         <div className="flex gap-4 mb-4">
           <div className="flex-1">
-            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               <strong>Rina</strong> ingin memesan tiket bioskop. Tersedia dua bioskop di kotanya:
             </p>
-            <ul className={`text-sm mt-2 space-y-1 list-disc pl-5 ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <ul className={`text-sm mt-2 space-y-1 list-disc pl-5 ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               <li><strong>Bioskop A</strong>: 3 film sedang tayang, masing-masing tersedia dalam 2 jadwal</li>
               <li><strong>Bioskop B</strong>: 2 film sedang tayang, masing-masing tersedia dalam 3 jadwal</li>
             </ul>
-            <p className={`text-sm mt-2 ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <p className={`text-sm mt-2 ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               Rina <em>hanya akan pergi ke satu bioskop</em>. Berapa banyak pilihan tontonan (film + jadwal)?
             </p>
           </div>
@@ -749,7 +749,7 @@ export default function AktivitasKP1() {
           </SubBox>
         </div>
         <div className="mt-3 rounded-xl p-4 space-y-3" style={{ background: readOnly ? "#F5F5F0" : C.bg, border: `1px solid ${C.greenLight}` }}>
-          <p className={`text-sm font-semibold ${readOnly ? "text-[#6B6B66]" : "text-slate-600"}`}>
+          <p className={`text-sm font-semibold ${readOnly ? "text-[#6B6B66]" : "text-muted"}`}>
             Rina menonton di <em>Bioskop A <strong>atau</strong> Bioskop B</em>
           </p>
           <AturanSelect id="s4-aturanGabungan" value={s4.aturanGabungan} onChange={(v) => setS4((p) => ({ ...p, aturanGabungan: v }))} readOnly={readOnly} />
@@ -773,23 +773,23 @@ export default function AktivitasKP1() {
         <SituasiLabel nomor={5} isCompleted={readOnly} />
         <div className="flex gap-4 mb-4">
           <div className="flex-1">
-            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <p className={`text-sm ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               Sebuah soal ujian terdiri dari 2 bagian:
             </p>
-            <ul className={`text-sm mt-2 space-y-1 list-disc pl-5 ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <ul className={`text-sm mt-2 space-y-1 list-disc pl-5 ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               <li><strong>Bagian A</strong> (pilihan ganda): 6 soal tersedia, siswa mengerjakan <em>5 soal</em></li>
               <li><strong>Bagian B</strong> (isian): 3 soal tersedia, siswa mengerjakan <em>2 soal</em></li>
             </ul>
-            <p className={`text-sm mt-2 ${readOnly ? "text-[#6B6B66]" : "text-slate-700"}`}>
+            <p className={`text-sm mt-2 ${readOnly ? "text-[#6B6B66]" : "text-ink"}`}>
               Berapa banyak kombinasi soal yang bisa dipilih siswa?
             </p>
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
-          <SubBox title="Bagian A — Pilih 5 dari 6 soal" readOnly={readOnly}>
+          <SubBox title="Bagian A: Pilih 5 dari 6 soal" readOnly={readOnly}>
             <TextInput id="s5-hitunganA" label="Hitungan:" value={s5.hitunganA} onChange={(v) => setS5((p) => ({ ...p, hitunganA: v }))} placeholder="Tuliskan caranya..." readOnly={readOnly} />
           </SubBox>
-          <SubBox title="Bagian B — Pilih 2 dari 3 soal" readOnly={readOnly}>
+          <SubBox title="Bagian B: Pilih 2 dari 3 soal" readOnly={readOnly}>
             <TextInput id="s5-hitunganB" label="Hitungan:" value={s5.hitunganB} onChange={(v) => setS5((p) => ({ ...p, hitunganB: v }))} placeholder="Tuliskan caranya..." readOnly={readOnly} />
           </SubBox>
         </div>
@@ -813,24 +813,24 @@ export default function AktivitasKP1() {
         <h2 className="text-base font-bold mb-4" style={{ color: C.purple }}>Refleksi Individu</h2>
         <div className="space-y-4">
           <div>
-            <label htmlFor="refleksi1" className="text-sm font-medium text-slate-700 block mb-2">
+            <label htmlFor="refleksi1" className="text-sm font-medium text-ink block mb-2">
               Dari kelima situasi di atas, apa pola yang kamu temukan untuk membedakan kapan menggunakan penjumlahan dan kapan menggunakan perkalian?
             </label>
             <textarea
               id="refleksi1"
-              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
               style={{ borderColor: C.border }}
               value={refleksi1} onChange={(e) => setRefleksi1(e.target.value)}
               placeholder="Tuliskan refleksimu..." readOnly={readOnly}
             />
           </div>
           <div>
-            <label htmlFor="refleksi2" className="text-sm font-medium text-slate-700 block mb-2">
+            <label htmlFor="refleksi2" className="text-sm font-medium text-ink block mb-2">
               Situasi mana yang paling sulit dianalisis? Mengapa?
             </label>
             <textarea
               id="refleksi2"
-              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
+              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#663362] min-h-[80px] ${readOnly ? "bg-[#F5F5F0] text-[#6B6B66] cursor-default resize-none" : "resize-none"}`}
               style={{ borderColor: C.border }}
               value={refleksi2} onChange={(e) => setRefleksi2(e.target.value)}
               placeholder="Tuliskan refleksimu..." readOnly={readOnly}
@@ -900,18 +900,18 @@ export default function AktivitasKP1() {
           {/* ── PETUNJUK ── */}
           <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: C.greenLight }}>
             <p className="text-sm font-bold" style={{ color: C.green }}>
-              📋 Petunjuk
+              Petunjuk
             </p>
-            <p className="text-sm text-slate-700">
+            <p className="text-sm text-ink">
               Sebelum menghitung, analisis dulu setiap situasi. Jawab pertanyaan panduan,
               tentukan aturan yang digunakan, lalu hitung.
             </p>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            <p className="text-xs font-semibold text-muted">
               Pertanyaan Panduan
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="rounded-lg bg-white p-3 border-l-4" style={{ borderLeftColor: C.green }}>
-                <p className="text-sm text-slate-700">
+                <p className="text-sm text-ink">
                   🤔 &ldquo;Apakah semua tahap harus dilakukan <strong>sekaligus</strong>?&rdquo;
                 </p>
                 <p className="text-sm font-semibold mt-1" style={{ color: C.green }}>
@@ -919,7 +919,7 @@ export default function AktivitasKP1() {
                 </p>
               </div>
               <div className="rounded-lg bg-white p-3 border-l-4" style={{ borderLeftColor: "#2A5A8C" }}>
-                <p className="text-sm text-slate-700">
+                <p className="text-sm text-ink">
                   🤔 &ldquo;Apakah hanya <strong>satu pilihan</strong> dari beberapa kelompok (saling lepas)?&rdquo;
                 </p>
                 <p className="text-sm font-semibold mt-1" style={{ color: "#2A5A8C" }}>
@@ -936,7 +936,7 @@ export default function AktivitasKP1() {
           {isLoadingExisting && (
             <div className="flex items-center justify-center py-12">
               <Spinner />
-              <span className="ml-3 text-sm text-slate-500">Memuat aktivitas...</span>
+              <span className="ml-3 text-sm text-muted">Memuat aktivitas...</span>
             </div>
           )}
 
@@ -947,7 +947,7 @@ export default function AktivitasKP1() {
                 <p className="font-bold text-base" style={{ color: C.green }}>
                   ✅ Kamu sudah menyelesaikan aktivitas ini!
                 </p>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-muted mt-1">
                   Klik &ldquo;Lihat jawabanku&rdquo; di setiap langkah untuk melihat jawaban dan feedback.
                 </p>
               </div>
@@ -996,9 +996,9 @@ export default function AktivitasKP1() {
           {!isLoadingExisting && !hasExistingSubmissions && allComplete && (
             <div className="rounded-xl p-4 text-center" style={{ backgroundColor: C.greenLight }}>
               <p className="font-bold text-base" style={{ color: C.green }}>
-                🎉 Semua langkah selesai!
+                Semua langkah selesai!
               </p>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="text-sm text-muted mt-1">
                 Semua jawabanmu sudah tersimpan. Lanjutkan ke aktivitas berikutnya ya!
               </p>
             </div>

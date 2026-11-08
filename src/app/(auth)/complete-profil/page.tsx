@@ -164,14 +164,14 @@ export default function CompleteProfilPage() {
     <div className="flex flex-col lg:flex-row w-full min-h-screen">
       <div className="w-full lg:flex-1 flex flex-col items-center justify-center px-4 md:px-8 lg:px-16 py-8 mt-4">
         <h1 className="text-3xl font-bold">Lengkapi Profil Kamu</h1>
-        <p className="text-gray-500 mt-2 text-center">
+        <p className="text-muted mt-2 text-center">
           Satu langkah lagi sebelum mulai belajar.
         </p>
 
         {/* Profile picture row */}
         <div className="w-full max-w-[450px] flex items-center gap-4 mt-8">
           {/* Avatar */}
-          <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex-shrink-0">
+          <div className="w-16 h-16 rounded-full overflow-hidden border border-line bg-surface flex-shrink-0">
             {displayAvatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -184,7 +184,7 @@ export default function CompleteProfilPage() {
               <div className="w-full h-full flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-8 h-8 text-gray-400"
+                  className="w-8 h-8 text-muted"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -216,7 +216,7 @@ export default function CompleteProfilPage() {
             <button
               type="button"
               onClick={handleRemoveAvatar}
-              className="px-4 py-2 rounded-full bg-gray-200 text-red-500 text-sm font-medium"
+              className="px-4 py-2 rounded-full bg-line text-[#B91C1C] text-sm font-medium"
             >
               Hapus Foto
             </button>
@@ -224,22 +224,24 @@ export default function CompleteProfilPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="w-full max-w-[450px] mt-1">
-          <label className="block text-sm mb-1 mt-4">Nama Lengkap</label>
+          <label htmlFor="nama-lengkap" className="block text-sm mb-1 mt-4">Nama Lengkap</label>
           <input
+            id="nama-lengkap"
             type="text"
             value={namaLengkap}
             onChange={(e) => setNamaLengkap(e.target.value)}
-            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
             placeholder="Nama lengkap kamu"
             required
           />
 
-          <label className="block text-sm mt-4 mb-1">Nomor Absen</label>
+          <label htmlFor="nomor-absen" className="block text-sm mt-4 mb-1">Nomor Absen</label>
           <input
+            id="nomor-absen"
             type="text"
             value={nomorAbsen}
             onChange={(e) => setNomorAbsen(e.target.value)}
-            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362]"
             placeholder="Nomor absen kamu"
           />
 
@@ -253,22 +255,23 @@ export default function CompleteProfilPage() {
               classLookup.reset();
             }}
             onBlur={() => checkClassCode(kodeKelas)}
-            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none uppercase tracking-widest"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362] uppercase tracking-widest"
             placeholder="Minta kode kelas ke gurumu"
             autoComplete="off"
           />
           <div className="mt-2">
-            {classLookup.status === "checking" && <p className="text-sm text-gray-500">Memeriksa kode kelas...</p>}
-            {classLookup.status === "invalid" && <p className="text-sm text-red-500">{classLookup.error}</p>}
+            {classLookup.status === "checking" && <p className="text-sm text-muted">Memeriksa kode kelas...</p>}
+            {classLookup.status === "invalid" && <p role="alert" className="text-sm text-[#B91C1C]">{classLookup.error}</p>}
             {classLookup.status === "valid" && classLookup.info && <ClassInfoCard info={classLookup.info} />}
           </div>
 
-          <label className="block text-sm mt-4 mb-1">Jenis Kelamin</label>
+          <label htmlFor="jenis-kelamin" className="block text-sm mt-4 mb-1">Jenis Kelamin</label>
           <select
+            id="jenis-kelamin"
             value={gender}
             onChange={(e) => setGender(e.target.value)}
             required
-            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none appearance-none"
+            className="w-full py-2.5 pl-5 pr-4 rounded-full border border-brand-600 bg-brand-50 outline-none focus:ring-2 focus:ring-[#663362] appearance-none"
           >
             <option value="" disabled>Pilih jenis kelamin</option>
             <option value="Laki-laki">Laki-laki</option>
@@ -276,7 +279,7 @@ export default function CompleteProfilPage() {
           </select>
 
           {error && (
-            <p className="text-red-500 text-sm mt-3 text-center">{error}</p>
+            <p role="alert" className="text-[#B91C1C] text-sm mt-3 text-center">{error}</p>
           )}
 
           <button

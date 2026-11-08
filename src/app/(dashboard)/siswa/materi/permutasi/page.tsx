@@ -21,7 +21,7 @@ const PERMUTASI_TOC: TocSection[] = [
     icon: "ti-arrows-sort",
     numberOverride: "4.1",
     children: [
-      { key: "permutasi-1a", label: "Eksplorasi", sub: "Lomba lari — siapa juara?", icon: "ti-search", dotOnly: true },
+      { key: "permutasi-1a", label: "Eksplorasi", sub: "Lomba lari: siapa juara?", icon: "ti-search", dotOnly: true },
       { key: "permutasi-1b", label: "Aktivitas Deep Learning", sub: "Susunan huruf & temukan rumus", icon: "ti-brain", dotOnly: true },
       { key: "permutasi-1c", label: "Penjelasan Konsep", sub: "Rumus P(n,r) = n!/(n-r)!", icon: "ti-book", dotOnly: true },
     ],
@@ -41,7 +41,7 @@ const PERMUTASI_TOC: TocSection[] = [
   {
     key: "permutasi-bagian3",
     label: "Permutasi Siklis",
-    sub: "Susunan melingkar — rotasi dianggap sama",
+    sub: "Susunan melingkar: rotasi dianggap sama",
     icon: "ti-circle",
     numberOverride: "4.3",
     children: [
